@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "435538549992",
+    "project_id": "mytrackr-d0b06",
+    "storage_bucket": "mytrackr-d0b06.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435538549992:android:c9a24398caa627105ffd5d",
+        "android_client_info": {
+          "package_name": "com.mytrackr.receipts"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "435538549992-1peaqvug8raud7onqrs1fn4um8t39cr8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mytrackr.receipts",
+            "certificate_hash": "aae3dc83052d3d845be1d6236a92dc96df9569a4"
+          }
+        },
+        {
+          "client_id": "435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkkiuD-eMfedzq51zwuCu7pimUPHp2HUY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
