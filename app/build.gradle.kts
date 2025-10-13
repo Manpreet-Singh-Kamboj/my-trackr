@@ -46,8 +46,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
+    implementation("com.airbnb.android:lottie:+")
     // Firebase Dependencies
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-auth")
+
+    // Lifecycle (ViewModel + LiveData)
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
 }
