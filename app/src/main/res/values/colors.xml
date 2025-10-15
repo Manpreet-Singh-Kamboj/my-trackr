@@ -13,4 +13,6 @@
 
     <color name="error">#D32F2F</color>
     <color name="onError">#FFFFFF</color>
+
+    <color name="signInHeader">#FFFFFF</color>
 </resources>

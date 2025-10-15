@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.mytrackr.receipts.MainActivity;
 import com.mytrackr.receipts.databinding.ActivitySplashBinding;
-import com.mytrackr.receipts.features.auth.LoginActivity;
+import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 public class SplashActivity extends AppCompatActivity {
@@ -35,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
                         startActivity(new Intent(SplashActivity.this,MainActivity.class));
                         finish();
                     }else{
-                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                        startActivity(new Intent(SplashActivity.this, GetStartedActivity.class));
                         finish();
                     }
                 });

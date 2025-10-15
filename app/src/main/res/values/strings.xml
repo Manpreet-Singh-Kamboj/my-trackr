@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">My Trackr</string>
+    <string name="welcome_image_description">Welcome Image</string>
+    <string name="get_started_title">Let\'s Get Started</string>
+    <string name="get_started_description">MyTrackr helps you manage your receipts with ease effortlessly scan, store, and track expenses while getting clear insights into your spending and budgets.</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="sign_in_heading">Sign In</string>
+    <string name="sign_up_heading">Sign Up</string>
+    <string name="dont_have_a_account">Don\'t have an account? </string>
+    <string name="email_hint">Email Address</string>
+    <string name="password_hint">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
 </resources>

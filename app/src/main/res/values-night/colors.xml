@@ -13,5 +13,7 @@
 
     <color name="error">#CF6679</color>
     <color name="onError">#000000</color>
+
+    <color name="signInHeader">#000000</color>
 </resources>
 
