@@ -11,4 +11,10 @@
     <string name="email_hint">Email Address</string>
     <string name="password_hint">Password</string>
     <string name="forgot_password">Forgot Password?</string>
+    <string name="or">or</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="sign_out">Sign Out</string>
+
+    <!-- Google Client IDS -->
+    <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
 </resources>

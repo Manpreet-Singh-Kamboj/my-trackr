@@ -15,4 +15,7 @@
     <color name="onError">#FFFFFF</color>
 
     <color name="signInHeader">#FFFFFF</color>
+
+    <color name="light_gray">#7F7F7F</color>
+    <color name="light_red">#FFEBEE</color>
 </resources>

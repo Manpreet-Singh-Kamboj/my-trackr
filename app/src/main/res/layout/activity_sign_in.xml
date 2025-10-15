@@ -8,30 +8,6 @@
     android:paddingHorizontal="20sp"
     android:background="@color/primary"
     tools:context=".features.auth.SignInActivity">
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="50sp"
-        android:orientation="horizontal"
-        android:gravity="center"
-        >
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_upload"
-            />
-
-        <Button
-            style="@style/TextXL.Bold"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textColor="@color/signInHeader" />
-
-    </LinearLayout>
     <com.google.android.material.card.MaterialCardView
         style="@style/Card.Rounded"
         android:layout_width="match_parent"
@@ -81,9 +57,12 @@
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/email_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:boxStrokeWidth="1sp"
+                app:startIconDrawable="@android:drawable/sym_action_email"
+                app:startIconTint="@color/light_gray"
                 >
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/email"
@@ -97,11 +76,14 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password_layout"
                 android:layout_marginTop="10sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:passwordToggleEnabled="true"
                 app:boxStrokeWidth="1sp"
+                app:startIconDrawable="@android:drawable/ic_lock_lock"
+                app:startIconTint="@color/light_gray"
                 >
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/password"
@@ -132,6 +114,48 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="5dp"/>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="20sp">
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/darker_gray"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/or"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="@android:color/darker_gray"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/darker_gray"/>
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/google_sign_in"
+                style="@style/ButtonOutline"
+                android:text="@string/continue_with_google"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20sp"
+                android:layout_marginEnd="5sp"
+                app:icon="@drawable/google_logo"
+                app:iconSize="24dp"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:cornerRadius="10sp"
+                app:iconTint="@null"
+                android:textColor="?attr/colorOnSurface"
+                app:strokeColor="@android:color/darker_gray"
+                />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
