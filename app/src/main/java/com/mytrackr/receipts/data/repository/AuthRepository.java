@@ -1,24 +1,23 @@
 package com.mytrackr.receipts.data.repository;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserInfo;
 
 public class AuthRepository {
-    private GoogleSignInClient googleSignInClient;
+    private final GoogleSignInClient googleSignInClient;
     private final FirebaseAuth firebaseAuth;
     private final MutableLiveData<FirebaseUser> currentUser = new MutableLiveData<FirebaseUser>();
     private final FirebaseAuth.AuthStateListener authStateListener = firebaseAuth -> {
@@ -26,9 +25,14 @@ public class AuthRepository {
         currentUser.postValue(user);
     };
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
-    public AuthRepository(){
+    public AuthRepository(Context context, String clientId){
         this.firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(authStateListener);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(clientId)
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(context, gso);
     }
     public LiveData<FirebaseUser> getUser(){
         return currentUser;
@@ -36,12 +40,7 @@ public class AuthRepository {
     public LiveData<String> getErrorMessage(){
         return errorMessage;
     }
-    public void handleGoogleLogin(String clientId, Activity activity, int requestCode){
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(clientId)
-                .requestEmail()
-                .build();
-        googleSignInClient = GoogleSignIn.getClient(activity, gso);
+    public void handleGoogleLogin(Activity activity, int requestCode){
         Intent signInIntent = googleSignInClient.getSignInIntent();
         activity.startActivityForResult(signInIntent, requestCode);
     }
@@ -89,7 +88,27 @@ public class AuthRepository {
                 });
     }
     public void signOut(){
-        firebaseAuth.signOut();
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        boolean isGoogleLogin = false;
+        if(user != null){
+            for(UserInfo userInfo: user.getProviderData()){
+                if(userInfo.getProviderId().equals(GoogleAuthProvider.PROVIDER_ID)){
+                    isGoogleLogin = true;
+                    break;
+                }
+            }
+            if(isGoogleLogin) {
+                googleSignInClient.signOut().addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        firebaseAuth.signOut();
+                    }else{
+                        errorMessage.postValue("Something Went Wrong. Please try again.");
+                    }
+                });
+            } else {
+                firebaseAuth.signOut();
+            }
+        }
     }
     public void removeAuthStateListener() {
         firebaseAuth.removeAuthStateListener(authStateListener);

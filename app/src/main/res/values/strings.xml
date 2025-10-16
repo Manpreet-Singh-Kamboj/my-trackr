@@ -8,6 +8,7 @@
     <string name="sign_in_heading">Sign In</string>
     <string name="sign_up_heading">Sign Up</string>
     <string name="dont_have_a_account">Don\'t have an account? </string>
+    <string name="already_have_a_account">Already have an account? </string>
     <string name="email_hint">Email Address</string>
     <string name="password_hint">Password</string>
     <string name="forgot_password">Forgot Password?</string>

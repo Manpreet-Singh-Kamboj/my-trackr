@@ -1,28 +1,16 @@
 package com.mytrackr.receipts.features.auth;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.mytrackr.receipts.MainActivity;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.databinding.ActivitySignInBinding;
-import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 public class SignInActivity extends AppCompatActivity {
@@ -45,12 +33,14 @@ public class SignInActivity extends AppCompatActivity {
             }
         });
         binding.signIn.setOnClickListener(this::handleSignIn);
+        binding.signUp.setOnClickListener(this::onSignUpButtonClick);
         authViewModel.signInError().observe(this, errorMessage->{
             if(!errorMessage.isEmpty()){
                 showErrorSnackBar(errorMessage);
             }
         });
         binding.googleSignIn.setOnClickListener(this::handleContinueWithGoogle);
+        binding.backButton.setOnClickListener(this::onBackButtonPressed);
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -67,7 +57,14 @@ public class SignInActivity extends AppCompatActivity {
         snackbar.show();
     }
     private void handleContinueWithGoogle(View view){
-        authViewModel.handleGoogleLogin(getString(R.string.google_web_client_id),this,GOOGLE_SIGN_IN_CODE);
+        authViewModel.handleGoogleLogin(this,GOOGLE_SIGN_IN_CODE);
+    }
+
+    private void onBackButtonPressed(View view){
+        finish();
+    }
+    private void onSignUpButtonClick(View view){
+        startActivity(new Intent(this, SignupActivity.class));
     }
     public void handleSignIn(View view){
         authViewModel.handleSignIn(binding,getColor(R.color.error), getColor(R.color.primary));

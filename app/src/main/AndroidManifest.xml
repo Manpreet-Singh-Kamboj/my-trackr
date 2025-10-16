@@ -12,6 +12,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTrackr">
         <activity
+            android:name=".features.auth.SignupActivity"
+            android:exported="false"
+            android:parentActivityName=".features.auth.SignInActivity"
+            >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.auth.SignInActivity"
+                />
+        </activity>
+        <activity
             android:name=".features.auth.SignInActivity"
             android:exported="false"
             android:parentActivityName=".features.get_started.GetStartedActivity">
@@ -27,6 +37,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

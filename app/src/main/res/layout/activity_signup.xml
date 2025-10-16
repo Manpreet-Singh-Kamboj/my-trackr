@@ -42,34 +42,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:layout_marginBottom="12dp">
                 <TextView
-                    android:text="@string/sign_in_heading"
+                    android:text="@string/sign_up_heading"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     style="@style/Text2XL.Bold"
                     />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center">
-                    <TextView
-                        android:text="@string/dont_have_a_account"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        style="@style/TextMedium"
-                        />
-                    <TextView
-                        android:id="@+id/sign_up"
-                        style="@style/ButtonWithNoBorder"
-                        android:text="@string/sign_up_heading"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="0sp"
-                        android:textAlignment="textStart"
-                        android:layout_marginStart="5sp"
-                        />
-                </LinearLayout>
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -111,24 +91,15 @@
                     />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/forgot_password"
-                style="@style/ButtonWithNoBorder"
-                android:text="@string/forgot_password"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:padding="0dp"
-                android:gravity="center"
-                android:layout_marginEnd="5dp"/>
-
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/sign_in"
+                android:id="@+id/sign_up"
                 style="@style/Button"
-                android:text="@string/sign_in_heading"
+                android:text="@string/sign_up_heading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="5dp"/>
+                android:layout_marginEnd="5dp"
+                android:layout_marginTop="12dp"
+                />
 
             <LinearLayout
                 android:layout_width="match_parent"

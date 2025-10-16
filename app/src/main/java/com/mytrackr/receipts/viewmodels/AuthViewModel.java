@@ -1,23 +1,25 @@
 package com.mytrackr.receipts.viewmodels;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.util.Patterns;
 import android.widget.EditText;
-
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
-
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
+import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.repository.AuthRepository;
 import com.mytrackr.receipts.databinding.ActivitySignInBinding;
 
-public class AuthViewModel extends ViewModel {
+public class AuthViewModel extends AndroidViewModel {
     private final AuthRepository authRepository;
-    public AuthViewModel(){
-        authRepository = new AuthRepository();
+    public AuthViewModel(@NonNull Application application){
+        super(application);
+        authRepository = new AuthRepository(application.getApplicationContext(),application.getString(R.string.google_web_client_id));
     }
     public LiveData<FirebaseUser> getUser(){
         return authRepository.getUser();
@@ -82,8 +84,8 @@ public class AuthViewModel extends ViewModel {
         authRepository.signInWithEmailAndPassword(email,password);
     }
 
-    public void handleGoogleLogin(String clientId, Activity activity, int requestCode){
-        authRepository.handleGoogleLogin(clientId,activity,requestCode);
+    public void handleGoogleLogin(Activity activity, int requestCode){
+        authRepository.handleGoogleLogin(activity,requestCode);
     }
     public void handleGoogleSignInResult(Intent data){
         authRepository.handleGoogleSignInResult(data);
