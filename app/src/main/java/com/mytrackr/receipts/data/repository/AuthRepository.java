@@ -3,6 +3,8 @@ package com.mytrackr.receipts.data.repository;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -41,6 +43,7 @@ public class AuthRepository {
 
     public static synchronized AuthRepository getInstance(Context context, String clientId){
         if(instance == null){
+            Log.e("AUTH_REPO_INITIALIZED", "AUTH Repository is Initialized");
             instance = new AuthRepository(context,clientId);
         }
         return instance;
@@ -74,7 +77,8 @@ public class AuthRepository {
                 this.firebaseAuthWithGoogle(idToken);
             }
         } catch (Exception e) {
-           errorMessage.postValue(e.getMessage());
+            Log.e("GOOGLE_LOGIN_ERROR", "Google Sign In Failed");
+            errorMessage.postValue(e.getMessage());
         }
     }
     private void firebaseAuthWithGoogle(String idToken) {
@@ -95,6 +99,7 @@ public class AuthRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
+                        Log.e("GOOGLE_LOGIN_ERROR", error);
                         errorMessage.postValue(error);
                     }
                 });
@@ -110,6 +115,7 @@ public class AuthRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
+                        Log.e("EMAIL_SIGN_IN_ERROR", error);
                         errorMessage.postValue(error);
                     }
                 });
@@ -126,6 +132,7 @@ public class AuthRepository {
                 String error = task.getException() != null
                         ? task.getException().getMessage()
                         : "Unknown error occurred";
+                Log.e("EMAIL_SIGN_IN_ERROR", error);
                 errorMessage.postValue(error);
             }
         });
@@ -139,6 +146,7 @@ public class AuthRepository {
                         successMessage.postValue("Password reset email sent! Please check your inbox and follow the instructions to reset your password.");
                     }else {
                         String error = task.getException() != null ? task.getException().getMessage() : "Unknown error occurred";
+                        Log.e("EMAIL_SIGN_IN_ERROR", error);
                         errorMessage.postValue(error);
                     }
                 });
@@ -160,6 +168,7 @@ public class AuthRepository {
                         firebaseAuth.signOut();
                         currentUser.postValue(null);
                     }else{
+                        Log.e("SIGN_OUT_ERROR", "SIGN_IN_FAILED");
                         errorMessage.postValue("Something Went Wrong. Please try again.");
                     }
                 });

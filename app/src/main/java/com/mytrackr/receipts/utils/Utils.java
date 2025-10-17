@@ -1,6 +1,7 @@
 package com.mytrackr.receipts.utils;
 
 import android.content.res.ColorStateList;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.google.android.material.textfield.TextInputLayout;
@@ -10,6 +11,7 @@ public class Utils {
 
     public static synchronized Utils getInstance(){
         if(instance == null){
+            Log.e("UTILS_INITIALIZED", "Utils Singleton Initialized");
             instance = new Utils();
         }
         return instance;

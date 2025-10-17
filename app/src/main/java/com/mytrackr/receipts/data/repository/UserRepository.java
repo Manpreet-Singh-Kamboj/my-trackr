@@ -1,5 +1,7 @@
 package com.mytrackr.receipts.data.repository;
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.firestore.DocumentReference;
@@ -19,6 +21,7 @@ public class UserRepository {
 
     public static synchronized UserRepository getInstance(){
         if(instance == null){
+            Log.e("USER_REPO_INITIALIZED", "USER Repository is Initialized");
             instance = new UserRepository();
         }
         return instance;
@@ -39,6 +42,7 @@ public class UserRepository {
                     String error = task.getException() != null
                             ? task.getException().getMessage()
                             : "Unknown error occurred";
+                        Log.e("GOOGLE_USER_CHECK", "GOOGLE_USER_CHECK_FAILED IN DB");
                     errorMessage.postValue(error);
                 }
         });
@@ -57,6 +61,7 @@ public class UserRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
+                        Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
                         errorMessage.postValue(error);
                     }
                 });

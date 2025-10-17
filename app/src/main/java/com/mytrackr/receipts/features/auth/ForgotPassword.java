@@ -1,6 +1,7 @@
 package com.mytrackr.receipts.features.auth;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
@@ -28,12 +29,14 @@ public class ForgotPassword extends AppCompatActivity {
         authViewModel.success().observe(this,message -> {
             if(message != null && !message.isEmpty()){
                 authViewModel.showSuccessSnackBar(binding, message);
+                Log.e("FORGOT_PASSWORD_SUCCESS", message);
                 binding.email.setText("");
             }
         });
         authViewModel.error().observe(this,error -> {
             if(error != null && !error.isEmpty()){
                 authViewModel.showErrorSnackBar(binding, error);
+                Log.e("FORGOT_PASSWORD_ERROR", error);
             }
         });
     }
