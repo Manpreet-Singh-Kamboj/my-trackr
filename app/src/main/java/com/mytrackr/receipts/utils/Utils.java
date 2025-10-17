@@ -11,7 +11,7 @@ public class Utils {
 
     public static synchronized Utils getInstance(){
         if(instance == null){
-            Log.e("UTILS_INITIALIZED", "Utils Singleton Initialized");
+            Log.i("UTILS_INITIALIZED", "Utils Singleton Initialized");
             instance = new Utils();
         }
         return instance;
