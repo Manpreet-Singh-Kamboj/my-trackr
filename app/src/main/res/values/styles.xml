@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Heading -->
+    <style name="Heading">
+        <item name="android:textSize">@dimen/text_heading</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
+    <!-- Heading Bold -->
+    <style name="Heading.Bold" parent="Heading">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Extra Large -->
+    <style name="Text2XL">
+        <item name="android:textSize">@dimen/text_2xl</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Extra Large Bold -->
+    <style name="Text2XL.Bold" parent="Text2XL">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Large -->
+    <style name="TextXL">
+        <item name="android:textSize">@dimen/text_xl</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Large Bold -->
+    <style name="TextXL.Bold" parent="TextXL">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Medium -->
+    <style name="TextMedium">
+        <item name="android:textSize">@dimen/text_medium</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Medium Bold -->
+    <style name="TextMedium.Bold" parent="TextMedium">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Small -->
+    <style name="TextSM">
+        <item name="android:textSize">@dimen/text_sm</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Heading Bold -->
+    <style name="TextSM.Bold" parent="TextSM">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Outline Button -->
+    <style name="ButtonOutline" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">?attr/colorPrimary</item>
+        <item name="strokeWidth">2sp</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:textSize">@dimen/text_medium</item>
+    </style>
+
+    <!-- Button -->
+    <style name="Button" parent="Widget.Material3.Button">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textSize">@dimen/text_medium</item>
+        <item name="cornerRadius">10dp</item>
+    </style>
+
+    <!-- Button Rounded -->
+    <style name="Button.Rounded" parent="Widget.Material3.Button">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textSize">@dimen/text_medium</item>
+    </style>
+
+    <!-- Button with no Border -->
+    <style name="ButtonWithNoBorder" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeWidth">0sp</item>
+        <item name="android:textAppearance">@style/TextSM.Bold</item>
+    </style>
+
+    <!-- Card Rounded -->
+    <style name="Card.Rounded" parent="Widget.MaterialComponents.CardView">
+        <item name="android:backgroundTint">?attr/background</item>
+        <item name="cardCornerRadius">20dp</item>
+        <item name="strokeColor">?attr/background</item>
+    </style>
+
+</resources>

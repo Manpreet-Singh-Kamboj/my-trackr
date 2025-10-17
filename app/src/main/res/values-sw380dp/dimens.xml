@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Text Sizes -->
+    <dimen name="text_heading">28sp</dimen>
+    <dimen name="text_2xl">24sp</dimen>
+    <dimen name="text_xl">22sp</dimen>
+    <dimen name="text_medium">17sp</dimen>
+    <dimen name="text_sm">15sp</dimen>
+    <dimen name="margin_bottom">50sp</dimen>
+</resources>

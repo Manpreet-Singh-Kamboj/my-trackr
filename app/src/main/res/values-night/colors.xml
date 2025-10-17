@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#90CAF9</color>
+    <color name="onPrimary">#000000</color>
+    <color name="primaryContainer">#1565C0</color>
+
+    <color name="secondary">#80CBC4</color>
+    <color name="onSecondary">#000000</color>
+
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="onSurface">#E0E0E0</color>
+
+    <color name="error">#CF6679</color>
+    <color name="onError">#000000</color>
+
+    <color name="signInHeader">#000000</color>
+
+    <color name="light_gray">#A9A9A9</color>
+</resources>
+

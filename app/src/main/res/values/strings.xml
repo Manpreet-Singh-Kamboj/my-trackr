@@ -1,3 +1,24 @@
 <resources>
-    <string name="app_name">MyTrackr</string>
+    <string name="app_name">My Trackr</string>
+    <string name="welcome_image_description">Welcome Image</string>
+    <string name="get_started_title">Let\'s Get Started</string>
+    <string name="get_started_description">MyTrackr helps you manage your receipts with ease effortlessly scan, store, and track expenses while getting clear insights into your spending and budgets.</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="sign_in_heading">Sign In</string>
+    <string name="sign_up_heading">Sign Up</string>
+    <string name="dont_have_a_account">Don\'t have an account? </string>
+    <string name="already_have_a_account">Already have an account? </string>
+    <string name="email_hint">Email Address</string>
+    <string name="full_name_hint">Full Name</string>
+    <string name="forgot_password_heading">Forgot Password</string>
+    <string name="send">Send</string>
+    <string name="password_hint">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="or">or</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="sign_out">Sign Out</string>
+
+    <!-- Google Client IDS -->
+    <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
 </resources>
