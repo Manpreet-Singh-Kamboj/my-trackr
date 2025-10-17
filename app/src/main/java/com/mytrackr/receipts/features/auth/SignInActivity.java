@@ -6,7 +6,6 @@ import android.view.View;
 import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.mytrackr.receipts.MainActivity;
 import com.mytrackr.receipts.R;
@@ -32,15 +31,16 @@ public class SignInActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        binding.signIn.setOnClickListener(this::handleSignIn);
-        binding.signUp.setOnClickListener(this::onSignUpButtonClick);
-        authViewModel.signInError().observe(this, errorMessage->{
+        authViewModel.error().observe(this, errorMessage->{
             if(!errorMessage.isEmpty()){
-                showErrorSnackBar(errorMessage);
+                authViewModel.showErrorSnackBar(binding,errorMessage);
             }
         });
+        binding.signIn.setOnClickListener(this::handleSignIn);
+        binding.signUp.setOnClickListener(this::onSignUpButtonClick);
         binding.googleSignIn.setOnClickListener(this::handleContinueWithGoogle);
         binding.backButton.setOnClickListener(this::onBackButtonPressed);
+        binding.forgotPassword.setOnClickListener(this::onForgotPasswordClick);
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -50,11 +50,8 @@ public class SignInActivity extends AppCompatActivity {
             authViewModel.handleGoogleSignInResult(data);
         }
     }
-    private void showErrorSnackBar(String errorMessage){
-        Snackbar snackbar = Snackbar.make(binding.getRoot(), errorMessage, Snackbar.LENGTH_LONG);
-        snackbar.setBackgroundTint(getColor(R.color.light_red));
-        snackbar.setTextColor(getColor(R.color.error));
-        snackbar.show();
+    private void onForgotPasswordClick(View view){
+        startActivity(new Intent(this, ForgotPassword.class));
     }
     private void handleContinueWithGoogle(View view){
         authViewModel.handleGoogleLogin(this,GOOGLE_SIGN_IN_CODE);

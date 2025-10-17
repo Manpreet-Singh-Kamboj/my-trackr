@@ -17,6 +17,8 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
 
 public class AuthRepository {
+    private static AuthRepository instance;
+    private static UserRepository userRepository;
     private final GoogleSignInClient googleSignInClient;
     private final FirebaseAuth firebaseAuth;
     private final MutableLiveData<FirebaseUser> currentUser = new MutableLiveData<FirebaseUser>();
@@ -25,7 +27,8 @@ public class AuthRepository {
         currentUser.postValue(user);
     };
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
-    public AuthRepository(Context context, String clientId){
+    private final  MutableLiveData<String> successMessage = new MutableLiveData<>("");
+    private AuthRepository(Context context, String clientId){
         this.firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(authStateListener);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -33,12 +36,30 @@ public class AuthRepository {
                 .requestEmail()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(context, gso);
+        userRepository = UserRepository.getInstance();
     }
+
+    public static synchronized AuthRepository getInstance(Context context, String clientId){
+        if(instance == null){
+            instance = new AuthRepository(context,clientId);
+        }
+        return instance;
+    }
+
     public LiveData<FirebaseUser> getUser(){
         return currentUser;
     }
     public LiveData<String> getErrorMessage(){
         return errorMessage;
+    }
+    public LiveData<String> getSuccessMessage(){
+        return successMessage;
+    }
+    public void clearErrorMessage(){
+        errorMessage.postValue("");
+    }
+    public void clearSuccessMessage(){
+        successMessage.postValue("");
     }
     public void handleGoogleLogin(Activity activity, int requestCode){
         Intent signInIntent = googleSignInClient.getSignInIntent();
@@ -64,6 +85,12 @@ public class AuthRepository {
                     if (task.isSuccessful()) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         currentUser.postValue(user);
+                        if(user != null){
+                            String uid = user.getUid();
+                            String fullName = user.getDisplayName();
+                            String email = user.getEmail();
+                            userRepository.checkIfGoogleUserDetailsExistOrNot(uid,fullName,email,errorMessage);
+                        }
                     } else {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
@@ -74,7 +101,7 @@ public class AuthRepository {
     }
     public void signInWithEmailAndPassword(String email, String password) {
         firebaseAuth
-                .signInWithEmailAndPassword(email,password)
+                .signInWithEmailAndPassword(email.toLowerCase(),password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
@@ -87,6 +114,36 @@ public class AuthRepository {
                     }
                 });
     }
+    public void signUpWithEmailPassword(String fullName, String email, String password){
+        firebaseAuth.createUserWithEmailAndPassword(email.toLowerCase(),password).addOnCompleteListener(task -> {
+            if (task.isSuccessful()){
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                currentUser.postValue(user);
+                if(user != null){
+                    userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage);
+                }
+            }else{
+                String error = task.getException() != null
+                        ? task.getException().getMessage()
+                        : "Unknown error occurred";
+                errorMessage.postValue(error);
+            }
+        });
+    }
+
+    public void handleForgotPasswordRequest(String email){
+        firebaseAuth
+                .sendPasswordResetEmail(email.toLowerCase())
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        successMessage.postValue("Password reset email sent! Please check your inbox and follow the instructions to reset your password.");
+                    }else {
+                        String error = task.getException() != null ? task.getException().getMessage() : "Unknown error occurred";
+                        errorMessage.postValue(error);
+                    }
+                });
+    }
+
     public void signOut(){
         FirebaseUser user = firebaseAuth.getCurrentUser();
         boolean isGoogleLogin = false;
@@ -101,12 +158,14 @@ public class AuthRepository {
                 googleSignInClient.signOut().addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         firebaseAuth.signOut();
+                        currentUser.postValue(null);
                     }else{
                         errorMessage.postValue("Something Went Wrong. Please try again.");
                     }
                 });
-            } else {
+            }else{
                 firebaseAuth.signOut();
+                currentUser.postValue(null);
             }
         }
     }

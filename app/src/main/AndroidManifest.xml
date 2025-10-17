@@ -12,14 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTrackr">
         <activity
+            android:name=".features.auth.ForgotPassword"
+            android:exported="false" />
+        <activity
             android:name=".features.auth.SignupActivity"
             android:exported="false"
-            android:parentActivityName=".features.auth.SignInActivity"
-            >
+            android:parentActivityName=".features.auth.SignInActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".features.auth.SignInActivity"
-                />
+                android:value=".features.auth.SignInActivity" />
         </activity>
         <activity
             android:name=".features.auth.SignInActivity"
