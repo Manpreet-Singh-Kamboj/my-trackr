@@ -29,7 +29,7 @@ public class ForgotPassword extends AppCompatActivity {
         authViewModel.success().observe(this,message -> {
             if(message != null && !message.isEmpty()){
                 authViewModel.showSuccessSnackBar(binding, message);
-                Log.e("FORGOT_PASSWORD_SUCCESS", message);
+                Log.i("FORGOT_PASSWORD_SUCCESS", message);
                 binding.email.setText("");
             }
         });

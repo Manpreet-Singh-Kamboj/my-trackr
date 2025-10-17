@@ -43,8 +43,8 @@ public class AuthRepository {
 
     public static synchronized AuthRepository getInstance(Context context, String clientId){
         if(instance == null){
-            Log.e("AUTH_REPO_INITIALIZED", "AUTH Repository is Initialized");
             instance = new AuthRepository(context,clientId);
+            Log.i("AUTH_REPO_INITIALIZED", "AUTH Repository is Initialized");
         }
         return instance;
     }

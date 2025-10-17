@@ -21,8 +21,8 @@ public class UserRepository {
 
     public static synchronized UserRepository getInstance(){
         if(instance == null){
-            Log.e("USER_REPO_INITIALIZED", "USER Repository is Initialized");
             instance = new UserRepository();
+            Log.i("USER_REPO_INITIALIZED", "USER Repository is Initialized");
         }
         return instance;
     }
