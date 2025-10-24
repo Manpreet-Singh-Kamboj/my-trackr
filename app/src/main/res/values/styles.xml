@@ -91,4 +91,13 @@
         <item name="strokeColor">?attr/background</item>
     </style>
 
+    <!--Bottom Nav Style -->
+    <style name="BottomNavViewStyle" parent="Widget.MaterialComponents.BottomNavigationView.Colored">
+        <item name="backgroundTint">@color/bottom_nav_bg</item>
+        <item name="itemIconTint">@color/bottom_nav_icon_color</item>
+        <item name="itemTextColor">@color/bottom_nav_icon_color</item>
+        <item name="elevation">8dp</item>
+    </style>
+
+
 </resources>
