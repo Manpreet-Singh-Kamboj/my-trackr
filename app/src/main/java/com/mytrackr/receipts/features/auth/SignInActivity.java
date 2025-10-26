@@ -8,7 +8,7 @@ import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mytrackr.receipts.MainActivity;
+import com.mytrackr.receipts.features.core.MainActivity;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.databinding.ActivitySignInBinding;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;

@@ -9,7 +9,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-import com.mytrackr.receipts.MainActivity;
+import com.mytrackr.receipts.features.core.MainActivity;
 import com.mytrackr.receipts.databinding.ActivitySplashBinding;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;

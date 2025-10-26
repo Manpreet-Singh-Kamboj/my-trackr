@@ -6,17 +6,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.viewbinding.ViewBinding;
 
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
-import com.mytrackr.receipts.MainActivity;
+import com.mytrackr.receipts.features.core.MainActivity;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.databinding.ActivitySignupBinding;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;

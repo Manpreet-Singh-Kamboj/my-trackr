@@ -17,5 +17,8 @@
     <color name="signInHeader">#000000</color>
 
     <color name="light_gray">#A9A9A9</color>
+
+    <color name="bottom_nav_bg">#252525</color>
+
 </resources>
 
