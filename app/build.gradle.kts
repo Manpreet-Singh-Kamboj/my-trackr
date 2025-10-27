@@ -55,9 +55,18 @@ dependencies {
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.firebase:firebase-firestore")
-
-    // Lifecycle (ViewModel + LiveData)
+    // Firebase Storage for saving receipt images
+    implementation("com.google.firebase:firebase-storage")
+    // ML Kit on-device Text Recognition (use latest stable suggested)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // ML Kit Document Scanner for cropping and enhancing receipt images
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")    // Lifecycle (ViewModel + LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
+
+    // Glide for efficient image loading, EXIF handling and transformations
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)
+    // kapt("com.github.bumptech.glide:compiler:4.15.1")
 }
