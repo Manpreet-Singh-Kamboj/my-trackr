@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.mytrackr.receipts.MainActivity;
 import com.mytrackr.receipts.databinding.ActivitySplashBinding;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
+import com.mytrackr.receipts.features.onboarding.OnboardingActivity;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 public class SplashActivity extends AppCompatActivity {
@@ -32,7 +33,14 @@ public class SplashActivity extends AppCompatActivity {
             public void run() {
                 authViewModel.getUser().observe(SplashActivity.this, user->{
                     if(user != null){
-                        startActivity(new Intent(SplashActivity.this,MainActivity.class));
+                        // User is logged in, check if onboarding is completed
+                        if (OnboardingActivity.isOnboardingCompleted(SplashActivity.this)) {
+                            // User has completed onboarding, go to main activity
+                            startActivity(new Intent(SplashActivity.this,MainActivity.class));
+                        } else {
+                            // User hasn't seen onboarding yet, show onboarding
+                            startActivity(new Intent(SplashActivity.this, OnboardingActivity.class));
+                        }
                         finish();
                     }else{
                         startActivity(new Intent(SplashActivity.this, GetStartedActivity.class));

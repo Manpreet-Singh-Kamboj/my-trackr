@@ -11,4 +11,11 @@
     <string name="email_hint">Email Address</string>
     <string name="password_hint">Password</string>
     <string name="forgot_password">Forgot Password?</string>
+    
+    <!-- Onboarding strings -->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="skip">Skip</string>
+    <string name="get_started">Get Started</string>
+    <string name="onboarding_illustration">Onboarding illustration</string>
 </resources>

@@ -124,6 +124,7 @@
                 android:gravity="center"
                 android:layout_marginEnd="5dp"/>
 
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/sign_in"
                 style="@style/Button"
@@ -131,6 +132,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="5dp"/>
+
+            <!-- TEMP LOGIN BUTTON FOR ONBOARDING TEST -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/temp_login"
+                style="@style/Button"
+                android:text="Temp Login (Onboarding)"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="@color/secondary"/>
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

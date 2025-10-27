@@ -15,4 +15,11 @@
     <color name="onError">#FFFFFF</color>
 
     <color name="signInHeader">#FFFFFF</color>
+    
+    <!-- Onboarding colors -->
+    <color name="primary_color">#1E88E5</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="indicator_inactive">#E0E0E0</color>
+    <color name="white">#FFFFFF</color>
 </resources>

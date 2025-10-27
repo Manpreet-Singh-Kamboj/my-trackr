@@ -20,6 +20,9 @@
                 android:value=".features.get_started.GetStartedActivity" />
         </activity>
         <activity
+            android:name=".features.onboarding.OnboardingActivity"
+            android:exported="false" />
+        <activity
             android:name=".features.get_started.GetStartedActivity"
             android:exported="false" />
         <activity
