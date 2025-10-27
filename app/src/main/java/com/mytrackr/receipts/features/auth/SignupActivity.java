@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.TextInputLayout;
 import com.mytrackr.receipts.features.core.MainActivity;
+import com.mytrackr.receipts.features.onboarding.OnboardingActivity;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.databinding.ActivitySignupBinding;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
@@ -27,7 +28,8 @@ public class SignupActivity extends AppCompatActivity {
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         authViewModel.getUser().observe(this,user -> {
             if(user != null){
-                Intent intent = new Intent(this, MainActivity.class);
+                // New user signed up successfully - show onboarding first
+                Intent intent = new Intent(this, OnboardingActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }

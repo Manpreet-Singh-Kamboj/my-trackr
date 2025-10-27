@@ -27,4 +27,11 @@
     <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    
+    <!-- Onboarding strings -->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="skip">Skip</string>
+    <string name="get_started">Get Started</string>
+    <string name="onboarding_illustration">Onboarding illustration</string>
 </resources>

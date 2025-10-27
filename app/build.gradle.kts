@@ -60,4 +60,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
+    
+    // ViewPager2 and Onboarding
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("com.tbuonomo:dotsindicator:5.0")
 }
