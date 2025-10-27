@@ -1,4 +1,4 @@
-package com.mytrackr.receipts.features.receipts;
+package com.mytrackr.receipts.data.models;
 
 import java.util.List;
 import java.util.Map;

@@ -13,6 +13,8 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import com.mytrackr.receipts.data.models.Receipt;
+import com.mytrackr.receipts.data.repository.ReceiptRepository;
 
 /**
  * Scans a receipt image using ML Kit on-device Text Recognition, extracts fields with heuristics

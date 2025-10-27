@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.mytrackr.receipts.data.models.Receipt;
+
 public class ReceiptParser {
     // Very lightweight heuristic parser to extract store name, total, and date from OCR text
     public static Receipt parse(String ocrText) {
@@ -73,4 +75,3 @@ public class ReceiptParser {
         return r;
     }
 }
-

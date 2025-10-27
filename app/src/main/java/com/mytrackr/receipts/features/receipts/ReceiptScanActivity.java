@@ -41,6 +41,8 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanner;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
+import com.mytrackr.receipts.data.models.Receipt;
+import com.mytrackr.receipts.data.repository.ReceiptRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
