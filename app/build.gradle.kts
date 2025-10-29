@@ -65,6 +65,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
 
+    // ViewPager2 and Onboarding
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("com.tbuonomo:dotsindicator:5.0")
+
     // Glide for efficient image loading, EXIF handling and transformations
     implementation("com.github.bumptech.glide:glide:4.15.1")
     // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)

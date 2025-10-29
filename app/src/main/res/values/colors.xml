@@ -22,5 +22,11 @@
     <color name="dark_green">#2E7D32</color>
 
     <color name="bottom_nav_bg">#DBEAFA</color>
+    
+    <!-- Onboarding colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="indicator_inactive">#E0E0E0</color>
+    <color name="white">#FFFFFF</color>
 
 </resources>

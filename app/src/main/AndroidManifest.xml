@@ -58,6 +58,9 @@
             android:name=".features.get_started.GetStartedActivity"
             android:exported="false" />
         <activity
+            android:name=".features.onboarding.OnboardingActivity"
+            android:exported="false" />
+        <activity
             android:name=".features.splash.SplashActivity"
             android:exported="true">
             <intent-filter>

@@ -27,7 +27,8 @@ public class SignInActivity extends AppCompatActivity {
         setFocusListener(binding.passwordLayout, binding.password);
         authViewModel.getUser().observe(this,user -> {
             if(user != null){
-                Intent intent = new Intent(this,MainActivity.class);
+                // Existing user signed in - go directly to main activity
+                Intent intent = new Intent(this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
