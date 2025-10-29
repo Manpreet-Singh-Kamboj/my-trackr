@@ -1,0 +1,111 @@
+@startuml
+!theme vibrant
+
+package "Features" {
+  package "Splash" {
+    class SplashActivity
+  }
+
+  package "Get Started" {
+    class GetStartedActivity
+  }
+
+  package "Onboarding" {
+    class OnboardingActivity
+    class OnboardingAdapter
+  }
+
+  package "Auth" {
+    class SignInActivity
+    class SignupActivity
+    class ForgotPassword
+  }
+
+  package "Core" {
+    class MainActivity
+    package "Fragments" {
+        class HomeFragment
+        class ExpensesFragment
+        class DashboardFragment
+        class ProfileFragment
+    }
+  }
+}
+
+package "Data" {
+  package "Models" {
+    class Onboarding
+  }
+  package "Repository" {
+    class AuthRepository
+    class UserRepository
+  }
+}
+
+package "ViewModels" {
+  class AuthViewModel
+}
+
+package "Utils" {
+    class Utils
+}
+
+' Relationships
+SplashActivity --> AuthViewModel
+SplashActivity --> GetStartedActivity
+SplashActivity --> MainActivity
+
+GetStartedActivity --> SignInActivity
+GetStartedActivity --> SignupActivity
+
+OnboardingActivity --> OnboardingAdapter
+OnboardingActivity --> MainActivity
+OnboardingAdapter *-- Onboarding
+
+SignInActivity --> AuthViewModel
+SignInActivity --> MainActivity
+SignInActivity --> ForgotPassword
+SignInActivity --> SignupActivity
+
+SignupActivity --> AuthViewModel
+SignupActivity --> OnboardingActivity
+SignupActivity --> MainActivity
+
+ForgotPassword --> AuthViewModel
+
+MainActivity --* HomeFragment
+MainActivity --* ExpensesFragment
+MainActivity --* DashboardFragment
+MainActivity --* ProfileFragment
+
+ProfileFragment --> AuthViewModel
+ProfileFragment --> GetStartedActivity
+
+AuthViewModel --> AuthRepository
+AuthViewModel --> Utils
+AuthRepository --> UserRepository
+
+
+note "The user opens the app and sees the SplashActivity" as N1
+SplashActivity .. N1
+
+note "If the user is logged in, they are redirected to the MainActivity.\nOtherwise, they are sent to the GetStartedActivity." as N2
+SplashActivity .. N2
+
+note "From the GetStartedActivity, the user can either sign in or sign up." as N3
+GetStartedActivity .. N3
+
+note "If the user signs up, they are taken to the OnboardingActivity to learn about the app." as N4
+SignupActivity .. N4
+
+note "After onboarding (or if they are already an existing user), they are taken to the MainActivity." as N5
+OnboardingActivity .. N5
+SignInActivity .. N5
+
+note "In the MainActivity, the user can navigate between different fragments." as N6
+MainActivity .. N6
+
+note "From the ProfileFragment, the user can sign out, which takes them back to the GetStartedActivity." as N7
+ProfileFragment .. N7
+
+@enduml
