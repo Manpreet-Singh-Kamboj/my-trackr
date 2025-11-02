@@ -50,27 +50,27 @@ dependencies {
     // Firebase Dependencies
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
-    implementation("com.google.firebase:firebase-firestore")
-    // Firebase Storage for saving receipt images
-    implementation("com.google.firebase:firebase-storage")
-    // ML Kit on-device Text Recognition (use latest stable suggested)
-    implementation("com.google.mlkit:text-recognition:16.0.1")
-    // ML Kit Document Scanner for cropping and enhancing receipt images
-    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")    // Lifecycle (ViewModel + LiveData)
+
+    // ML Kit for Receipt Scanning
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+
+    // Image Loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    // Lifecycle (ViewModel + LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
-
+    
     // ViewPager2 and Onboarding
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.tbuonomo:dotsindicator:5.0")
-
-    // Glide for efficient image loading, EXIF handling and transformations
-    implementation("com.github.bumptech.glide:glide:4.15.1")
-    // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)
-    // kapt("com.github.bumptech.glide:compiler:4.15.1")
 }
