@@ -17,11 +17,17 @@
     <color name="signInHeader">#FFFFFF</color>
 
     <color name="light_gray">#616161</color>
-    <color name="light_red">#FFEBEE</color>
+    <color name="light_red">#EF5350</color>
     <color name="light_green">#C8E6C9</color>
     <color name="dark_green">#2E7D32</color>
 
     <color name="bottom_nav_bg">#DBEAFA</color>
+    
+    <!-- Budget status colors -->
+    <color name="budget_safe">#4CAF50</color>
+    <color name="budget_warning">#FF9800</color>
+    <color name="budget_danger">#F44336</color>
+    <color name="budget_exceeded">#D32F2F</color>
     
     <!-- Onboarding colors -->
     <color name="text_primary">#212121</color>
