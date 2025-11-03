@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Replace these with your Cloudinary account values -->
+    <string name="cloudinary_cloud_name">dorfsokdw</string>
+    <string name="cloudinary_upload_preset">mytrackr_unsigned_receipts</string>
+    <!-- Root folder under which receipts will be stored. No leading slash. -->
+    <string name="cloudinary_folder_root">mytrackr/receipts</string>
+</resources>
