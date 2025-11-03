@@ -68,12 +68,52 @@ public class TransactionRepository {
             return;
         }
 
+        // Query without ordering first to avoid index requirement
         firestore
                 .collection("users")
                 .document(uid)
                 .collection("transactions")
-                .whereEqualTo("month", month)
-                .whereEqualTo("year", year)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(100) // Get more, then filter client-side
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Log.e("TRANSACTION_FETCH_ERROR", "Failed to fetch transactions", e);
+                        errorMessage.postValue(e.getMessage());
+                        return;
+                    }
+
+                    if (queryDocumentSnapshots != null) {
+                        List<Transaction> transactions = new ArrayList<>();
+                        // Filter by month and year client-side
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            Transaction transaction = doc.toObject(Transaction.class);
+                            if (month.equals(transaction.getMonth()) && year.equals(transaction.getYear())) {
+                                transaction.setId(doc.getId());
+                                transactions.add(transaction);
+                                if (transactions.size() >= limit) {
+                                    break; // Stop once we have enough
+                                }
+                            }
+                        }
+                        transactionsLiveData.postValue(transactions);
+                    }
+                });
+    }
+
+    public void getRecentTransactionsLastMonth(int limit, MutableLiveData<List<Transaction>> transactionsLiveData, MutableLiveData<String> errorMessage) {
+        String uid = getCurrentUserId();
+        if (uid == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+
+        // Calculate timestamp for 30 days ago
+        long thirtyDaysAgo = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000);
+
+        firestore
+                .collection("users")
+                .document(uid)
+                .collection("transactions")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(limit)
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
@@ -85,10 +125,13 @@ public class TransactionRepository {
 
                     if (queryDocumentSnapshots != null) {
                         List<Transaction> transactions = new ArrayList<>();
+                        // Filter transactions from last 30 days
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                             Transaction transaction = doc.toObject(Transaction.class);
-                            transaction.setId(doc.getId());
-                            transactions.add(transaction);
+                            if (transaction.getTimestamp() >= thirtyDaysAgo) {
+                                transaction.setId(doc.getId());
+                                transactions.add(transaction);
+                            }
                         }
                         transactionsLiveData.postValue(transactions);
                     }

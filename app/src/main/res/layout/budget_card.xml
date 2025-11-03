@@ -59,9 +59,21 @@
             android:layout_width="match_parent"
             android:layout_height="8dp"
             android:layout_marginTop="16dp"
-            android:progressDrawable="@drawable/progress_budget"
+            android:progressDrawable="@drawable/progress_budget_safe"
             android:progress="0"
             android:max="100" />
+
+        <!-- Budget Status Message -->
+        <TextView
+            android:id="@+id/tvBudgetStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/budget_on_track"
+            style="@style/TextSM.Bold"
+            android:textColor="@color/budget_safe"
+            android:gravity="center"
+            android:visibility="gone" />
 
         <!-- Spent and Remaining Row -->
         <LinearLayout

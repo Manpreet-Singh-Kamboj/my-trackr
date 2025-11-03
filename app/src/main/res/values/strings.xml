@@ -50,7 +50,13 @@
     <string name="expense_amount">Expense Amount (₹)</string>
     <string name="expense_description">What are you spending on?</string>
     <string name="add">Add</string>
-    <string name="recent_transactions">Recent Transactions</string>
+    <string name="recent_transactions">Recent Transactions (Last 30 Days)</string>
     <string name="no_transactions_yet">No transactions yet. Add an expense to get started!</string>
     <string name="transaction_icon">Transaction icon</string>
+    
+    <!-- Budget status messages -->
+    <string name="budget_on_track">✓ You\'re on track!</string>
+    <string name="budget_warning">⚠ Approaching budget limit</string>
+    <string name="budget_danger">🔴 Budget almost exceeded!</string>
+    <string name="budget_exceeded">❌ Budget exceeded!</string>
 </resources>

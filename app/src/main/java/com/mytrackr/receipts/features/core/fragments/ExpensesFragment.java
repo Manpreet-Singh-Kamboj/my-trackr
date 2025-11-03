@@ -30,7 +30,7 @@ public class ExpensesFragment extends Fragment {
     
     // Views from budget_card.xml
     private MaterialCardView budgetCard;
-    private TextView tvBudgetAmount, tvSpentAmount, tvRemainingAmount, tvNoBudget;
+    private TextView tvBudgetAmount, tvSpentAmount, tvRemainingAmount, tvNoBudget, tvBudgetStatus;
     private ProgressBar progressBudget;
     private ImageButton btnEditBudget;
     private com.google.android.material.button.MaterialButton btnTestSpent;
@@ -62,6 +62,7 @@ public class ExpensesFragment extends Fragment {
         tvSpentAmount = view.findViewById(R.id.tvSpentAmount);
         tvRemainingAmount = view.findViewById(R.id.tvRemainingAmount);
         tvNoBudget = view.findViewById(R.id.tvNoBudget);
+        tvBudgetStatus = view.findViewById(R.id.tvBudgetStatus);
         progressBudget = view.findViewById(R.id.progressBudget);
         btnEditBudget = view.findViewById(R.id.btnEditBudget);
         btnTestSpent = view.findViewById(R.id.btnTestSpent);
@@ -129,6 +130,7 @@ public class ExpensesFragment extends Fragment {
         tvSpentAmount.setVisibility(View.VISIBLE);
         tvRemainingAmount.setVisibility(View.VISIBLE);
         progressBudget.setVisibility(View.VISIBLE);
+        tvBudgetStatus.setVisibility(View.VISIBLE);
 
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
         
@@ -138,6 +140,43 @@ public class ExpensesFragment extends Fragment {
 
         int progress = (int) budget.getSpentPercentage();
         progressBudget.setProgress(Math.min(progress, 100));
+        
+        // Update UI based on spending percentage
+        updateBudgetStatus(budget);
+    }
+    
+    private void updateBudgetStatus(Budget budget) {
+        double percentage = budget.getSpentPercentage();
+        
+        if (percentage >= 100) {
+            // Budget exceeded (100% or more)
+            progressBudget.setProgressDrawable(getResources().getDrawable(R.drawable.progress_budget_exceeded, null));
+            tvBudgetStatus.setText(R.string.budget_exceeded);
+            tvBudgetStatus.setTextColor(getResources().getColor(R.color.budget_exceeded, null));
+            tvRemainingAmount.setTextColor(getResources().getColor(R.color.budget_exceeded, null));
+            tvBudgetAmount.setTextColor(getResources().getColor(R.color.budget_exceeded, null));
+        } else if (percentage >= 85) {
+            // Danger zone (85-99%)
+            progressBudget.setProgressDrawable(getResources().getDrawable(R.drawable.progress_budget_danger, null));
+            tvBudgetStatus.setText(R.string.budget_danger);
+            tvBudgetStatus.setTextColor(getResources().getColor(R.color.budget_danger, null));
+            tvRemainingAmount.setTextColor(getResources().getColor(R.color.budget_danger, null));
+            tvBudgetAmount.setTextColor(getResources().getColor(R.color.text_primary, null));
+        } else if (percentage >= 70) {
+            // Warning zone (70-84%)
+            progressBudget.setProgressDrawable(getResources().getDrawable(R.drawable.progress_budget_warning, null));
+            tvBudgetStatus.setText(R.string.budget_warning);
+            tvBudgetStatus.setTextColor(getResources().getColor(R.color.budget_warning, null));
+            tvRemainingAmount.setTextColor(getResources().getColor(R.color.budget_warning, null));
+            tvBudgetAmount.setTextColor(getResources().getColor(R.color.text_primary, null));
+        } else {
+            // Safe zone (0-69%)
+            progressBudget.setProgressDrawable(getResources().getDrawable(R.drawable.progress_budget_safe, null));
+            tvBudgetStatus.setText(R.string.budget_on_track);
+            tvBudgetStatus.setTextColor(getResources().getColor(R.color.budget_safe, null));
+            tvRemainingAmount.setTextColor(getResources().getColor(R.color.dark_green, null));
+            tvBudgetAmount.setTextColor(getResources().getColor(R.color.dark_green, null));
+        }
     }
 
     private void showNoBudgetMessage() {
@@ -145,6 +184,7 @@ public class ExpensesFragment extends Fragment {
         tvBudgetAmount.setVisibility(View.GONE);
         tvSpentAmount.setVisibility(View.GONE);
         tvRemainingAmount.setVisibility(View.GONE);
+        tvBudgetStatus.setVisibility(View.GONE);
         progressBudget.setVisibility(View.GONE);
         progressBudget.setProgress(0);
     }

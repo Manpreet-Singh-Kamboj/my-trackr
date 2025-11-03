@@ -65,7 +65,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
         public void bind(Transaction transaction) {
             tvTransactionDescription.setText(transaction.getDescription());
-            tvTransactionDate.setText(getFormattedDate(transaction.getTimestamp()));
+            tvTransactionDate.setText(getFormattedDateWithMonth(transaction.getTimestamp()));
 
             // Format amount with + or - prefix
             String amountStr;
@@ -79,6 +79,33 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             }
             tvTransactionAmount.setText(amountStr);
             tvTransactionAmount.setTextColor(textColor);
+        }
+
+        private String getFormattedDateWithMonth(long timestamp) {
+            Calendar transactionDate = Calendar.getInstance();
+            transactionDate.setTimeInMillis(timestamp);
+
+            Calendar today = Calendar.getInstance();
+            Calendar yesterday = Calendar.getInstance();
+            yesterday.add(Calendar.DAY_OF_YEAR, -1);
+
+            // Check if it's in current month
+            boolean isSameMonth = transactionDate.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                                  transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
+
+            if (isSameDay(transactionDate, today)) {
+                return "Today";
+            } else if (isSameDay(transactionDate, yesterday)) {
+                return "Yesterday";
+            } else if (isSameMonth) {
+                // Same month, just show date
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
+                return dateFormat.format(new Date(timestamp));
+            } else {
+                // Different month, show month and date
+                SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                return dateFormat.format(new Date(timestamp));
+            }
         }
 
         private String getFormattedDate(long timestamp) {

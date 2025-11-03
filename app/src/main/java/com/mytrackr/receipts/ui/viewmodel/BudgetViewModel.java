@@ -48,10 +48,8 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void loadCurrentMonthTransactions() {
-        Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
-        String year = String.valueOf(calendar.get(Calendar.YEAR));
-        transactionRepository.getRecentTransactions(month, year, 10, transactionsLiveData, errorMessage);
+        // Load transactions from last 30 days instead of just current month
+        transactionRepository.getRecentTransactionsLastMonth(50, transactionsLiveData, errorMessage);
     }
 
     public void loadBudget(String month, String year) {
@@ -63,11 +61,15 @@ public class BudgetViewModel extends ViewModel {
         String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
+        // Get current budget to preserve spent amount
+        Budget currentBudget = budgetLiveData.getValue();
+        double currentSpent = (currentBudget != null) ? currentBudget.getSpent() : 0.0;
+
         Budget budget = new Budget();
         budget.setAmount(amount);
         budget.setMonth(month);
         budget.setYear(year);
-        budget.setSpent(0.0); // Initialize with 0 spent for new budget
+        budget.setSpent(currentSpent); // Preserve existing spent amount
 
         budgetRepository.saveBudget(budget, saveSuccessLiveData, errorMessage);
     }
