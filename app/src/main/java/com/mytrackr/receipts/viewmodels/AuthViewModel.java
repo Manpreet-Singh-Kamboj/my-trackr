@@ -9,12 +9,14 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.viewbinding.ViewBinding;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
 import com.mytrackr.receipts.R;
+import com.mytrackr.receipts.data.models.User;
 import com.mytrackr.receipts.data.repository.AuthRepository;
 import com.mytrackr.receipts.databinding.ActivityForgotPasswordBinding;
 import com.mytrackr.receipts.databinding.ActivitySignInBinding;
@@ -168,6 +170,10 @@ public class AuthViewModel extends AndroidViewModel {
             return;
         }
         authRepository.handleForgotPasswordRequest(email);
+    }
+
+    public LiveData<User> getUserDetails(){
+        return authRepository.getUserDetails();
     }
 
     @Override

@@ -22,6 +22,11 @@
     <string name="expenses">Expenses</string>
     <string name="dashboard">Dashboard</string>
     <string name="profile">Profile</string>
+    <string name="profile_image_content_description">User Profile Image</string>
+    <string name="user_default_name">Anonymous</string>
+    <string name="user_default_email">anonymous@anon.com</string>
+    <string name="edit_button">Edit Button</string>
+
 
     <!-- Google Client IDS -->
     <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>

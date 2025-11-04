@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
+import com.mytrackr.receipts.data.models.User;
 
 public class AuthRepository {
     private static AuthRepository instance;
@@ -24,12 +25,15 @@ public class AuthRepository {
     private final GoogleSignInClient googleSignInClient;
     private final FirebaseAuth firebaseAuth;
     private final MutableLiveData<FirebaseUser> currentUser = new MutableLiveData<FirebaseUser>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
+    private final  MutableLiveData<String> successMessage = new MutableLiveData<>("");
     private final FirebaseAuth.AuthStateListener authStateListener = firebaseAuth -> {
         FirebaseUser user = firebaseAuth.getCurrentUser();
         currentUser.postValue(user);
+        if(user != null) {
+            userRepository.getUserDetails(user.getUid(),errorMessage);
+        }
     };
-    private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
-    private final  MutableLiveData<String> successMessage = new MutableLiveData<>("");
     private AuthRepository(Context context, String clientId){
         this.firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(authStateListener);
@@ -93,7 +97,7 @@ public class AuthRepository {
                             String uid = user.getUid();
                             String fullName = user.getDisplayName();
                             String email = user.getEmail();
-                            userRepository.checkIfGoogleUserDetailsExistOrNot(uid,fullName,email,errorMessage);
+                            userRepository.checkIfGoogleUserDetailsExistOrNot(uid,fullName,email,errorMessage,user.getPhotoUrl());
                         }
                     } else {
                         String error = task.getException() != null
@@ -126,7 +130,7 @@ public class AuthRepository {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 currentUser.postValue(user);
                 if(user != null){
-                    userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage);
+                    userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage,null);
                 }
             }else{
                 String error = task.getException() != null
@@ -167,6 +171,7 @@ public class AuthRepository {
                     if(task.isSuccessful()){
                         firebaseAuth.signOut();
                         currentUser.postValue(null);
+                        userRepository.resetUserDetails();
                     }else{
                         Log.e("SIGN_OUT_ERROR", "SIGN_IN_FAILED");
                         errorMessage.postValue("Something Went Wrong. Please try again.");
@@ -175,8 +180,16 @@ public class AuthRepository {
             }else{
                 firebaseAuth.signOut();
                 currentUser.postValue(null);
+                userRepository.resetUserDetails();
             }
         }
+    }
+    public LiveData<User> getUserDetails(){
+        if(currentUser.getValue() == null){
+            errorMessage.postValue("User is not authenticated. Please SignIn again to continue");
+            return null;
+        }
+        return userRepository.getUserDetails(currentUser.getValue().getUid(),errorMessage);
     }
     public void removeAuthStateListener() {
         firebaseAuth.removeAuthStateListener(authStateListener);
