@@ -28,7 +28,7 @@ public class AuthViewModel extends AndroidViewModel {
     private final Utils utils;
     public AuthViewModel(@NonNull Application application){
         super(application);
-        authRepository = AuthRepository.getInstance(application.getApplicationContext(),application.getString(R.string.google_web_client_id));
+        authRepository = AuthRepository.getInstance(application.getApplicationContext(),application.getString(R.string.default_web_client_id));
         utils = Utils.getInstance();
     }
     public LiveData<FirebaseUser> getUser(){

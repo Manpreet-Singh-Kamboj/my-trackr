@@ -26,6 +26,10 @@
     <string name="user_default_name">Anonymous</string>
     <string name="user_default_email">anonymous@anon.com</string>
     <string name="edit_button">Edit Button</string>
+    <string name="profile_menu_icon">Profile Menu icon</string>
+    <string name="logout">Logout</string>
+    <string name="are_you_sure_to_logout">Are you sure you want to logout?</string>
+    <string name="cancel">Cancel</string>
 
 
     <!-- Google Client IDS -->

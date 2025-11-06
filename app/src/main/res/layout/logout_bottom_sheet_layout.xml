@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/background"
+    >
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/logoutBottomSheetView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background"
+        />
+
+    <TextView
+        android:text="@string/logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        style="@style/TextXL.Bold"
+        />
+
+    <TextView
+        android:text="@string/are_you_sure_to_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        style="@style/TextMedium"
+        android:layout_marginTop="10dp"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="15dp"
+        android:paddingBottom="15dp"
+        >
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/bottomSheetCancelLogout"
+            android:text="@string/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/ButtonOutline"
+            android:layout_marginEnd="20dp"
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/bottomSheetLogout"
+            android:text="@string/logout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>
