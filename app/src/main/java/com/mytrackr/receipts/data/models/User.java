@@ -6,6 +6,9 @@ public class User {
     private String fullName;
     private String email;
     private String profilePicture;
+    private String aboutMe;
+    private String phoneNo;
+    private String city;
 
     // Constructor
     public User() { }
@@ -33,6 +36,18 @@ public class User {
         return profilePicture;
     }
 
+    public String getAboutMe() {
+        return aboutMe;
+    }
+
+    public String getPhoneNo() {
+        return phoneNo;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
     // Setters
     public void setUid(String uid) {
         this.uid = uid;
@@ -49,5 +64,18 @@ public class User {
     public void setProfilePicture(String profilePicture) {
         this.profilePicture = profilePicture;
     }
+
+    public void setAboutMe(String name) {
+        this.aboutMe = name;
+    }
+
+    public void setPhoneNo(String email) {
+        this.phoneNo = email;
+    }
+
+    public void setCity(String name) {
+        this.city = name;
+    }
+
 }
 

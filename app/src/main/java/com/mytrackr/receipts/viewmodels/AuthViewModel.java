@@ -181,4 +181,8 @@ public class AuthViewModel extends AndroidViewModel {
         super.onCleared();
         authRepository.removeAuthStateListener();
     }
+
+    public void refreshUserDetails(){
+        authRepository.refreshUserDetails();
+    }
 }

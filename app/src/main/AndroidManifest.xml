@@ -2,14 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mytrackr.receipts">
-
     <!-- Permissions for camera and external storage -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -20,6 +23,14 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTrackr">
+        <activity
+            android:name=".features.edit_profile.EditProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
         <!-- FileProvider for camera capture -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -29,13 +40,10 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
-        </provider>
-
-        <!-- Receipt scanning activity -->
+        </provider> <!-- Receipt scanning activity -->
         <activity
             android:name=".features.receipts.ReceiptScanActivity"
             android:exported="false" />
-
         <activity
             android:name=".features.auth.ForgotPassword"
             android:exported="false" />

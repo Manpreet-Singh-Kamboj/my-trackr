@@ -23,6 +23,7 @@ import com.mytrackr.receipts.data.models.ProfileMenuItem;
 import com.mytrackr.receipts.databinding.FragmentProfileBinding;
 import com.mytrackr.receipts.databinding.LogoutBottomSheetLayoutBinding;
 import com.mytrackr.receipts.features.core.adapters.ProfileMenuAdapter;
+import com.mytrackr.receipts.features.edit_profile.EditProfileActivity;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.utils.Utils;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
@@ -38,13 +39,13 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentProfileBinding.inflate(getLayoutInflater());
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         setupProfileMenuOptions();
         setupProfileSupportOptions();
         authViewModel.getUserDetails().observe(getViewLifecycleOwner(),user->{
@@ -80,6 +81,12 @@ public class ProfileFragment extends Fragment {
         authViewModel = null;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        authViewModel.refreshUserDetails();
+    }
+
     private void handleSignOut(View view){
         authViewModel.handleSignOut();
         startActivity(new Intent(requireContext(), GetStartedActivity.class));
@@ -99,12 +106,16 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    private void handleEditProfileClick(){
+        startActivity(new Intent(getContext(), EditProfileActivity.class));
+    }
+
     private List<ProfileMenuItem> getProfileMenuItems(){
         List<ProfileMenuItem> profileMenuItems = new ArrayList<>();
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_user_account,
-                "Account Details",
-                () -> {}
+                "Edit Profile Details",
+                this::handleEditProfileClick
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,

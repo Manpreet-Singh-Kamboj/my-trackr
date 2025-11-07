@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -78,6 +79,8 @@ public class UserRepository {
     public LiveData<User> getUserDetails(String uid, MutableLiveData<String> errorMessage){
         if(userLiveData == null) {
             userLiveData = new MutableLiveData<User>();
+        }
+
             firestore
                     .collection("users")
                     .document(uid)
@@ -96,11 +99,22 @@ public class UserRepository {
                             errorMessage.postValue("Error getting document: " + task.getException());
                         }
                     });
-        }
         return userLiveData;
     }
 
     public void resetUserDetails(){
         userLiveData = null;
+    }
+
+    public Task<Void> updateUserProfile(String uid, String fullName, @Nullable  String aboutMe, @Nullable String phoneNo, @Nullable String city){
+        Map<String, Object> updatedUserDetails = new HashMap<>();
+        updatedUserDetails.put("fullName", fullName);
+        if(aboutMe != null) updatedUserDetails.put("aboutMe", aboutMe);
+        if(phoneNo != null) updatedUserDetails.put("phoneNo",phoneNo);
+        if(city != null) updatedUserDetails.put("city",city);
+        return firestore
+                .collection("users")
+                .document(uid)
+                .set(updatedUserDetails, SetOptions.merge());
     }
 }

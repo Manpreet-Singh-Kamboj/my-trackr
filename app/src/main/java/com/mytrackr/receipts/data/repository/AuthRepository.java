@@ -185,13 +185,18 @@ public class AuthRepository {
         }
     }
     public LiveData<User> getUserDetails(){
-        if(currentUser.getValue() == null){
+        if (currentUser.getValue() == null) {
             errorMessage.postValue("User is not authenticated. Please SignIn again to continue");
             return null;
         }
-        return userRepository.getUserDetails(currentUser.getValue().getUid(),errorMessage);
+        return userRepository.getUserDetails(currentUser.getValue().getUid(), errorMessage);
     }
     public void removeAuthStateListener() {
         firebaseAuth.removeAuthStateListener(authStateListener);
+    }
+    public void refreshUserDetails() {
+        if (currentUser.getValue() != null) {
+            userRepository.getUserDetails(currentUser.getValue().getUid(), errorMessage);
+        }
     }
 }
