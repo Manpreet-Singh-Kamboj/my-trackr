@@ -1,37 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/background"
+    android:fitsSystemWindows="true">
 
-    <ScrollView
+    <!-- Modern AppBar with gradient -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:fitsSystemWindows="true"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Scan Receipt"
+            app:titleTextColor="?attr/colorOnPrimary"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp"
+            android:paddingBottom="120dp"
+            android:clipToPadding="false">
 
-            <!-- Replace raw ImageView with a MaterialCardView to give a card background, rounded corners and padding -->
+            <!-- Section Header -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Receipt Preview"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="12dp"
+                android:alpha="0.87" />
+
+            <!-- Modern Image Preview Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/preview_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp"
-                app:strokeColor="@android:color/darker_gray"
-                app:strokeWidth="1dp"
-                app:cardUseCompatPadding="true"
-                app:cardPreventCornerOverlap="false">
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="?attr/colorSurface">
 
-                <!-- Use FrameLayout so we can overlay the corner editor view on top of the ImageView -->
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="220dp">
+                    android:layout_height="280dp">
+
+                    <!-- Empty state placeholder -->
+                    <LinearLayout
+                        android:id="@+id/emptyStateLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="32dp">
+
+                        <ImageView
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:src="@drawable/dashboard"
+                            android:alpha="0.3"
+                            android:tint="?attr/colorPrimary"
+                            android:contentDescription="No receipt"
+                            tools:ignore="UseAppTint" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="No receipt selected"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:alpha="0.6"
+                            android:layout_marginTop="16dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tap Camera or Gallery below"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:alpha="0.4"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
 
                     <ImageView
                         android:id="@+id/previewImageView"
@@ -40,7 +113,7 @@
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
                         android:contentDescription="Receipt preview"
-                        android:padding="6dp" />
+                        android:visibility="gone" />
 
                     <com.mytrackr.receipts.features.receipts.CornerOverlayView
                         android:id="@+id/cornerOverlay"
@@ -52,117 +125,296 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Quick Actions Section -->
             <TextView
-                android:id="@+id/ocrTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quick Actions"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                android:layout_marginBottom="12dp"
+                android:alpha="0.87" />
+
+            <!-- Camera and Gallery buttons with icons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cameraCard"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorPrimary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@android:drawable/ic_menu_camera"
+                            android:tint="?attr/colorOnPrimary"
+                            android:contentDescription="Camera"
+                            tools:ignore="UseAppTint" />
+
+                        <TextView
+                            android:id="@+id/btnCamera"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Camera"
+                            android:textSize="15sp"
+                            android:textColor="?attr/colorOnPrimary"
+                            android:textStyle="bold"
+                            android:layout_marginTop="8dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/galleryCard"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    app:strokeWidth="2dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@android:drawable/ic_menu_gallery"
+                            android:tint="?attr/colorPrimary"
+                            android:contentDescription="Gallery"
+                            tools:ignore="UseAppTint" />
+
+                        <TextView
+                            android:id="@+id/btnGallery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gallery"
+                            android:textSize="15sp"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold"
+                            android:layout_marginTop="8dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- Corner Editing Section (initially collapsed) -->
+            <LinearLayout
+                android:id="@+id/cornerEditSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Adjust Corners"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    android:layout_marginBottom="12dp"
+                    android:alpha="0.87" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAcceptCrop"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Apply"
+                        android:layout_marginEnd="8dp"
+                        style="@style/Widget.Material3.Button" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancelCrop"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Cancel"
+                        android:layout_marginStart="8dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- OCR Results Section -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/ocrResultCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="OCR preview will appear here"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:background="@drawable/rounded_input_bg"
-                android:padding="8dp"
-                android:maxLines="10"
-                android:scrollbars="vertical"
-                android:scrollHorizontally="false" />
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="1dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="?attr/colorSurface">
 
-            <LinearLayout
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Extracted Text"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        android:layout_marginBottom="8dp"
+                        android:alpha="0.87" />
+
+                    <androidx.core.widget.NestedScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:fillViewport="false"
+                        android:scrollbars="vertical">
+
+                        <TextView
+                            android:id="@+id/ocrTextView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="OCR results will appear here"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurface"
+                            android:alpha="0.7"
+                            android:textIsSelectable="true" />
+
+                    </androidx.core.widget.NestedScrollView>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action Buttons -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditCorners"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:text="Edit Corners"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:iconGravity="textStart" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCamera"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Camera"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.MaterialComponents.Button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGallery"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Gallery"
-                    style="@style/Widget.MaterialComponents.Button" />
-            </LinearLayout>
-
-            <LinearLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProcess"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:text="Process OCR"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                style="@style/Widget.Material3.Button.TonalButton"
+                app:icon="@android:drawable/ic_menu_search"
+                app:iconGravity="textStart" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnProcess"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Process OCR"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.MaterialComponents.Button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSave"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Save"
-                    style="@style/Widget.MaterialComponents.Button" />
-            </LinearLayout>
-
-            <!-- New controls for corner editing -->
-            <LinearLayout
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEditCorners"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Edit Corners"
-                    style="@style/Widget.MaterialComponents.Button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAcceptCrop"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Apply Crop"
-                    android:visibility="gone"
-                    style="@style/Widget.MaterialComponents.Button" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCancelCrop"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content"
-                    android:text="Cancel"
-                    android:visibility="gone"
-                    style="@style/Widget.MaterialComponents.Button" />
-            </LinearLayout>
+                android:layout_height="56dp"
+                android:text="Save Receipt"
+                android:textSize="16sp"
+                android:layout_marginBottom="24dp"
+                android:visibility="gone"
+                style="@style/Widget.Material3.Button"
+                app:icon="@android:drawable/ic_menu_save"
+                app:iconGravity="textStart"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
-    </ScrollView>
 
-    <!-- Full-screen progress overlay (initially gone). Shows indeterminate progress and blocks interactions. -->
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Full-screen progress overlay with modern spinner -->
     <FrameLayout
         android:id="@+id/progressOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:background="#7F000000">
+        android:background="#B3000000"
+        android:clickable="true"
+        android:focusable="true">
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="?attr/colorSurface">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:gravity="center">
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:indeterminateTint="?attr/colorPrimary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Processing..."
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:layout_marginTop="16dp"
+                    android:alpha="0.87" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
     </FrameLayout>
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+

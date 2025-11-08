@@ -18,6 +18,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.FieldValue;
 
 import com.mytrackr.receipts.data.models.Receipt;
 
@@ -206,9 +207,12 @@ public class ReceiptRepository {
          // include cloudinary public id if present
          if (cloudinaryPublicId != null) map.put("cloudinaryPublicId", cloudinaryPublicId);
          map.put("rawText", receipt.getRawText());
-         map.put("userId", userId);
+         // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+         // Add server timestamp for consistent ordering/audit
+         map.put("createdAt", FieldValue.serverTimestamp());
 
-         db.collection("receipts").document(id).set(map, SetOptions.merge())
+        // Save receipt under the user's document: users/{userId}/receipts/{id}
+        db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
                  .addOnSuccessListener(aVoid -> {
                      if (callback != null) callback.onSuccess();
                  })
@@ -282,16 +286,19 @@ public class ReceiptRepository {
                     map.put("items", receipt.getItems());
                     map.put("imageUrl", receipt.getImageUrl());
                     map.put("rawText", receipt.getRawText());
-                    map.put("userId", userId);
+                    // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+                    // Add server timestamp for consistent ordering/audit
+                    map.put("createdAt", FieldValue.serverTimestamp());
 
-                    db.collection("receipts").document(id).set(map, SetOptions.merge())
-                            .addOnSuccessListener(aVoid -> {
-                                if (callback != null) callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
-                                if (callback != null) callback.onFailure(e);
-                            });
+                    // Save under users/{userId}/receipts/{id}
+                    db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
+                             .addOnSuccessListener(aVoid -> {
+                                 if (callback != null) callback.onSuccess();
+                             })
+                             .addOnFailureListener(e -> {
+                                 Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
+                                 if (callback != null) callback.onFailure(e);
+                             });
                 }
 
                 @Override
@@ -390,7 +397,8 @@ public class ReceiptRepository {
     }
 
     public void searchByStore(String storePrefix, OnCompleteListener<QuerySnapshot> listener) {
-        db.collection("receipts")
+        // Search across all users' receipts using collectionGroup
+        db.collectionGroup("receipts")
                 .whereGreaterThanOrEqualTo("storeName", storePrefix)
                 .whereLessThanOrEqualTo("storeName", storePrefix + "\uf8ff")
                 .get()
@@ -398,9 +406,9 @@ public class ReceiptRepository {
     }
 
     public void fetchReceiptsForCurrentUser(OnCompleteListener<QuerySnapshot> listener) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
-        db.collection("receipts")
-                .whereEqualTo("userId", userId)
+         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+        // Fetch directly from the user's receipts subcollection
+        db.collection("users").document(userId).collection("receipts")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(listener);
@@ -512,8 +520,13 @@ public class ReceiptRepository {
                         map.put("items", receipt.getItems());
                         map.put("imageUrl", receipt.getImageUrl());
                         map.put("rawText", receipt.getRawText());
+                        // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+                        // Add server timestamp for consistent ordering/audit
+                        map.put("createdAt", FieldValue.serverTimestamp());
 
-                        db.collection("receipts").document(id).set(map, SetOptions.merge())
+                        // Save putBytes fallback result under users/{userId}/receipts/{id}
+                        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+                        db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
                                     if (callback != null) callback.onSuccess();
                                 })
