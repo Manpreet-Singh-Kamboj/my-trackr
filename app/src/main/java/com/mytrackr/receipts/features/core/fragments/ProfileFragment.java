@@ -118,6 +118,11 @@ public class ProfileFragment extends Fragment {
                 this::handleEditProfileClick
         ));
         profileMenuItems.add(new ProfileMenuItem(
+                R.drawable.ic_change_password,
+                "Change Password",
+                ()->{}
+        ));
+        profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,
                 "Notifications",
                 () -> {}
