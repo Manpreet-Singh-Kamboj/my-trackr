@@ -7,15 +7,15 @@
     android:background="?attr/background"
     android:fitsSystemWindows="true">
 
-    <!-- Modern AppBar with gradient -->
+    <!-- Modern AppBar with fixed elevation -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
-        android:elevation="4dp"
         android:fitsSystemWindows="true"
-        app:elevation="4dp">
+        app:elevation="4dp"
+        app:liftOnScroll="false">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"

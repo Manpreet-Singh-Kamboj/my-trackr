@@ -21,26 +21,12 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.FieldValue;
 
 import com.mytrackr.receipts.data.models.Receipt;
+import com.mytrackr.receipts.utils.CloudinaryUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-// New imports for Cloudinary/OkHttp upload
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 // add import for R
 import com.mytrackr.receipts.R;
@@ -65,135 +51,30 @@ public class ReceiptRepository {
             return;
         }
 
-        // Check for Cloudinary config in resources. If present, attempt unsigned upload first.
-        try {
-            String cloudName = context.getString(R.string.cloudinary_cloud_name);
-            String uploadPreset = context.getString(R.string.cloudinary_upload_preset);
-            String folderRoot = context.getString(R.string.cloudinary_folder_root);
-            if (cloudName != null && !cloudName.isEmpty() && uploadPreset != null && !uploadPreset.isEmpty()) {
-                uploadToCloudinary(context, imageUri, receipt, id, cloudName, uploadPreset, folderRoot, callback);
-                return; // will call callback later
+        // Check for Cloudinary config and attempt upload if available
+        if (CloudinaryUtils.isConfigured(context)) {
+            CloudinaryUtils.UploadConfig config = CloudinaryUtils.readConfig(context, id);
+            if (config != null) {
+                CloudinaryUtils.uploadImage(context, imageUri, config, new CloudinaryUtils.CloudinaryUploadCallback() {
+                    @Override
+                    public void onSuccess(String secureUrl, String publicId) {
+                        receipt.setImageUrl(secureUrl);
+                        saveMetadataToFirestore(id, receipt, publicId, callback);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.w("ReceiptRepository", "Cloudinary upload failed, falling back to Firebase Storage", e);
+                        saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
+                    }
+                });
+                return;
             }
-         } catch (Exception ex) {
-             Log.d("ReceiptRepository", "Cloudinary config read failed, falling back to Firebase Storage", ex);
-         }
-
-         // ...existing Firebase upload code...
-         FirebaseStorage storageInstance = getPreferredStorage(context);
-         StorageReference ref = storageInstance.getReference().child("receipts/" + userId + "/" + id + ".jpg");
-
-        try {
-            UploadTask uploadTask;
-            java.io.InputStream inputToClose = null;
-            if ("content".equals(imageUri.getScheme())) {
-                inputToClose = context.getContentResolver().openInputStream(imageUri);
-                if (inputToClose != null) {
-                    Log.d("ReceiptRepository", "Uploading via putStream to path=" + ref.getPath());
-                    uploadTask = ref.putStream(inputToClose);
-                } else {
-                    Log.d("ReceiptRepository", "InputStream null; falling back to putFile for path=" + ref.getPath());
-                    uploadTask = ref.putFile(imageUri);
-                }
-            } else {
-                Log.d("ReceiptRepository", "Uploading via putFile to path=" + ref.getPath());
-                uploadTask = ref.putFile(imageUri);
-            }
-
-            attachUploadListeners(uploadTask, ref, inputToClose, receipt, id, callback, context, imageUri, false);
-
-        } catch (Exception e) {
-            Log.w("ReceiptRepository", "Exception while uploading image", e);
-            if (callback != null) callback.onFailure(e);
         }
+
+         // Fallback to Firebase Storage if Cloudinary not configured
+         saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
     }
-
-    // New helper: upload to Cloudinary (unsigned preset). On failure, fall back to Firebase Storage path by calling saveReceiptFirebaseFallback.
-    private void uploadToCloudinary(Context context, Uri imageUri, Receipt receipt, String id, String cloudName, String uploadPreset, String folderRoot, SaveCallback callback) {
-         Log.d("ReceiptRepository", "Attempting Cloudinary upload: cloud=" + cloudName + " preset=" + uploadPreset);
-         OkHttpClient client = new OkHttpClient.Builder().build();
-
-         try {
-             InputStream is = context.getContentResolver().openInputStream(imageUri);
-             if (is == null) throw new IllegalStateException("Could not open image input stream");
-             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             byte[] buffer = new byte[8192];
-             int n;
-             while ((n = is.read(buffer)) != -1) baos.write(buffer, 0, n);
-             is.close();
-             byte[] imageBytes = baos.toByteArray();
-
-             MediaType mediaType = MediaType.parse("image/jpeg");
-             RequestBody fileBody = RequestBody.create(imageBytes, mediaType);
-
-            // compute folder path: <folderRoot>/<userId>/<receiptId>
-            String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
-            String folderPath = folderRoot != null && !folderRoot.isEmpty() ? folderRoot + "/" + userId + "/" + id : userId + "/" + id;
-
-            MultipartBody.Builder mb = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("file", "receipt.jpg", fileBody)
-                    .addFormDataPart("upload_preset", uploadPreset)
-                    .addFormDataPart("folder", folderPath);
-
-            MultipartBody requestBody = mb.build();
-
-             String url = "https://api.cloudinary.com/v1_1/" + cloudName + "/image/upload";
-             Request request = new Request.Builder().url(url).post(requestBody).build();
-
-             client.newCall(request).enqueue(new Callback() {
-                 @Override
-                 public void onFailure(Call call, IOException e) {
-                     Log.w("ReceiptRepository", "Cloudinary upload failed", e);
-                     // fallback to Firebase Storage upload
-                     new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-                 }
-
-                 @Override
-                 public void onResponse(Call call, Response response) {
-                     try {
-                         if (!response.isSuccessful()) {
-                             String respBody = response.body() != null ? response.body().string() : "";
-                             Log.w("ReceiptRepository", "Cloudinary upload returned non-success: " + response.code() + " body=" + respBody);
-                             new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-                             return;
-                         }
-                         String body = response.body() != null ? response.body().string() : null;
-                         try {
-                             JSONObject json = new JSONObject(body);
-                             final String secureUrl = json.optString("secure_url", null);
-                            final String publicId = json.optString("public_id", null);
-                             if (secureUrl == null || secureUrl.isEmpty()) {
-                                 Log.w("ReceiptRepository", "Cloudinary response missing secure_url: " + body);
-                                 new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-                                 return;
-                             }
-
-                             Log.d("ReceiptRepository", "Cloudinary upload succeeded: " + secureUrl);
-                             receipt.setImageUrl(secureUrl);
-                             // Save public_id as well so we can reference/transform later
-                            // pass publicId through to Firestore writer instead of modifying the model here
-                             // Save metadata to Firestore on main thread
-                             final String finalPublicId = (publicId != null && !publicId.isEmpty()) ? publicId : null;
-                             new Handler(Looper.getMainLooper()).post(() -> saveMetadataToFirestore(id, receipt, finalPublicId, callback));
-
-                         } catch (Exception ex) {
-                             Log.w("ReceiptRepository", "Cloudinary response parsing failed", ex);
-                             new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-                         }
-                     } catch (IOException ioEx) {
-                         Log.w("ReceiptRepository", "Error reading Cloudinary response", ioEx);
-                         new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-                     } finally {
-                         if (response.body() != null) response.close();
-                     }
-                  }
-              });
-
-         } catch (Exception e) {
-             Log.w("ReceiptRepository", "Exception preparing Cloudinary upload", e);
-             // fallback to Firebase Storage upload
-             new Handler(Looper.getMainLooper()).post(() -> saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback));
-         }
-     }
 
      // Helper: save metadata to Firestore (used by Cloudinary path)
      private void saveMetadataToFirestore(String id, Receipt receipt, String cloudinaryPublicId, SaveCallback callback) {
