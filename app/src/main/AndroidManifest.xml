@@ -24,14 +24,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTrackr">
         <activity
+            android:name=".features.change_password.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
             android:name=".features.edit_profile.EditProfileActivity"
             android:exported="false"
             android:parentActivityName=".features.core.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".features.core.MainActivity" />
-        </activity>
-        <!-- FileProvider for camera capture -->
+        </activity> <!-- FileProvider for camera capture -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

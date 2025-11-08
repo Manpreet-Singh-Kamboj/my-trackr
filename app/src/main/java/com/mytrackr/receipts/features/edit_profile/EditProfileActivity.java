@@ -40,6 +40,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private ActivityEditProfileBinding binding;
     private UserRepository userRepository;
     private AuthViewModel authViewModel;
+    private Uri newProfilePictureUri = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +92,7 @@ public class EditProfileActivity extends AppCompatActivity {
         if (requestCode == GALLERY_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
             Uri selectedImageUri = data.getData();
             binding.profileImageView.setImageURI(selectedImageUri);
+            newProfilePictureUri = selectedImageUri;
         }
     }
 
@@ -133,6 +135,7 @@ public class EditProfileActivity extends AppCompatActivity {
         checkAndRequestGalleryPermissions();
     }
     private void handleSaveChanges(View view) {
+        binding.saveChanges.setEnabled(false);
         FirebaseUser user = authViewModel.getUser().getValue();
         if(user != null){
             String uid = user.getUid();
@@ -141,7 +144,7 @@ public class EditProfileActivity extends AppCompatActivity {
             String phoneNo = binding.phoneNumber.getText() != null ? binding.phoneNumber.getText().toString() : "";
             String city = binding.city.getText() != null ? binding.city.getText().toString() : "";
 
-            userRepository.updateUserProfile(uid, fullName, aboutMe, phoneNo, city)
+            userRepository.updateUserProfile(getApplicationContext(),uid, fullName, aboutMe, phoneNo, city, newProfilePictureUri)
                     .addOnCompleteListener(task -> {
                         if(!task.isSuccessful()){
                             String error = task.getException() != null
@@ -154,6 +157,7 @@ public class EditProfileActivity extends AppCompatActivity {
                             Snackbar.make(binding.getRoot(), "Profile updated successfully", Snackbar.LENGTH_SHORT).show();
                             authViewModel.refreshUserDetails();
                         }
+                        binding.saveChanges.setEnabled(true);
                     });
             ;
         }

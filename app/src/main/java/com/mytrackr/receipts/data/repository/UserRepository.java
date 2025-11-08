@@ -1,5 +1,6 @@
 package com.mytrackr.receipts.data.repository;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
@@ -13,9 +14,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.mytrackr.receipts.data.models.User;
+import com.mytrackr.receipts.utils.CloudinaryUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserRepository {
     private static UserRepository instance;
@@ -103,18 +106,74 @@ public class UserRepository {
     }
 
     public void resetUserDetails(){
-        userLiveData = null;
+        if (userLiveData != null) userLiveData.postValue(null);
     }
 
-    public Task<Void> updateUserProfile(String uid, String fullName, @Nullable  String aboutMe, @Nullable String phoneNo, @Nullable String city){
-        Map<String, Object> updatedUserDetails = new HashMap<>();
-        updatedUserDetails.put("fullName", fullName);
-        if(aboutMe != null) updatedUserDetails.put("aboutMe", aboutMe);
-        if(phoneNo != null) updatedUserDetails.put("phoneNo",phoneNo);
-        if(city != null) updatedUserDetails.put("city",city);
+    private Task<Void> saveUserProfileMetaDataToFirebase(String uid, Map<String,Object> details){
         return firestore
                 .collection("users")
                 .document(uid)
-                .set(updatedUserDetails, SetOptions.merge());
+                .set(details, SetOptions.merge())
+                .addOnSuccessListener(task -> {
+                    if (userLiveData != null && userLiveData.getValue() != null) {
+                        User updatedUser = userLiveData.getValue();
+                        updatedUser.setFullName(details.get("fullName").toString());
+                        if (details.get("aboutMe") != null) updatedUser.setAboutMe(details.get("aboutMe").toString());
+                        if (details.get("phoneNo") != null) updatedUser.setPhoneNo(details.get("phoneNo").toString());
+                        if (details.get("city") != null) updatedUser.setCity(details.get("city").toString());
+                        userLiveData.postValue(updatedUser);
+                    }
+                });
     }
+
+    public Task<Void> updateUserProfile(Context context, String uid, String fullName,
+                                        @Nullable String aboutMe, @Nullable String phoneNo,
+                                        @Nullable String city, @Nullable Uri newProfilePictureUri) {
+
+        Map<String, Object> updatedUserDetails = new HashMap<>();
+        updatedUserDetails.put("fullName", fullName);
+        if (aboutMe != null) updatedUserDetails.put("aboutMe", aboutMe);
+        if (phoneNo != null) updatedUserDetails.put("phoneNo", phoneNo);
+        if (city != null) updatedUserDetails.put("city", city);
+
+        com.google.android.gms.tasks.TaskCompletionSource<Void> taskCompletionSource = new com.google.android.gms.tasks.TaskCompletionSource<>();
+
+        Runnable persistToFirestore = () -> {
+            saveUserProfileMetaDataToFirebase(uid, updatedUserDetails)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            taskCompletionSource.setResult(null);
+                        } else {
+                            taskCompletionSource.setException(task.getException() != null ? task.getException() :
+                                    new Exception("Unknown error saving user profile"));
+                        }
+                    });
+        };
+
+        if (newProfilePictureUri != null && CloudinaryUtils.isConfigured(context)) {
+            String id = UUID.randomUUID().toString();
+            CloudinaryUtils.UploadConfig config = CloudinaryUtils.readConfig(context, id);
+            if (config != null) {
+                CloudinaryUtils.uploadImage(context, newProfilePictureUri, config, new CloudinaryUtils.CloudinaryUploadCallback() {
+                    @Override
+                    public void onSuccess(String secureUrl, String publicId) {
+                        updatedUserDetails.put("profilePicture", secureUrl);
+                        Log.i("UserRepository", "Cloudinary upload successful, for User Profile Image");
+                        persistToFirestore.run();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.w("UserRepository", "Cloudinary upload failed", e);
+                        taskCompletionSource.setException(e);
+                    }
+                });
+                return taskCompletionSource.getTask();
+            }
+        }
+
+        persistToFirestore.run();
+        return taskCompletionSource.getTask();
+    }
+
 }

@@ -38,6 +38,7 @@
     <string name="city">City</string>
     <string name="save_changes">Save Changes</string>
     <string name="receipt_scan">Receipt Scan</string>
+    <string name="change_password">Change Password</string>
 
 
     <!-- Google Client IDS -->

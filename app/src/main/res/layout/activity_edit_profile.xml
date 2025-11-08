@@ -224,6 +224,7 @@
                     android:id="@+id/saveChanges"
                     style="@style/Button"
                     android:text="@string/save_changes"
+                    android:textColor="@color/button_primary_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="25dp"

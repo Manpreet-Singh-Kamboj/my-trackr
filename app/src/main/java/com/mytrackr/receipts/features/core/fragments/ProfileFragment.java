@@ -22,6 +22,7 @@ import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.ProfileMenuItem;
 import com.mytrackr.receipts.databinding.FragmentProfileBinding;
 import com.mytrackr.receipts.databinding.LogoutBottomSheetLayoutBinding;
+import com.mytrackr.receipts.features.change_password.ChangePasswordActivity;
 import com.mytrackr.receipts.features.core.adapters.ProfileMenuAdapter;
 import com.mytrackr.receipts.features.edit_profile.EditProfileActivity;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
@@ -110,6 +111,10 @@ public class ProfileFragment extends Fragment {
         startActivity(new Intent(getContext(), EditProfileActivity.class));
     }
 
+    private void handleChangePasswordClick(){
+        startActivity(new Intent(getContext(), ChangePasswordActivity.class));
+    }
+
     private List<ProfileMenuItem> getProfileMenuItems(){
         List<ProfileMenuItem> profileMenuItems = new ArrayList<>();
         profileMenuItems.add(new ProfileMenuItem(
@@ -120,7 +125,7 @@ public class ProfileFragment extends Fragment {
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_change_password,
                 "Change Password",
-                ()->{}
+                this::handleChangePasswordClick
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,
