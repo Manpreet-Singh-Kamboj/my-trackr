@@ -37,6 +37,7 @@
     <string name="phone_number">Phone No</string>
     <string name="city">City</string>
     <string name="save_changes">Save Changes</string>
+    <string name="receipt_scan">Receipt Scan</string>
 
 
     <!-- Google Client IDS -->

@@ -41,6 +41,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanner;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
+import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.repository.ReceiptRepository;
 
@@ -98,12 +99,15 @@ public class ReceiptScanActivity extends AppCompatActivity {
 
         // Setup toolbar
         com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(com.mytrackr.receipts.R.id.toolbar);
+        TextView toolbarTitle = toolbar.findViewById(R.id.toolbarTitle);
+        toolbarTitle.setText(getString(R.string.receipt_scan));
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         previewImageView = findViewById(com.mytrackr.receipts.R.id.previewImageView);
         ocrTextView = findViewById(com.mytrackr.receipts.R.id.ocrTextView);
