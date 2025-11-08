@@ -122,11 +122,13 @@ public class ProfileFragment extends Fragment {
                 "Edit Profile Details",
                 this::handleEditProfileClick
         ));
-        profileMenuItems.add(new ProfileMenuItem(
-                R.drawable.ic_change_password,
-                "Change Password",
-                this::handleChangePasswordClick
-        ));
+        if(!authViewModel.isGoogleSignedInUser()){
+            profileMenuItems.add(new ProfileMenuItem(
+                    R.drawable.ic_change_password,
+                    "Change Password",
+                    this::handleChangePasswordClick
+            ));
+        }
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,
                 "Notifications",

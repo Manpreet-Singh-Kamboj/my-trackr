@@ -199,4 +199,15 @@ public class AuthRepository {
             userRepository.getUserDetails(currentUser.getValue().getUid(), errorMessage);
         }
     }
+    public boolean isGoogleSignedInUser(){
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if(user != null){
+            for(UserInfo userInfo: user.getProviderData()){
+                if(userInfo.getProviderId().equals(GoogleAuthProvider.PROVIDER_ID)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

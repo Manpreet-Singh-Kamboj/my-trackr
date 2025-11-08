@@ -185,4 +185,7 @@ public class AuthViewModel extends AndroidViewModel {
     public void refreshUserDetails(){
         authRepository.refreshUserDetails();
     }
+    public boolean isGoogleSignedInUser(){
+        return authRepository.isGoogleSignedInUser();
+    }
 }
