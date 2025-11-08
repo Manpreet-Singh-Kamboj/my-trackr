@@ -62,7 +62,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
 
     private ImageView previewImageView;
     private TextView ocrTextView;
-    private Button btnCamera, btnGallery, btnProcess, btnSave;
+    private View cameraCard, galleryCard;
+    private View emptyStateLayout;
+    private View ocrResultCard;
+    private View cornerEditSection;
+    private Button btnProcess, btnSave;
 
     // New UI for corner editing
     private com.mytrackr.receipts.features.receipts.CornerOverlayView cornerOverlay;
@@ -76,6 +80,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // Activity Result launchers
     private ActivityResultLauncher<IntentSenderRequest> scanLauncher;
     private ActivityResultLauncher<String> galleryLauncher;
+    private ActivityResultLauncher<String[]> permissionLauncher;
 
     // progress overlay view (in-layout) shown while processing (OCR/enhance)
     private View progressOverlay;
@@ -83,12 +88,30 @@ public class ReceiptScanActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enable edge-to-edge display
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            getWindow().setDecorFitsSystemWindows(false);
+        }
+
         setContentView(com.mytrackr.receipts.R.layout.activity_receipt_scan);
+
+        // Setup toolbar
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(com.mytrackr.receipts.R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
         previewImageView = findViewById(com.mytrackr.receipts.R.id.previewImageView);
         ocrTextView = findViewById(com.mytrackr.receipts.R.id.ocrTextView);
-        btnCamera = findViewById(com.mytrackr.receipts.R.id.btnCamera);
-        btnGallery = findViewById(com.mytrackr.receipts.R.id.btnGallery);
+        cameraCard = findViewById(com.mytrackr.receipts.R.id.cameraCard);
+        galleryCard = findViewById(com.mytrackr.receipts.R.id.galleryCard);
+        emptyStateLayout = findViewById(com.mytrackr.receipts.R.id.emptyStateLayout);
+        ocrResultCard = findViewById(com.mytrackr.receipts.R.id.ocrResultCard);
+        cornerEditSection = findViewById(com.mytrackr.receipts.R.id.cornerEditSection);
         btnProcess = findViewById(com.mytrackr.receipts.R.id.btnProcess);
         btnSave = findViewById(com.mytrackr.receipts.R.id.btnSave);
 
@@ -98,10 +121,20 @@ public class ReceiptScanActivity extends AppCompatActivity {
         btnAcceptCrop = findViewById(com.mytrackr.receipts.R.id.btnAcceptCrop);
         btnCancelCrop = findViewById(com.mytrackr.receipts.R.id.btnCancelCrop);
 
-        // Enable scrolling in OCR TextView
-        ocrTextView.setMovementMethod(new ScrollingMovementMethod());
-
         // Register Activity Result launchers
+        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+            Boolean readStorageGranted = result.get(Manifest.permission.READ_EXTERNAL_STORAGE);
+            Boolean readMediaGranted = result.get(Manifest.permission.READ_MEDIA_IMAGES);
+
+            if ((readStorageGranted != null && readStorageGranted) ||
+                (readMediaGranted != null && readMediaGranted)) {
+                // Permission granted, open gallery
+                galleryLauncher.launch("image/*");
+            } else {
+                Toast.makeText(this, "Storage permission is required to access gallery", Toast.LENGTH_LONG).show();
+            }
+        });
+
         galleryLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
                 handlePickedImageUri(uri);
@@ -114,9 +147,9 @@ public class ReceiptScanActivity extends AppCompatActivity {
             }
         });
 
-        // Open the ML Kit document scanner directly (no default camera)
-        btnCamera.setOnClickListener(v -> launchDocumentScanner());
-        btnGallery.setOnClickListener(v -> openGallery());
+        // Setup click listeners for card-based buttons
+        cameraCard.setOnClickListener(v -> launchDocumentScanner());
+        galleryCard.setOnClickListener(v -> openGalleryWithPermissionCheck());
         btnProcess.setOnClickListener(v -> processImageForText());
         btnSave.setOnClickListener(v -> saveReceipt());
 
@@ -155,6 +188,27 @@ public class ReceiptScanActivity extends AppCompatActivity {
     }
 
     // Use the Activity Result API for gallery
+    private void openGalleryWithPermissionCheck() {
+        // Check Android version for appropriate permission
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ uses READ_MEDIA_IMAGES
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                    == PackageManager.PERMISSION_GRANTED) {
+                galleryLauncher.launch("image/*");
+            } else {
+                permissionLauncher.launch(new String[]{Manifest.permission.READ_MEDIA_IMAGES});
+            }
+        } else {
+            // Android 12 and below use READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                galleryLauncher.launch("image/*");
+            } else {
+                permissionLauncher.launch(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE});
+            }
+        }
+    }
+
     private void openGallery() {
         galleryLauncher.launch("image/*");
     }
@@ -763,12 +817,12 @@ public class ReceiptScanActivity extends AppCompatActivity {
             if (viewCorners != null) {
                 cornerOverlay.setCornersViewCoords(viewCorners);
                 cornerOverlay.show();
-                btnEditCorners.setVisibility(View.GONE);
-                btnAcceptCrop.setVisibility(View.VISIBLE);
-                btnCancelCrop.setVisibility(View.VISIBLE);
-                // disable other controls while editing
-                btnProcess.setEnabled(false);
-                btnSave.setEnabled(false);
+
+                // Show corner edit section, hide other buttons
+                if (cornerEditSection != null) cornerEditSection.setVisibility(View.VISIBLE);
+                if (btnEditCorners != null) btnEditCorners.setVisibility(View.GONE);
+                if (btnProcess != null) btnProcess.setEnabled(false);
+                if (btnSave != null) btnSave.setEnabled(false);
             } else {
                 Toast.makeText(this, "Unable to show corner editor (preview not ready)", Toast.LENGTH_SHORT).show();
             }
@@ -778,12 +832,14 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // Exit corner edit mode; if applyCrop==true we will have already applied changes in applyUserCropAndReprocess()
     private void exitCornerEditMode(boolean restoreButtons) {
         cornerOverlay.hide();
-        btnAcceptCrop.setVisibility(View.GONE);
-        btnCancelCrop.setVisibility(View.GONE);
-        btnEditCorners.setVisibility(View.VISIBLE);
+
+        // Hide corner edit section, show edit corners button
+        if (cornerEditSection != null) cornerEditSection.setVisibility(View.GONE);
+        if (btnEditCorners != null) btnEditCorners.setVisibility(View.VISIBLE);
+
         if (restoreButtons) {
-            btnProcess.setEnabled(true);
-            btnSave.setEnabled(true);
+            if (btnProcess != null) btnProcess.setEnabled(true);
+            if (btnSave != null) btnSave.setEnabled(true);
         }
     }
 
@@ -875,8 +931,15 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         hideProcessingDialog();
                         String fullText = text.getText();
                         ocrTextView.setText(fullText != null ? fullText : "");
+
+                        // Show OCR result card and save button
+                        if (ocrResultCard != null) ocrResultCard.setVisibility(View.VISIBLE);
+                        if (btnSave != null) {
+                            btnSave.setVisibility(View.VISIBLE);
+                            btnSave.setEnabled(true);
+                        }
+
                         currentReceipt = ReceiptParser.parse(fullText);
-                        btnSave.setEnabled(true);
                         Toast.makeText(this, "OCR complete", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
@@ -1022,6 +1085,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
     private void loadImageIntoPreview(Uri uri) {
         if (uri == null || previewImageView == null) return;
         try {
+            // Hide empty state and show preview
+            if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
+            if (previewImageView != null) previewImageView.setVisibility(View.VISIBLE);
+
             Glide.with(this)
                     .load(uri)
                     .apply(RequestOptions.centerInsideTransform())
@@ -1033,11 +1100,21 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 } catch (Exception ex) {
                     Log.d(TAG, "cornerOverlay hide failed", ex);
                 }
-                try { btnEditCorners.setEnabled(true); } catch (Exception ex) { /* ignore */ }
+                try {
+                    btnEditCorners.setVisibility(View.VISIBLE);
+                    btnEditCorners.setEnabled(true);
+                    btnProcess.setVisibility(View.VISIBLE);
+                } catch (Exception ex) { /* ignore */ }
             });
         } catch (Exception e) {
             Log.w(TAG, "failed to load preview via Glide", e);
-            try { previewImageView.setImageURI(uri); } catch (Exception ex) { Log.d(TAG, "setImageURI fallback failed", ex); }
+            try {
+                if (emptyStateLayout != null) emptyStateLayout.setVisibility(View.GONE);
+                if (previewImageView != null) {
+                    previewImageView.setVisibility(View.VISIBLE);
+                    previewImageView.setImageURI(uri);
+                }
+            } catch (Exception ex) { Log.d(TAG, "setImageURI fallback failed", ex); }
         }
     }
 }

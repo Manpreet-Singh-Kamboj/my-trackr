@@ -73,4 +73,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.15.1")
     // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)
     // kapt("com.github.bumptech.glide:compiler:4.15.1")
+
+    // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
+    implementation("com.cloudinary:cloudinary-android:3.1.2")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 }

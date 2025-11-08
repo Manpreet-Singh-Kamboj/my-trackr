@@ -18,12 +18,18 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.firebase.storage.StorageException;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.FieldValue;
 
 import com.mytrackr.receipts.data.models.Receipt;
+import com.mytrackr.receipts.utils.CloudinaryUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+
+// add import for R
+import com.mytrackr.receipts.R;
 
 public class ReceiptRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -45,6 +51,61 @@ public class ReceiptRepository {
             return;
         }
 
+        // Check for Cloudinary config and attempt upload if available
+        if (CloudinaryUtils.isConfigured(context)) {
+            CloudinaryUtils.UploadConfig config = CloudinaryUtils.readConfig(context, id);
+            if (config != null) {
+                CloudinaryUtils.uploadImage(context, imageUri, config, new CloudinaryUtils.CloudinaryUploadCallback() {
+                    @Override
+                    public void onSuccess(String secureUrl, String publicId) {
+                        receipt.setImageUrl(secureUrl);
+                        saveMetadataToFirestore(id, receipt, publicId, callback);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.w("ReceiptRepository", "Cloudinary upload failed, falling back to Firebase Storage", e);
+                        saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
+                    }
+                });
+                return;
+            }
+        }
+
+         // Fallback to Firebase Storage if Cloudinary not configured
+         saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
+    }
+
+     // Helper: save metadata to Firestore (used by Cloudinary path)
+     private void saveMetadataToFirestore(String id, Receipt receipt, String cloudinaryPublicId, SaveCallback callback) {
+         Map<String, Object> map = new HashMap<>();
+         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+         map.put("storeName", receipt.getStoreName());
+         map.put("date", receipt.getDate());
+         map.put("total", receipt.getTotal());
+         map.put("items", receipt.getItems());
+         map.put("imageUrl", receipt.getImageUrl());
+         // include cloudinary public id if present
+         if (cloudinaryPublicId != null) map.put("cloudinaryPublicId", cloudinaryPublicId);
+         map.put("rawText", receipt.getRawText());
+         // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+         // Add server timestamp for consistent ordering/audit
+         map.put("createdAt", FieldValue.serverTimestamp());
+
+        // Save receipt under the user's document: users/{userId}/receipts/{id}
+        db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
+                 .addOnSuccessListener(aVoid -> {
+                     if (callback != null) callback.onSuccess();
+                 })
+                 .addOnFailureListener(e -> {
+                     Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
+                     if (callback != null) callback.onFailure(e);
+                 });
+     }
+
+    // Fallback path: call the original Firebase Storage upload logic (extracted here so Cloudinary path can reuse it)
+    private void saveReceiptFirebaseFallback(Context context, Uri imageUri, Receipt receipt, String id, SaveCallback callback) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
         FirebaseStorage storageInstance = getPreferredStorage(context);
         StorageReference ref = storageInstance.getReference().child("receipts/" + userId + "/" + id + ".jpg");
 
@@ -54,21 +115,21 @@ public class ReceiptRepository {
             if ("content".equals(imageUri.getScheme())) {
                 inputToClose = context.getContentResolver().openInputStream(imageUri);
                 if (inputToClose != null) {
-                    Log.d("ReceiptRepository", "Uploading via putStream to path=" + ref.getPath());
+                    Log.d("ReceiptRepository", "Fallback: uploading via putStream to path=" + ref.getPath());
                     uploadTask = ref.putStream(inputToClose);
                 } else {
-                    Log.d("ReceiptRepository", "InputStream null; falling back to putFile for path=" + ref.getPath());
+                    Log.d("ReceiptRepository", "Fallback: InputStream null; falling back to putFile for path=" + ref.getPath());
                     uploadTask = ref.putFile(imageUri);
                 }
             } else {
-                Log.d("ReceiptRepository", "Uploading via putFile to path=" + ref.getPath());
+                Log.d("ReceiptRepository", "Fallback: uploading via putFile to path=" + ref.getPath());
                 uploadTask = ref.putFile(imageUri);
             }
 
             attachUploadListeners(uploadTask, ref, inputToClose, receipt, id, callback, context, imageUri, false);
 
         } catch (Exception e) {
-            Log.w("ReceiptRepository", "Exception while uploading image", e);
+            Log.w("ReceiptRepository", "Fallback: Exception while uploading image", e);
             if (callback != null) callback.onFailure(e);
         }
     }
@@ -106,16 +167,19 @@ public class ReceiptRepository {
                     map.put("items", receipt.getItems());
                     map.put("imageUrl", receipt.getImageUrl());
                     map.put("rawText", receipt.getRawText());
-                    map.put("userId", userId);
+                    // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+                    // Add server timestamp for consistent ordering/audit
+                    map.put("createdAt", FieldValue.serverTimestamp());
 
-                    db.collection("receipts").document(id).set(map, SetOptions.merge())
-                            .addOnSuccessListener(aVoid -> {
-                                if (callback != null) callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
-                                if (callback != null) callback.onFailure(e);
-                            });
+                    // Save under users/{userId}/receipts/{id}
+                    db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
+                             .addOnSuccessListener(aVoid -> {
+                                 if (callback != null) callback.onSuccess();
+                             })
+                             .addOnFailureListener(e -> {
+                                 Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
+                                 if (callback != null) callback.onFailure(e);
+                             });
                 }
 
                 @Override
@@ -214,7 +278,8 @@ public class ReceiptRepository {
     }
 
     public void searchByStore(String storePrefix, OnCompleteListener<QuerySnapshot> listener) {
-        db.collection("receipts")
+        // Search across all users' receipts using collectionGroup
+        db.collectionGroup("receipts")
                 .whereGreaterThanOrEqualTo("storeName", storePrefix)
                 .whereLessThanOrEqualTo("storeName", storePrefix + "\uf8ff")
                 .get()
@@ -222,9 +287,9 @@ public class ReceiptRepository {
     }
 
     public void fetchReceiptsForCurrentUser(OnCompleteListener<QuerySnapshot> listener) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
-        db.collection("receipts")
-                .whereEqualTo("userId", userId)
+         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+        // Fetch directly from the user's receipts subcollection
+        db.collection("users").document(userId).collection("receipts")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(listener);
@@ -336,8 +401,13 @@ public class ReceiptRepository {
                         map.put("items", receipt.getItems());
                         map.put("imageUrl", receipt.getImageUrl());
                         map.put("rawText", receipt.getRawText());
+                        // map.put("userId", userId);  // redundant, receipt already under users/{userId}/receipts/{id}
+                        // Add server timestamp for consistent ordering/audit
+                        map.put("createdAt", FieldValue.serverTimestamp());
 
-                        db.collection("receipts").document(id).set(map, SetOptions.merge())
+                        // Save putBytes fallback result under users/{userId}/receipts/{id}
+                        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+                        db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
                                     if (callback != null) callback.onSuccess();
                                 })
