@@ -39,6 +39,15 @@
     <string name="save_changes">Save Changes</string>
     <string name="receipt_scan">Receipt Scan</string>
     <string name="change_password">Change Password</string>
+    <string name="set_new_password">Set a new password</string>
+    <string name="create_new_password">Create a new password. Ensure it differs from the previous ones for security</string>
+    <string name="current_password">Current Password</string>
+    <string name="enter_your_current_password">Enter your current password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_new_password">Confirm New Password</string>
+    <string name="enter_your_new_password">Enter your new password</string>
+    <string name="re_enter_password">Re-enter password</string>
+    <string name="update_password">Update password</string>
 
 
     <!-- Google Client IDS -->

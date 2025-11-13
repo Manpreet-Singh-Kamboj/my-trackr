@@ -3,6 +3,7 @@ package com.mytrackr.receipts.data.repository;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -12,12 +13,17 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
+import com.mytrackr.receipts.data.interfaces.OnChangePasswordUpdateListener;
+import com.mytrackr.receipts.data.interfaces.OnProfileUpdateListener;
 import com.mytrackr.receipts.data.models.User;
+
 
 public class AuthRepository {
     private static AuthRepository instance;
@@ -209,5 +215,59 @@ public class AuthRepository {
             }
         }
         return false;
+    }
+    public void updateUserProfile(Context context, String uid, String fullName, String aboutMe, String phoneNo, String city, Uri newProfilePictureUri, OnProfileUpdateListener listener){
+        userRepository.updateUserProfile(context,uid, fullName, aboutMe, phoneNo, city, newProfilePictureUri)
+                .addOnCompleteListener(task -> {
+                    if(!task.isSuccessful()){
+                        String error = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Unknown error occurred";
+                        Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
+                        Log.e("DB_PERSIST_FAILED", error);
+                        listener.onFailure("Failed to update profile: " + error);
+                    } else {
+                        listener.onSuccess();
+                    }
+                });
+    }
+    public void changePassword(String currentPassword, String newPassword, OnChangePasswordUpdateListener listener){
+        FirebaseUser user = currentUser.getValue();
+        if (user == null) {
+            listener.onFailure("User not logged in. Please login again.");
+            return;
+        }
+
+        String email = user.getEmail();
+        if(email == null){
+            listener.onFailure("Please login again to continue");
+            currentUser.postValue(null);
+            return;
+        }
+        AuthCredential credential = EmailAuthProvider.getCredential(email, currentPassword);
+        user
+                .reauthenticate(credential)
+                .addOnCompleteListener(task -> {
+                    if(!task.isSuccessful()){
+                        String error = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Unknown error occurred";
+                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                        listener.onFailure(error);
+                    }else{
+                        user.updatePassword(newPassword)
+                                .addOnCompleteListener(updatePasswordTask->{
+                                    if(!updatePasswordTask.isSuccessful()){
+                                        String error = updatePasswordTask.getException() != null
+                                                ? updatePasswordTask.getException().getMessage()
+                                                : "Unknown error occurred";
+                                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                                        listener.onFailure(error);
+                                    }else{
+                                        listener.onSuccess();
+                                    }
+                                });
+                        }
+                    });
     }
 }

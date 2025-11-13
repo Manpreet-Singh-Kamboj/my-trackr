@@ -6,8 +6,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -20,16 +18,11 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseUser;
 import com.mytrackr.receipts.R;
-import com.mytrackr.receipts.data.models.User;
-import com.mytrackr.receipts.data.repository.UserRepository;
 import com.mytrackr.receipts.databinding.ActivityEditProfileBinding;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
@@ -38,7 +31,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private static final int GALLERY_PERMISSION_REQUEST_CODE = 100;
     private static final int GALLERY_REQUEST_CODE = 101;
     private ActivityEditProfileBinding binding;
-    private UserRepository userRepository;
     private AuthViewModel authViewModel;
     private Uri newProfilePictureUri = null;
 
@@ -49,7 +41,6 @@ public class EditProfileActivity extends AppCompatActivity {
         binding = ActivityEditProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
-        userRepository = UserRepository.getInstance();
         binding.editProfileToolbar.toolbarTitle.setText(getString(R.string.edit_profile));
         binding.editProfileToolbar.toolbar.setNavigationOnClickListener(v->{
             getOnBackPressedDispatcher().onBackPressed();
@@ -135,32 +126,7 @@ public class EditProfileActivity extends AppCompatActivity {
         checkAndRequestGalleryPermissions();
     }
     private void handleSaveChanges(View view) {
-        binding.saveChanges.setEnabled(false);
-        FirebaseUser user = authViewModel.getUser().getValue();
-        if(user != null){
-            String uid = user.getUid();
-            String fullName = binding.userFullName.getText() != null ? binding.userFullName.getText().toString() : "";
-            String aboutMe = binding.aboutMe.getText() != null ? binding.aboutMe.getText().toString() : "";
-            String phoneNo = binding.phoneNumber.getText() != null ? binding.phoneNumber.getText().toString() : "";
-            String city = binding.city.getText() != null ? binding.city.getText().toString() : "";
-
-            userRepository.updateUserProfile(getApplicationContext(),uid, fullName, aboutMe, phoneNo, city, newProfilePictureUri)
-                    .addOnCompleteListener(task -> {
-                        if(!task.isSuccessful()){
-                            String error = task.getException() != null
-                                    ? task.getException().getMessage()
-                                    : "Unknown error occurred";
-                            Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
-                            Log.e("DB_PERSIST_FAILED", error);
-                            Snackbar.make(binding.getRoot(), "Failed to update profile: " + error, Snackbar.LENGTH_SHORT).show();
-                        } else {
-                            Snackbar.make(binding.getRoot(), "Profile updated successfully", Snackbar.LENGTH_SHORT).show();
-                            authViewModel.refreshUserDetails();
-                        }
-                        binding.saveChanges.setEnabled(true);
-                    });
-            ;
-        }
+        authViewModel.updateUserProfile(binding,newProfilePictureUri);
     }
 
 }
