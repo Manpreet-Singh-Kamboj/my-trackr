@@ -48,10 +48,20 @@
     <string name="enter_your_new_password">Enter your new password</string>
     <string name="re_enter_password">Re-enter password</string>
     <string name="update_password">Update password</string>
+    <string name="processing_ocr">Processing Receipt with MLKit and Gemini</string>
+    <string name="process_receipt">Process Receipt</string>
+    <string name="save_receipt">Save Receipt</string>
+    <string name="view_receipt_image">Receipt Image</string>
+    <string name="your_receipts">Your Receipts</string>
+    <string name="receipt_details">Receipt Details</string>
+    <string name="no_receipts">No receipts yet</string>
+    <string name="replacement_period">Replacement period reminders are based on the receipt date. For example, if a receipt is dated today and the period is 7 days, you\'ll be notified 1 day before the 7-day period ends.</string>
 
 
     <!-- Google Client IDS -->
     <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
+    <!-- Gemini API Key - Replace with your actual API key -->
+    <string name="gemini_api_key">AIzaSyByGZ4XCEaxvhRF72GSFlu9QXFul08njY8</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 

@@ -1,0 +1,106 @@
+package com.mytrackr.receipts.utils;
+
+import android.content.Context;
+import android.util.Log;
+
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
+import com.mytrackr.receipts.workers.ReplacementPeriodWorker;
+
+import java.util.concurrent.TimeUnit;
+
+public class NotificationScheduler {
+    private static final String TAG = "NotificationScheduler";
+    private static final String WORK_NAME = "replacement_period_check";
+    
+    /**
+     * Schedule periodic work to check for replacement period notifications
+     * This runs daily to check if any receipts are approaching their replacement deadline
+     */
+    public static void scheduleReplacementPeriodCheck(Context context) {
+        NotificationPreferences prefs = new NotificationPreferences(context);
+        
+        if (!prefs.isReplacementReminderEnabled()) {
+            Log.d(TAG, "Replacement reminders disabled, cancelling work");
+            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME);
+            return;
+        }
+        
+        // Constraints: requires network (to fetch receipts from Firestore)
+        Constraints constraints = new Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build();
+        
+        // Periodic work: run every 12 hours (minimum for PeriodicWorkRequest)
+        // This ensures we check receipts at least twice a day
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
+            ReplacementPeriodWorker.class,
+            12,
+            TimeUnit.HOURS
+        )
+        .setConstraints(constraints)
+        .build();
+        
+        // Use unique work to replace any existing work with the same name
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            WORK_NAME,
+            ExistingPeriodicWorkPolicy.REPLACE,
+            workRequest
+        );
+        
+        Log.d(TAG, "Scheduled replacement period check work");
+    }
+    
+    /**
+     * Schedule a one-time notification for a specific receipt
+     * This is called when a receipt is saved
+     */
+    public static void scheduleReceiptReplacementNotification(Context context, String receiptId, long receiptDateTimestamp, int replacementDays, int notificationDaysBefore) {
+        NotificationPreferences prefs = new NotificationPreferences(context);
+        
+        if (!prefs.isReplacementReminderEnabled()) {
+            return;
+        }
+        
+        // Calculate when to send the notification
+        // Notification date = receipt date + replacement days - notification days before
+        long notificationTime = receiptDateTimestamp + 
+            ((replacementDays - notificationDaysBefore) * 24 * 60 * 60 * 1000L);
+        
+        long currentTime = System.currentTimeMillis();
+        
+        // Log detailed calculation info
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US);
+        Log.d(TAG, "Notification calculation for receipt " + receiptId + ":");
+        Log.d(TAG, "  Receipt date timestamp: " + receiptDateTimestamp + " (" + sdf.format(new java.util.Date(receiptDateTimestamp)) + ")");
+        Log.d(TAG, "  Replacement days: " + replacementDays);
+        Log.d(TAG, "  Notification days before: " + notificationDaysBefore);
+        Log.d(TAG, "  Notification time: " + notificationTime + " (" + sdf.format(new java.util.Date(notificationTime)) + ")");
+        Log.d(TAG, "  Current time: " + currentTime + " (" + sdf.format(new java.util.Date(currentTime)) + ")");
+        
+        // Only schedule if notification time is in the future
+        if (notificationTime <= currentTime) {
+            Log.d(TAG, "Notification time has passed, not scheduling");
+            return;
+        }
+        
+        long delay = notificationTime - currentTime;
+        long delayDays = delay / (24 * 60 * 60 * 1000L);
+        long delayHours = (delay % (24 * 60 * 60 * 1000L)) / (60 * 60 * 1000L);
+        
+        // Use OneTimeWorkRequest for specific receipt notifications
+        androidx.work.OneTimeWorkRequest workRequest = new androidx.work.OneTimeWorkRequest.Builder(
+            ReplacementPeriodWorker.class
+        )
+        .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+        .build();
+        
+        WorkManager.getInstance(context).enqueue(workRequest);
+        Log.d(TAG, "Scheduled notification for receipt " + receiptId + " in " + delayDays + " days, " + delayHours + " hours (total delay: " + delay + " ms)");
+    }
+}
+

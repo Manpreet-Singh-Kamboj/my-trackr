@@ -22,6 +22,8 @@ import com.mytrackr.receipts.features.core.fragments.ExpensesFragment;
 import com.mytrackr.receipts.features.core.fragments.HomeFragment;
 import com.mytrackr.receipts.features.core.fragments.ProfileFragment;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
+import com.mytrackr.receipts.utils.NotificationHelper;
+import com.mytrackr.receipts.utils.NotificationScheduler;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 
@@ -50,6 +52,13 @@ public class MainActivity extends AppCompatActivity {
             loadFragments(new HomeFragment());
         }
         binding.bottomNavigation.setOnItemSelectedListener(this::onBottomNavItemSelected);
+        
+        initializeNotifications();
+    }
+    
+    private void initializeNotifications() {
+        NotificationHelper.createNotificationChannel(this);
+        NotificationScheduler.scheduleReplacementPeriodCheck(this);
     }
 
     private boolean onBottomNavItemSelected(MenuItem item){

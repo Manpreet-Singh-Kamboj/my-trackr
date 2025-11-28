@@ -57,6 +57,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     // Firebase Storage for saving receipt images
     implementation("com.google.firebase:firebase-storage")
+    // Firebase Cloud Messaging for push notifications
+    implementation("com.google.firebase:firebase-messaging")
     // ML Kit on-device Text Recognition (use latest stable suggested)
     implementation("com.google.mlkit:text-recognition:16.0.1")
     // ML Kit Document Scanner for cropping and enhancing receipt images
@@ -77,4 +79,10 @@ dependencies {
     // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
     implementation("com.cloudinary:cloudinary-android:3.1.2")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    
+    // WorkManager for background tasks and scheduled notifications
+    implementation("androidx.work:work-runtime:2.9.0")
+    
+    // Guava for ListenableFuture (required by WorkManager)
+    implementation("com.google.guava:guava:31.1-android")
 }

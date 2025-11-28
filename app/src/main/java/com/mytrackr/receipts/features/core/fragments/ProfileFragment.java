@@ -132,7 +132,7 @@ public class ProfileFragment extends Fragment {
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,
                 "Notifications",
-                () -> {}
+                () -> startActivity(new Intent(getContext(), com.mytrackr.receipts.features.notifications.NotificationSettingsActivity.class))
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_settings,
