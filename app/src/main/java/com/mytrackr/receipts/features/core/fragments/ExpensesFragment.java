@@ -223,7 +223,7 @@ public class ExpensesFragment extends Fragment {
                 newSpent
             );
             
-            Toast.makeText(getContext(), "Expense added: " + description + " - ₹" + expenseAmount, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Expense added: " + description + " - $" + expenseAmount, Toast.LENGTH_SHORT).show();
         });
         bottomSheet.show(getParentFragmentManager(), "AddExpenseBottomSheet");
     }
