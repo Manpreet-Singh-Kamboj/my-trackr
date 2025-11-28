@@ -152,6 +152,10 @@ public class HomeViewModel extends AndroidViewModel {
                         Object receiptDateTimestamp = receiptMap.get("receiptDateTimestamp");
                         if (receiptDateTimestamp instanceof Number) receiptInfo.setReceiptDateTimestamp(((Number) receiptDateTimestamp).longValue());
                     }
+                    if (receiptMap.containsKey("customNotificationTimestamp")) {
+                        Object customNotificationTimestamp = receiptMap.get("customNotificationTimestamp");
+                        if (customNotificationTimestamp instanceof Number) receiptInfo.setCustomNotificationTimestamp(((Number) customNotificationTimestamp).longValue());
+                    }
                 }
                 receipt.setReceipt(receiptInfo);
             }

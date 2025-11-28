@@ -51,6 +51,8 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
     private ReceiptItemAdapter itemsAdapter;
     private Button btnViewReceipt;
     private Button btnDeleteReceipt;
+    private TextView notificationDate;
+    private Button btnSetNotificationDate;
     
     private ReceiptRepository receiptRepository;
     private ActivityReceiptDetailsBinding binding;
@@ -113,6 +115,8 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         itemsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         btnViewReceipt = binding.btnViewReceipt;
         btnDeleteReceipt = binding.btnDeleteReceipt;
+        notificationDate = binding.notificationDate;
+        btnSetNotificationDate = binding.btnSetNotificationDate;
         itemsContainer = binding.itemsContainer;
     }
     
@@ -174,6 +178,41 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             paymentMethod.setText(method);
         } else {
             paymentMethod.setText("-");
+        }
+        
+        // Populate notification date
+        populateNotificationDate();
+    }
+    
+    private void populateNotificationDate() {
+        if (receipt.getReceipt() == null) {
+            notificationDate.setText("-");
+            return;
+        }
+        
+        long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
+        if (customNotificationTimestamp > 0) {
+            // Show custom notification date
+            notificationDate.setText(formatTimestamp(customNotificationTimestamp) + " (Custom)");
+        } else {
+            // Calculate and show default notification date
+            long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
+            if (receiptDate == 0) {
+                receiptDate = receipt.getReceipt().getDateTimestamp();
+            }
+            
+            if (receiptDate > 0) {
+                com.mytrackr.receipts.utils.NotificationPreferences prefs = 
+                    new com.mytrackr.receipts.utils.NotificationPreferences(this);
+                int replacementDays = prefs.getReplacementDays();
+                int notificationDaysBefore = prefs.getNotificationDaysBefore();
+                
+                long defaultNotificationTime = receiptDate + 
+                    ((replacementDays - notificationDaysBefore) * 24 * 60 * 60 * 1000L);
+                notificationDate.setText(formatTimestamp(defaultNotificationTime) + " (Default)");
+            } else {
+                notificationDate.setText("-");
+            }
         }
     }
     
@@ -240,6 +279,125 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         });
         
         btnDeleteReceipt.setOnClickListener(v -> showDeleteConfirmationDialog());
+        
+        btnSetNotificationDate.setOnClickListener(v -> showNotificationDatePicker());
+    }
+    
+    private void showNotificationDatePicker() {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        
+        // If custom date exists, use it; otherwise use default calculated date
+        long initialDate = receipt.getReceipt().getCustomNotificationTimestamp();
+        if (initialDate == 0) {
+            long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
+            if (receiptDate == 0) {
+                receiptDate = receipt.getReceipt().getDateTimestamp();
+            }
+            if (receiptDate > 0) {
+                com.mytrackr.receipts.utils.NotificationPreferences prefs = 
+                    new com.mytrackr.receipts.utils.NotificationPreferences(this);
+                int replacementDays = prefs.getReplacementDays();
+                int notificationDaysBefore = prefs.getNotificationDaysBefore();
+                initialDate = receiptDate + ((replacementDays - notificationDaysBefore) * 24 * 60 * 60 * 1000L);
+            } else {
+                initialDate = System.currentTimeMillis();
+            }
+        }
+        
+        calendar.setTimeInMillis(initialDate);
+        
+        // Show date picker first
+        android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(
+            this,
+            android.R.style.Theme_Material_Dialog,
+            (view, year, month, dayOfMonth) -> {
+                java.util.Calendar selectedCalendar = java.util.Calendar.getInstance();
+                selectedCalendar.set(year, month, dayOfMonth);
+                
+                // After date is selected, show time picker
+                android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+                    this,
+                    android.R.style.Theme_Material_Dialog,
+                    (timeView, hourOfDay, minute) -> {
+                        selectedCalendar.set(java.util.Calendar.HOUR_OF_DAY, hourOfDay);
+                        selectedCalendar.set(java.util.Calendar.MINUTE, minute);
+                        selectedCalendar.set(java.util.Calendar.SECOND, 0);
+                        selectedCalendar.set(java.util.Calendar.MILLISECOND, 0);
+                        
+                        long customTimestamp = selectedCalendar.getTimeInMillis();
+                        saveCustomNotificationDate(customTimestamp);
+                    },
+                    calendar.get(java.util.Calendar.HOUR_OF_DAY),
+                    calendar.get(java.util.Calendar.MINUTE),
+                    android.text.format.DateFormat.is24HourFormat(this)
+                );
+                timePickerDialog.setTitle("Select Reminder Time");
+                timePickerDialog.show();
+            },
+            calendar.get(java.util.Calendar.YEAR),
+            calendar.get(java.util.Calendar.MONTH),
+            calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.setTitle("Select Reminder Date");
+        // Set minimum date to today
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        datePickerDialog.show();
+    }
+    
+    private void saveCustomNotificationDate(long customTimestamp) {
+        if (receipt.getReceipt() == null) {
+            receipt.setReceipt(new Receipt.ReceiptInfo());
+        }
+        
+        receipt.getReceipt().setCustomNotificationTimestamp(customTimestamp);
+        
+        // Save to Firestore
+        if (receipt.getId() != null && !receipt.getId().isEmpty()) {
+            java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
+            java.util.Map<String, Object> receiptMap = new java.util.HashMap<>();
+            receiptMap.put("customNotificationTimestamp", customTimestamp);
+            updateMap.put("receipt", receiptMap);
+            
+            com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+            String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
+            
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(userId)
+                .collection("receipts")
+                .document(receipt.getId())
+                .update(updateMap)
+                .addOnSuccessListener(aVoid -> {
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Reminder date updated", Toast.LENGTH_SHORT).show();
+                        populateNotificationDate();
+                        
+                        // Reschedule notification with new custom date
+                        com.mytrackr.receipts.utils.NotificationPreferences prefs = 
+                            new com.mytrackr.receipts.utils.NotificationPreferences(this);
+                        if (prefs.isReplacementReminderEnabled()) {
+                            long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
+                            if (receiptDate == 0) {
+                                receiptDate = receipt.getReceipt().getDateTimestamp();
+                            }
+                            com.mytrackr.receipts.utils.NotificationScheduler.scheduleReceiptReplacementNotification(
+                                this,
+                                receipt.getId(),
+                                receiptDate,
+                                prefs.getReplacementDays(),
+                                prefs.getNotificationDaysBefore(),
+                                customTimestamp
+                            );
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to update custom notification date", e);
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Failed to update reminder date", Toast.LENGTH_SHORT).show();
+                    });
+                });
+        }
     }
     
     private void showDeleteConfirmationDialog() {

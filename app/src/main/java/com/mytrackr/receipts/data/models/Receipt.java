@@ -86,6 +86,7 @@ public class Receipt implements Serializable {
         private double total;
         private long dateTimestamp; // epoch millis for sorting (upload time)
         private long receiptDateTimestamp; // epoch millis for actual receipt date (for notifications)
+        private long customNotificationTimestamp; // epoch millis for custom notification date (0 if not set)
         private String category;
 
         public ReceiptInfo() {}
@@ -122,6 +123,9 @@ public class Receipt implements Serializable {
         
         public long getReceiptDateTimestamp() { return receiptDateTimestamp; }
         public void setReceiptDateTimestamp(long receiptDateTimestamp) { this.receiptDateTimestamp = receiptDateTimestamp; }
+        
+        public long getCustomNotificationTimestamp() { return customNotificationTimestamp; }
+        public void setCustomNotificationTimestamp(long customNotificationTimestamp) { this.customNotificationTimestamp = customNotificationTimestamp; }
         
         public String getCategory() { return category; }
         public void setCategory(String category) { this.category = category; }

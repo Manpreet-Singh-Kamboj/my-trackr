@@ -172,6 +172,12 @@ public class ReplacementPeriodWorker extends Worker {
                             receiptInfo.setReceiptDateTimestamp(((Number) receiptDateTimestamp).longValue());
                         }
                     }
+                    if (receiptMap.containsKey("customNotificationTimestamp")) {
+                        Object customNotificationTimestamp = receiptMap.get("customNotificationTimestamp");
+                        if (customNotificationTimestamp instanceof Number) {
+                            receiptInfo.setCustomNotificationTimestamp(((Number) customNotificationTimestamp).longValue());
+                        }
+                    }
                 }
                 receipt.setReceipt(receiptInfo);
             }

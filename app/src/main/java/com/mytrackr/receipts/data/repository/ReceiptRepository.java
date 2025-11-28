@@ -108,6 +108,9 @@ public class ReceiptRepository {
             if (receiptInfo.getReceiptDateTimestamp() > 0) {
                 receiptMap.put("receiptDateTimestamp", receiptInfo.getReceiptDateTimestamp()); // Actual receipt date
             }
+            if (receiptInfo.getCustomNotificationTimestamp() > 0) {
+                receiptMap.put("customNotificationTimestamp", receiptInfo.getCustomNotificationTimestamp()); // Custom notification date
+            }
             map.put("receipt", receiptMap);
         }
         
@@ -280,12 +283,16 @@ public class ReceiptRepository {
             ", replacementDays: " + replacementDays + 
             ", notificationDaysBefore: " + notificationDaysBefore);
         
+        // Get custom notification timestamp if set
+        long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
+        
         NotificationScheduler.scheduleReceiptReplacementNotification(
             context,
             receiptId,
             receiptDate,
             replacementDays,
-            notificationDaysBefore
+            notificationDaysBefore,
+            customNotificationTimestamp
         );
     }
 
