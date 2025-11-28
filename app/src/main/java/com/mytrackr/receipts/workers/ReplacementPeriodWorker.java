@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -46,6 +47,18 @@ public class ReplacementPeriodWorker extends Worker {
                 return Result.success();
             }
             
+            // Check if this is a one-time notification (has receiptId in input data)
+            androidx.work.Data inputData = getInputData();
+            String receiptId = inputData.getString("receiptId");
+            boolean isOneTimeNotification = inputData.getBoolean("isOneTimeNotification", false);
+            
+            if (isOneTimeNotification && receiptId != null && !receiptId.isEmpty()) {
+                // This is a one-time notification - fetch the receipt and show notification
+                Log.d(TAG, "Processing one-time notification for receipt: " + receiptId);
+                return handleOneTimeNotification(context, receiptId);
+            }
+            
+            // Otherwise, this is a periodic check - proceed with date range query
             String userId = auth.getCurrentUser().getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             
@@ -120,6 +133,13 @@ public class ReplacementPeriodWorker extends Worker {
             return;
         }
         
+        // Skip if receipt has a custom notification timestamp - one-time notifications handle those
+        long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
+        if (customNotificationTimestamp > 0) {
+            Log.d(TAG, "Skipping periodic notification for receipt " + receipt.getId() + " - has custom notification timestamp");
+            return;
+        }
+        
         // Use receiptDateTimestamp for notification calculation (actual receipt date)
         // Fallback to dateTimestamp if receiptDateTimestamp is not set
         long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
@@ -138,7 +158,7 @@ public class ReplacementPeriodWorker extends Worker {
         
         // Only notify if we're within the notification window
         if (daysRemaining >= 0 && daysRemaining <= notificationDaysBefore) {
-            Log.d(TAG, "Sending notification for receipt: " + receipt.getId() + ", days remaining: " + daysRemaining);
+            Log.d(TAG, "Sending periodic notification for receipt: " + receipt.getId() + ", days remaining: " + daysRemaining);
             NotificationHelper.showReplacementPeriodNotification(
                 context, 
                 receipt, 
@@ -147,7 +167,153 @@ public class ReplacementPeriodWorker extends Worker {
         }
     }
     
-    private Receipt parseReceiptFromDocument(QueryDocumentSnapshot document) {
+    private Result handleOneTimeNotification(Context context, String receiptId) {
+        Log.d(TAG, "handleOneTimeNotification called for receipt: " + receiptId);
+        Log.d(TAG, "App context: " + context.getClass().getName());
+        Log.d(TAG, "Current time: " + System.currentTimeMillis());
+        
+        try {
+            // Initialize Firebase if not already initialized
+            try {
+                FirebaseApp.getInstance();
+            } catch (IllegalStateException e) {
+                Log.e(TAG, "Firebase not initialized, attempting to initialize", e);
+                FirebaseApp.initializeApp(context);
+            }
+            
+            FirebaseAuth auth = FirebaseAuth.getInstance();
+            if (auth.getCurrentUser() == null) {
+                Log.w(TAG, "No user logged in for one-time notification");
+                // Even without user, we should still try to show notification if we have the receipt data
+                // But we can't fetch from Firestore without auth, so return success
+                return Result.success();
+            }
+            
+            String userId = auth.getCurrentUser().getUid();
+            Log.d(TAG, "User ID: " + userId);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            
+            // Use blocking call to fetch receipt
+            java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+            final Result[] workResult = {Result.success()};
+            final boolean[] notificationShown = {false};
+            
+            db.collection("users")
+                .document(userId)
+                .collection("receipts")
+                .document(receiptId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    try {
+                        if (documentSnapshot.exists()) {
+                            Log.d(TAG, "Receipt document found, parsing...");
+                            Receipt receipt = parseReceiptFromDocument(documentSnapshot);
+                            if (receipt != null) {
+                                Log.d(TAG, "Receipt parsed successfully. Store: " + 
+                                    (receipt.getStore() != null && receipt.getStore().getName() != null 
+                                        ? receipt.getStore().getName() : "null"));
+                                Log.d(TAG, "Receipt date timestamp: " + 
+                                    (receipt.getReceipt() != null ? receipt.getReceipt().getReceiptDateTimestamp() : "null"));
+                                
+                                NotificationPreferences prefs = new NotificationPreferences(context);
+                                if (!prefs.isReplacementReminderEnabled()) {
+                                    Log.d(TAG, "Replacement reminders disabled, not showing notification");
+                                    latch.countDown();
+                                    return;
+                                }
+                                
+                                int replacementDays = prefs.getReplacementDays();
+                                int notificationDaysBefore = prefs.getNotificationDaysBefore();
+                                
+                                // Calculate days remaining
+                                // For one-time notifications, always show even if date is missing
+                                long receiptDate = 0;
+                                if (receipt.getReceipt() != null) {
+                                    receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
+                                    if (receiptDate == 0) {
+                                        receiptDate = receipt.getReceipt().getDateTimestamp();
+                                        Log.d(TAG, "Using dateTimestamp as fallback: " + receiptDate);
+                                    }
+                                }
+                                
+                                int daysRemaining = 0;
+                                if (receiptDate > 0) {
+                                    long replacementEndDate = receiptDate + (replacementDays * 24 * 60 * 60 * 1000L);
+                                    long currentTime = System.currentTimeMillis();
+                                    daysRemaining = (int) ((replacementEndDate - currentTime) / (24 * 60 * 60 * 1000L));
+                                    daysRemaining = Math.max(0, daysRemaining);
+                                } else {
+                                    // For one-time notifications, show with 0 days if date is missing
+                                    // This ensures scheduled notifications always show
+                                    Log.w(TAG, "No receipt date found for one-time notification, showing with 0 days remaining");
+                                    daysRemaining = 0;
+                                }
+                                
+                                // Always show notification for one-time notifications (even if date is missing)
+                                Log.d(TAG, "Showing one-time notification for receipt: " + receiptId + 
+                                    ", days remaining: " + daysRemaining + 
+                                    ", store: " + (receipt.getStore() != null && receipt.getStore().getName() != null 
+                                        ? receipt.getStore().getName() : "null"));
+                                
+                                try {
+                                    NotificationHelper.showReplacementPeriodNotification(
+                                        context,
+                                        receipt,
+                                        daysRemaining
+                                    );
+                                    notificationShown[0] = true;
+                                    Log.d(TAG, "Notification shown successfully");
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Error showing notification", e);
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                Log.w(TAG, "Failed to parse receipt from document");
+                            }
+                        } else {
+                            Log.w(TAG, "Receipt not found for one-time notification: " + receiptId);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing one-time notification", e);
+                        e.printStackTrace();
+                        // Don't retry - return success to avoid infinite retries
+                        workResult[0] = Result.success();
+                    } finally {
+                        latch.countDown();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching receipt for one-time notification: " + e.getMessage(), e);
+                    // Don't retry on network errors - return success to avoid infinite retries
+                    // The periodic worker will catch missed notifications
+                    workResult[0] = Result.success();
+                    latch.countDown();
+                });
+            
+            try {
+                boolean completed = latch.await(30, java.util.concurrent.TimeUnit.SECONDS);
+                if (!completed) {
+                    Log.w(TAG, "Timeout waiting for receipt fetch");
+                    return Result.success(); // Return success to avoid retries
+                }
+            } catch (InterruptedException e) {
+                Log.e(TAG, "Interrupted while waiting for receipt fetch", e);
+                return Result.success(); // Return success to avoid retries
+            }
+            
+            if (notificationShown[0]) {
+                Log.d(TAG, "One-time notification successfully shown");
+            }
+            
+            return workResult[0];
+        } catch (Exception e) {
+            Log.e(TAG, "Unexpected error in handleOneTimeNotification", e);
+            return Result.success(); // Return success to avoid infinite retries
+        }
+    }
+    
+    private Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
+        // This method works with both DocumentSnapshot and QueryDocumentSnapshot
         try {
             Receipt receipt = new Receipt();
             Map<String, Object> data = document.getData();
@@ -182,14 +348,59 @@ public class ReplacementPeriodWorker extends Worker {
                 receipt.setReceipt(receiptInfo);
             }
             
-            // Parse store information
+            // Parse store information - check both "store" and "storeName" for backward compatibility
+            Receipt.StoreInfo store = new Receipt.StoreInfo();
+            boolean storeParsed = false;
+            
             if (data.containsKey("store")) {
                 Map<String, Object> storeMap = (Map<String, Object>) data.get("store");
-                Receipt.StoreInfo store = new Receipt.StoreInfo();
                 if (storeMap != null) {
-                    if (storeMap.containsKey("name")) store.setName((String) storeMap.get("name"));
+                    if (storeMap.containsKey("name")) {
+                        Object nameObj = storeMap.get("name");
+                        if (nameObj != null) {
+                            String storeName = nameObj.toString().trim();
+                            if (!storeName.isEmpty() && !storeName.equals("null") && !storeName.equalsIgnoreCase("null")) {
+                                store.setName(storeName);
+                                storeParsed = true;
+                                Log.d(TAG, "Parsed store name from store.name: '" + storeName + "'");
+                            } else {
+                                Log.w(TAG, "Store name is empty or 'null' string in store.name: '" + storeName + "'");
+                            }
+                        } else {
+                            Log.w(TAG, "Store name object is null in store.name");
+                        }
+                    } else {
+                        Log.w(TAG, "Store map doesn't contain 'name' key. Keys: " + storeMap.keySet());
+                    }
+                } else {
+                    Log.w(TAG, "Store map is null");
                 }
+            } else {
+                Log.w(TAG, "Data doesn't contain 'store' key. Available keys: " + data.keySet());
+            }
+            
+            // Fallback to storeName field if store.name wasn't found or was empty
+            if (!storeParsed && data.containsKey("storeName")) {
+                Object nameObj = data.get("storeName");
+                if (nameObj != null) {
+                    String storeName = nameObj.toString().trim();
+                    if (!storeName.isEmpty() && !storeName.equals("null") && !storeName.equalsIgnoreCase("null")) {
+                        store.setName(storeName);
+                        storeParsed = true;
+                        Log.d(TAG, "Parsed store name from storeName field: '" + storeName + "'");
+                    } else {
+                        Log.w(TAG, "Store name is empty or 'null' string in storeName field: '" + storeName + "'");
+                    }
+                }
+            }
+            
+            if (storeParsed) {
                 receipt.setStore(store);
+                Log.d(TAG, "Store successfully parsed for receipt " + document.getId() + ": '" + store.getName() + "'");
+            } else {
+                Log.w(TAG, "No valid store name found for receipt " + document.getId() + ". Available data keys: " + data.keySet());
+                // Set store to null so NotificationHelper can use fallback
+                receipt.setStore(null);
             }
             
             return receipt;
@@ -198,5 +409,6 @@ public class ReplacementPeriodWorker extends Worker {
             return null;
         }
     }
+    
 }
 

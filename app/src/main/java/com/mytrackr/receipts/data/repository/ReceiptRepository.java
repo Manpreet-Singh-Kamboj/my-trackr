@@ -43,6 +43,10 @@ public class ReceiptRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private static ReceiptRepository repositoryInstance;
+    
+    // Track last notification scheduling time per receipt to prevent duplicates
+    private static final Map<String, Long> lastScheduledTime = new HashMap<>();
+    private static final long SCHEDULING_COOLDOWN_MS = 5000; // 5 seconds cooldown
 
     public static synchronized ReceiptRepository getInstance(){
         if(repositoryInstance == null){
@@ -104,9 +108,16 @@ public class ReceiptRepository {
             receiptMap.put("subtotal", receiptInfo.getSubtotal());
             receiptMap.put("tax", receiptInfo.getTax());
             receiptMap.put("total", receiptInfo.getTotal());
-            receiptMap.put("dateTimestamp", receiptInfo.getDateTimestamp()); // For sorting (upload time)
+            // Always save dateTimestamp (for sorting/upload time)
+            receiptMap.put("dateTimestamp", receiptInfo.getDateTimestamp());
+            
+            // Always save receiptDateTimestamp if it exists, otherwise save dateTimestamp as fallback
             if (receiptInfo.getReceiptDateTimestamp() > 0) {
                 receiptMap.put("receiptDateTimestamp", receiptInfo.getReceiptDateTimestamp()); // Actual receipt date
+            } else if (receiptInfo.getDateTimestamp() > 0) {
+                // If receiptDateTimestamp is 0 but dateTimestamp exists, use it as fallback
+                receiptMap.put("receiptDateTimestamp", receiptInfo.getDateTimestamp());
+                Log.d("ReceiptRepository", "Using dateTimestamp as receiptDateTimestamp fallback: " + receiptInfo.getDateTimestamp());
             }
             if (receiptInfo.getCustomNotificationTimestamp() > 0) {
                 receiptMap.put("customNotificationTimestamp", receiptInfo.getCustomNotificationTimestamp()); // Custom notification date
@@ -251,6 +262,18 @@ public class ReceiptRepository {
         if (receipt.getReceipt() == null) {
             Log.w("ReceiptRepository", "ReceiptInfo is null, cannot schedule notification");
             return;
+        }
+        
+        // Guard against duplicate scheduling within cooldown period
+        synchronized (lastScheduledTime) {
+            Long lastScheduled = lastScheduledTime.get(receiptId);
+            long currentTime = System.currentTimeMillis();
+            if (lastScheduled != null && (currentTime - lastScheduled) < SCHEDULING_COOLDOWN_MS) {
+                Log.d("ReceiptRepository", "Skipping duplicate notification scheduling for receipt " + receiptId + 
+                    " (last scheduled " + (currentTime - lastScheduled) + " ms ago)");
+                return;
+            }
+            lastScheduledTime.put(receiptId, currentTime);
         }
         
         // Use receiptDateTimestamp for notification calculation (actual receipt date)
@@ -481,6 +504,219 @@ public class ReceiptRepository {
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(listener);
+    }
+    
+    /**
+     * Fetch a single receipt by ID from Firestore
+     * @param receiptId The receipt ID to fetch
+     * @param callback Callback with the parsed Receipt or error
+     */
+    public void fetchReceiptById(String receiptId, FetchReceiptCallback callback) {
+        if (receiptId == null || receiptId.isEmpty()) {
+            if (callback != null) {
+                callback.onFailure(new IllegalArgumentException("Receipt ID cannot be null or empty"));
+            }
+            return;
+        }
+        
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null 
+            ? FirebaseAuth.getInstance().getCurrentUser().getUid() 
+            : "anonymous";
+        
+        db.collection("users").document(userId).collection("receipts").document(receiptId)
+            .get()
+            .addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    Receipt receipt = parseReceiptFromDocument(documentSnapshot);
+                    if (receipt != null) {
+                        if (callback != null) callback.onSuccess(receipt);
+                    } else {
+                        if (callback != null) callback.onFailure(new Exception("Failed to parse receipt"));
+                    }
+                } else {
+                    if (callback != null) callback.onFailure(new Exception("Receipt not found"));
+                }
+            })
+            .addOnFailureListener(e -> {
+                Log.e("ReceiptRepository", "Error fetching receipt: " + receiptId, e);
+                if (callback != null) callback.onFailure(e);
+            });
+    }
+    
+    public interface FetchReceiptCallback {
+        void onSuccess(Receipt receipt);
+        void onFailure(Exception e);
+    }
+    
+    /**
+     * Parse a receipt from a Firestore document (full parsing with all fields)
+     */
+    private Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
+        try {
+            Receipt receipt = new Receipt();
+            Map<String, Object> data = document.getData();
+            if (data == null) return null;
+
+            receipt.setId(document.getId());
+            
+            // Parse image URL
+            if (data.containsKey("imageUrl")) {
+                receipt.setImageUrl((String) data.get("imageUrl"));
+            }
+            
+            if (data.containsKey("cloudinaryPublicId")) {
+                receipt.setCloudinaryPublicId((String) data.get("cloudinaryPublicId"));
+            }
+
+            // Parse store information
+            if (data.containsKey("store")) {
+                Map<String, Object> storeMap = (Map<String, Object>) data.get("store");
+                Receipt.StoreInfo store = new Receipt.StoreInfo();
+                if (storeMap != null) {
+                    if (storeMap.containsKey("name")) store.setName((String) storeMap.get("name"));
+                    if (storeMap.containsKey("address")) store.setAddress((String) storeMap.get("address"));
+                    if (storeMap.containsKey("phone")) store.setPhone((String) storeMap.get("phone"));
+                    if (storeMap.containsKey("website")) store.setWebsite((String) storeMap.get("website"));
+                }
+                receipt.setStore(store);
+            } else if (data.containsKey("storeName")) {
+                // Backward compatibility
+                Receipt.StoreInfo store = new Receipt.StoreInfo();
+                store.setName((String) data.get("storeName"));
+                receipt.setStore(store);
+            }
+
+            // Parse receipt information
+            if (data.containsKey("receipt")) {
+                Map<String, Object> receiptMap = (Map<String, Object>) data.get("receipt");
+                Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
+                if (receiptMap != null) {
+                    if (receiptMap.containsKey("receiptId")) receiptInfo.setReceiptId((String) receiptMap.get("receiptId"));
+                    if (receiptMap.containsKey("date")) receiptInfo.setDate((String) receiptMap.get("date"));
+                    if (receiptMap.containsKey("time")) receiptInfo.setTime((String) receiptMap.get("time"));
+                    if (receiptMap.containsKey("currency")) receiptInfo.setCurrency((String) receiptMap.get("currency"));
+                    if (receiptMap.containsKey("paymentMethod")) receiptInfo.setPaymentMethod((String) receiptMap.get("paymentMethod"));
+                    if (receiptMap.containsKey("cardLast4")) receiptInfo.setCardLast4((String) receiptMap.get("cardLast4"));
+                    if (receiptMap.containsKey("category")) {
+                        Object categoryObj = receiptMap.get("category");
+                        if (categoryObj != null) {
+                            String category = categoryObj.toString().trim();
+                            if (!category.isEmpty() && !category.equals("null")) {
+                                receiptInfo.setCategory(category);
+                            }
+                        }
+                    }
+                    if (receiptMap.containsKey("subtotal")) {
+                        Object subtotal = receiptMap.get("subtotal");
+                        if (subtotal instanceof Number) {
+                            receiptInfo.setSubtotal(((Number) subtotal).doubleValue());
+                        } else if (subtotal != null) {
+                            // Try to parse as string if not a number
+                            try {
+                                receiptInfo.setSubtotal(Double.parseDouble(subtotal.toString()));
+                            } catch (NumberFormatException e) {
+                                Log.w("ReceiptRepository", "Failed to parse subtotal: " + subtotal);
+                            }
+                        }
+                    }
+                    if (receiptMap.containsKey("tax")) {
+                        Object tax = receiptMap.get("tax");
+                        if (tax instanceof Number) {
+                            receiptInfo.setTax(((Number) tax).doubleValue());
+                        } else if (tax != null) {
+                            try {
+                                receiptInfo.setTax(Double.parseDouble(tax.toString()));
+                            } catch (NumberFormatException e) {
+                                Log.w("ReceiptRepository", "Failed to parse tax: " + tax);
+                            }
+                        }
+                    }
+                    if (receiptMap.containsKey("total")) {
+                        Object total = receiptMap.get("total");
+                        if (total instanceof Number) {
+                            receiptInfo.setTotal(((Number) total).doubleValue());
+                        } else if (total != null) {
+                            try {
+                                receiptInfo.setTotal(Double.parseDouble(total.toString()));
+                            } catch (NumberFormatException e) {
+                                Log.w("ReceiptRepository", "Failed to parse total: " + total);
+                            }
+                        }
+                    }
+                    if (receiptMap.containsKey("dateTimestamp")) {
+                        Object dateTimestamp = receiptMap.get("dateTimestamp");
+                        if (dateTimestamp instanceof Number) receiptInfo.setDateTimestamp(((Number) dateTimestamp).longValue());
+                    }
+                    if (receiptMap.containsKey("receiptDateTimestamp")) {
+                        Object receiptDateTimestamp = receiptMap.get("receiptDateTimestamp");
+                        if (receiptDateTimestamp instanceof Number) receiptInfo.setReceiptDateTimestamp(((Number) receiptDateTimestamp).longValue());
+                    }
+                    if (receiptMap.containsKey("customNotificationTimestamp")) {
+                        Object customNotificationTimestamp = receiptMap.get("customNotificationTimestamp");
+                        if (customNotificationTimestamp instanceof Number) receiptInfo.setCustomNotificationTimestamp(((Number) customNotificationTimestamp).longValue());
+                    }
+                }
+                receipt.setReceipt(receiptInfo);
+            }
+
+            // Parse items
+            if (data.containsKey("items")) {
+                List<Map<String, Object>> itemsMap = (List<Map<String, Object>>) data.get("items");
+                if (itemsMap != null) {
+                    List<ReceiptItem> items = new ArrayList<>();
+                    for (Map<String, Object> itemMap : itemsMap) {
+                        ReceiptItem item = new ReceiptItem();
+                        if (itemMap.containsKey("name")) item.setName((String) itemMap.get("name"));
+                        if (itemMap.containsKey("quantity")) {
+                            Object qty = itemMap.get("quantity");
+                            if (qty instanceof Number) item.setQuantity(((Number) qty).intValue());
+                        }
+                        if (itemMap.containsKey("unitPrice")) {
+                            Object price = itemMap.get("unitPrice");
+                            if (price instanceof Number) item.setUnitPrice(((Number) price).doubleValue());
+                        }
+                        if (itemMap.containsKey("totalPrice")) {
+                            Object total = itemMap.get("totalPrice");
+                            if (total instanceof Number) item.setTotalPrice(((Number) total).doubleValue());
+                        }
+                        if (itemMap.containsKey("category")) item.setCategory((String) itemMap.get("category"));
+                        items.add(item);
+                    }
+                    receipt.setItems(items);
+                }
+            }
+
+            // Parse additional information
+            if (data.containsKey("additional")) {
+                Map<String, Object> additionalMap = (Map<String, Object>) data.get("additional");
+                Receipt.AdditionalInfo additional = new Receipt.AdditionalInfo();
+                if (additionalMap != null) {
+                    if (additionalMap.containsKey("taxNumber")) additional.setTaxNumber((String) additionalMap.get("taxNumber"));
+                    if (additionalMap.containsKey("cashier")) additional.setCashier((String) additionalMap.get("cashier"));
+                    if (additionalMap.containsKey("storeNumber")) additional.setStoreNumber((String) additionalMap.get("storeNumber"));
+                    if (additionalMap.containsKey("notes")) additional.setNotes((String) additionalMap.get("notes"));
+                }
+                receipt.setAdditional(additional);
+            }
+
+            // Parse metadata
+            if (data.containsKey("metadata")) {
+                Map<String, Object> metadataMap = (Map<String, Object>) data.get("metadata");
+                Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
+                if (metadataMap != null) {
+                    if (metadataMap.containsKey("ocrText")) metadata.setOcrText((String) metadataMap.get("ocrText"));
+                    if (metadataMap.containsKey("processedBy")) metadata.setProcessedBy((String) metadataMap.get("processedBy"));
+                    if (metadataMap.containsKey("uploadedAt")) metadata.setUploadedAt((String) metadataMap.get("uploadedAt"));
+                    if (metadataMap.containsKey("userId")) metadata.setUserId((String) metadataMap.get("userId"));
+                }
+                receipt.setMetadata(metadata);
+            }
+
+            return receipt;
+        } catch (Exception e) {
+            Log.e("ReceiptRepository", "Error parsing receipt from document", e);
+            return null;
+        }
     }
 
     private interface DownloadUrlCallback {

@@ -18,11 +18,14 @@ import com.mytrackr.receipts.data.models.ReceiptItem;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_DATE_HEADER = 0;
@@ -59,22 +62,25 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     private Map<String, List<Receipt>> groupReceiptsByDate(List<Receipt> receipts) {
+        // First, sort all receipts by date (most recent first)
+        List<Receipt> sortedReceipts = new ArrayList<>(receipts);
+        Collections.sort(sortedReceipts, new Comparator<Receipt>() {
+            @Override
+            public int compare(Receipt r1, Receipt r2) {
+                long timestamp1 = getReceiptTimestamp(r1);
+                long timestamp2 = getReceiptTimestamp(r2);
+                // Sort in descending order (most recent first)
+                return Long.compare(timestamp2, timestamp1);
+            }
+        });
+        
+        // Group receipts by date
         Map<String, List<Receipt>> grouped = new LinkedHashMap<>();
         SimpleDateFormat headerFormat = new SimpleDateFormat("MMMM dd yyyy", Locale.US);
         
-        for (Receipt receipt : receipts) {
-            String dateKey;
-            long timestamp = 0;
-            
-            if (receipt.getReceipt().getDateTimestamp() > 0) {
-                timestamp = receipt.getReceipt().getDateTimestamp();
-            } else if (receipt.getDate() > 0) {
-                timestamp = receipt.getDate();
-            } else {
-                timestamp = System.currentTimeMillis();
-            }
-            
-            dateKey = headerFormat.format(new Date(timestamp)).toUpperCase();
+        for (Receipt receipt : sortedReceipts) {
+            long timestamp = getReceiptTimestamp(receipt);
+            String dateKey = headerFormat.format(new Date(timestamp)).toUpperCase();
             
             if (!grouped.containsKey(dateKey)) {
                 grouped.put(dateKey, new ArrayList<>());
@@ -82,7 +88,32 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             grouped.get(dateKey).add(receipt);
         }
         
+        // Sort receipts within each date group (most recent first)
+        for (List<Receipt> receiptList : grouped.values()) {
+            Collections.sort(receiptList, new Comparator<Receipt>() {
+                @Override
+                public int compare(Receipt r1, Receipt r2) {
+                    long timestamp1 = getReceiptTimestamp(r1);
+                    long timestamp2 = getReceiptTimestamp(r2);
+                    // Sort in descending order (most recent first)
+                    return Long.compare(timestamp2, timestamp1);
+                }
+            });
+        }
+        
         return grouped;
+    }
+    
+    private long getReceiptTimestamp(Receipt receipt) {
+        if (receipt.getReceipt() != null) {
+            if (receipt.getReceipt().getDateTimestamp() > 0) {
+                return receipt.getReceipt().getDateTimestamp();
+            }
+        }
+        if (receipt.getDate() > 0) {
+            return receipt.getDate();
+        }
+        return System.currentTimeMillis();
     }
 
     @Override
