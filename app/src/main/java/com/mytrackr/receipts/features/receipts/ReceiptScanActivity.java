@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -43,6 +42,7 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.mytrackr.receipts.BuildConfig;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.models.ReceiptItem;
@@ -192,8 +192,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
         progressOverlay = binding.progressOverlay;
 
         // Initialize Gemini API service
-        String geminiApiKey = getString(R.string.gemini_api_key);
-        geminiApiService = new GeminiApiService(geminiApiKey);
+        geminiApiService = new GeminiApiService(BuildConfig.GEMINI_API_KEY);
 
         checkAndRequestPermissions();
     }

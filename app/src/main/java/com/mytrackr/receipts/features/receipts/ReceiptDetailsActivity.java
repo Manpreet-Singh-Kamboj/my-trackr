@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +54,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
     
     private ReceiptRepository receiptRepository;
     private ActivityReceiptDetailsBinding binding;
+    private LinearLayout itemsContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         itemsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         btnViewReceipt = binding.btnViewReceipt;
         btnDeleteReceipt = binding.btnDeleteReceipt;
+        itemsContainer = binding.itemsContainer;
     }
     
     private void populateReceiptDetails() {
@@ -126,7 +129,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         }
         
         // Merchant name
-        if (receipt.getStore() != null && receipt.getStore().getName() != null) {
+        if (receipt.getStore() != null && receipt.getStore().getName() != null && !receipt.getStore().getName().isEmpty()) {
             merchantName.setText(receipt.getStore().getName());
         } else {
             merchantName.setText("-");
@@ -176,6 +179,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
     
     private void populateItems() {
         if (receipt.getItems() == null || receipt.getItems().isEmpty()) {
+            itemsContainer.setVisibility(View.GONE);
             itemsRecyclerView.setVisibility(View.GONE);
             return;
         }
