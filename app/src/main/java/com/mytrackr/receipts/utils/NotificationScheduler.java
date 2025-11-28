@@ -39,8 +39,8 @@ public class NotificationScheduler {
         // This ensures we check receipts at least twice a day
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
             ReplacementPeriodWorker.class,
-            12,
-            TimeUnit.HOURS
+            5,
+            TimeUnit.MINUTES
         )
         .setConstraints(constraints)
         .build();
@@ -92,14 +92,29 @@ public class NotificationScheduler {
         long delayDays = delay / (24 * 60 * 60 * 1000L);
         long delayHours = (delay % (24 * 60 * 60 * 1000L)) / (60 * 60 * 1000L);
         
+        // Constraints: requires network (to fetch receipt from Firestore)
+        Constraints constraints = new Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build();
+        
         // Use OneTimeWorkRequest for specific receipt notifications
+        // Use unique work name per receipt to avoid overwriting
+        String uniqueWorkName = "replacement_notification_" + receiptId;
         androidx.work.OneTimeWorkRequest workRequest = new androidx.work.OneTimeWorkRequest.Builder(
             ReplacementPeriodWorker.class
         )
         .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+        .setConstraints(constraints)
+        .addTag("receipt_notification")
+        .addTag("receipt_" + receiptId)
         .build();
         
-        WorkManager.getInstance(context).enqueue(workRequest);
+        // Use unique work to ensure each receipt gets its own notification
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            uniqueWorkName,
+            androidx.work.ExistingWorkPolicy.REPLACE,
+            workRequest
+        );
         Log.d(TAG, "Scheduled notification for receipt " + receiptId + " in " + delayDays + " days, " + delayHours + " hours (total delay: " + delay + " ms)");
     }
 }

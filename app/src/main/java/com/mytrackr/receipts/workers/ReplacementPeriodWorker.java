@@ -69,7 +69,7 @@ public class ReplacementPeriodWorker extends Worker {
             
             Log.d(TAG, "Checking receipts with date between " + new Date(receiptDateStart) + " and " + new Date(receiptDateEnd));
             
-            // Query receipts where dateTimestamp is in the target range
+            // Query receipts where receiptDateTimestamp is in the target range
             // Use a blocking call since this is a Worker
             java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
             final Result[] workResult = {Result.success()};
@@ -77,8 +77,8 @@ public class ReplacementPeriodWorker extends Worker {
             db.collection("users")
                 .document(userId)
                 .collection("receipts")
-                .whereGreaterThanOrEqualTo("receipt.dateTimestamp", receiptDateStart)
-                .whereLessThan("receipt.dateTimestamp", receiptDateEnd)
+                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", receiptDateStart)
+                .whereLessThan("receipt.receiptDateTimestamp", receiptDateEnd)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     Log.d(TAG, "Found " + querySnapshot.size() + " receipts to check");
