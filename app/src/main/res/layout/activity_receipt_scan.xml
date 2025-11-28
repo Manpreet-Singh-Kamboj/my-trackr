@@ -1,32 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/background"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
-    <!-- Modern AppBar with fixed elevation -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:fitsSystemWindows="true"
-        app:elevation="4dp"
-        app:liftOnScroll="false">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Scan Receipt"
-            app:titleTextColor="?attr/colorOnPrimary"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="?attr/colorOnPrimary" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar_layout"
+        />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -80,7 +65,7 @@
                         <ImageView
                             android:layout_width="80dp"
                             android:layout_height="80dp"
-                            android:src="@drawable/dashboard"
+                            android:src="@drawable/ic_receipt_icon"
                             android:alpha="0.3"
                             android:tint="?attr/colorPrimary"
                             android:contentDescription="No receipt"
@@ -168,10 +153,10 @@
                         <ImageView
                             android:layout_width="32dp"
                             android:layout_height="32dp"
-                            android:src="@android:drawable/ic_menu_camera"
-                            android:tint="?attr/colorOnPrimary"
+                            android:src="@drawable/ic_camera"
+                            app:tint="?attr/colorOnPrimary"
                             android:contentDescription="Camera"
-                            tools:ignore="UseAppTint" />
+                             />
 
                         <TextView
                             android:id="@+id/btnCamera"
@@ -212,10 +197,10 @@
                         <ImageView
                             android:layout_width="32dp"
                             android:layout_height="32dp"
-                            android:src="@android:drawable/ic_menu_gallery"
-                            android:tint="?attr/colorPrimary"
-                            android:contentDescription="Gallery"
-                            tools:ignore="UseAppTint" />
+                            android:src="@drawable/ic_gallery"
+                            app:tint="?attr/colorPrimary"
+                            app:contentDescription="Gallery"
+                            />
 
                         <TextView
                             android:id="@+id/btnGallery"
@@ -285,7 +270,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:visibility="gone"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="1dp"
                 app:strokeWidth="0dp"
@@ -297,31 +281,56 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Extracted Text"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorOnSurface"
-                        android:layout_marginBottom="8dp"
-                        android:alpha="0.87" />
-
                     <androidx.core.widget.NestedScrollView
                         android:layout_width="match_parent"
                         android:layout_height="200dp"
                         android:fillViewport="false"
                         android:scrollbars="vertical">
 
-                        <TextView
-                            android:id="@+id/ocrTextView"
+                        <FrameLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="OCR results will appear here"
-                            android:textSize="14sp"
-                            android:textColor="?attr/colorOnSurface"
-                            android:alpha="0.7"
-                            android:textIsSelectable="true" />
+                            android:minHeight="200dp">
+
+                            <TextView
+                                android:id="@+id/ocrTextView"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textSize="12sp"
+                                android:fontFamily="monospace"
+                                android:textColor="?attr/colorOnSurface"
+                                android:alpha="0.7"
+                                android:textIsSelectable="true" />
+
+                            <LinearLayout
+                                android:id="@+id/processingBar"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:visibility="gone"
+                                android:layout_gravity="center_vertical"
+                                >
+
+                                <ProgressBar
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginBottom="8dp"
+                                    android:indeterminateTint="?attr/colorPrimary"
+                                    android:foregroundTint="?attr/colorPrimary"
+                                    style="?android:attr/progressBarStyle" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/processing_ocr"
+                                    android:textSize="14sp"
+                                    android:alpha="0.7" />
+
+                            </LinearLayout>
+
+                        </FrameLayout>
 
                     </androidx.core.widget.NestedScrollView>
 
@@ -345,10 +354,9 @@
                 android:id="@+id/btnProcess"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Process OCR"
+                android:text="@string/process_receipt"
                 android:layout_marginBottom="12dp"
-                android:visibility="gone"
-                style="@style/Widget.Material3.Button.TonalButton"
+                style="@style/Widget.Material3.Button"
                 app:icon="@android:drawable/ic_menu_search"
                 app:iconGravity="textStart" />
 
@@ -356,7 +364,7 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:text="Save Receipt"
+                android:text="@string/save_receipt"
                 android:textSize="16sp"
                 android:layout_marginBottom="24dp"
                 android:visibility="gone"
@@ -416,5 +424,5 @@
 
     </FrameLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</LinearLayout>
 

@@ -3,6 +3,7 @@ package com.mytrackr.receipts.data.repository;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -12,11 +13,17 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
+import com.mytrackr.receipts.data.interfaces.OnChangePasswordUpdateListener;
+import com.mytrackr.receipts.data.interfaces.OnProfileUpdateListener;
+import com.mytrackr.receipts.data.models.User;
+
 
 public class AuthRepository {
     private static AuthRepository instance;
@@ -24,12 +31,15 @@ public class AuthRepository {
     private final GoogleSignInClient googleSignInClient;
     private final FirebaseAuth firebaseAuth;
     private final MutableLiveData<FirebaseUser> currentUser = new MutableLiveData<FirebaseUser>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
+    private final  MutableLiveData<String> successMessage = new MutableLiveData<>("");
     private final FirebaseAuth.AuthStateListener authStateListener = firebaseAuth -> {
         FirebaseUser user = firebaseAuth.getCurrentUser();
         currentUser.postValue(user);
+        if(user != null) {
+            userRepository.getUserDetails(user.getUid(),errorMessage);
+        }
     };
-    private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
-    private final  MutableLiveData<String> successMessage = new MutableLiveData<>("");
     private AuthRepository(Context context, String clientId){
         this.firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(authStateListener);
@@ -93,7 +103,7 @@ public class AuthRepository {
                             String uid = user.getUid();
                             String fullName = user.getDisplayName();
                             String email = user.getEmail();
-                            userRepository.checkIfGoogleUserDetailsExistOrNot(uid,fullName,email,errorMessage);
+                            userRepository.checkIfGoogleUserDetailsExistOrNot(uid,fullName,email,errorMessage,user.getPhotoUrl());
                         }
                     } else {
                         String error = task.getException() != null
@@ -126,7 +136,7 @@ public class AuthRepository {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 currentUser.postValue(user);
                 if(user != null){
-                    userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage);
+                    userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage,null);
                 }
             }else{
                 String error = task.getException() != null
@@ -167,6 +177,7 @@ public class AuthRepository {
                     if(task.isSuccessful()){
                         firebaseAuth.signOut();
                         currentUser.postValue(null);
+                        userRepository.resetUserDetails();
                     }else{
                         Log.e("SIGN_OUT_ERROR", "SIGN_IN_FAILED");
                         errorMessage.postValue("Something Went Wrong. Please try again.");
@@ -175,10 +186,88 @@ public class AuthRepository {
             }else{
                 firebaseAuth.signOut();
                 currentUser.postValue(null);
+                userRepository.resetUserDetails();
             }
         }
     }
+    public LiveData<User> getUserDetails(){
+        if (currentUser.getValue() == null) {
+            errorMessage.postValue("User is not authenticated. Please SignIn again to continue");
+            return null;
+        }
+        return userRepository.getUserDetails(currentUser.getValue().getUid(), errorMessage);
+    }
     public void removeAuthStateListener() {
         firebaseAuth.removeAuthStateListener(authStateListener);
+    }
+    public void refreshUserDetails() {
+        if (currentUser.getValue() != null) {
+            userRepository.getUserDetails(currentUser.getValue().getUid(), errorMessage);
+        }
+    }
+    public boolean isGoogleSignedInUser(){
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if(user != null){
+            for(UserInfo userInfo: user.getProviderData()){
+                if(userInfo.getProviderId().equals(GoogleAuthProvider.PROVIDER_ID)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public void updateUserProfile(Context context, String uid, String fullName, String aboutMe, String phoneNo, String city, Uri newProfilePictureUri, OnProfileUpdateListener listener){
+        userRepository.updateUserProfile(context,uid, fullName, aboutMe, phoneNo, city, newProfilePictureUri)
+                .addOnCompleteListener(task -> {
+                    if(!task.isSuccessful()){
+                        String error = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Unknown error occurred";
+                        Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
+                        Log.e("DB_PERSIST_FAILED", error);
+                        listener.onFailure("Failed to update profile: " + error);
+                    } else {
+                        listener.onSuccess();
+                    }
+                });
+    }
+    public void changePassword(String currentPassword, String newPassword, OnChangePasswordUpdateListener listener){
+        FirebaseUser user = currentUser.getValue();
+        if (user == null) {
+            listener.onFailure("User not logged in. Please login again.");
+            return;
+        }
+
+        String email = user.getEmail();
+        if(email == null){
+            listener.onFailure("Please login again to continue");
+            currentUser.postValue(null);
+            return;
+        }
+        AuthCredential credential = EmailAuthProvider.getCredential(email, currentPassword);
+        user
+                .reauthenticate(credential)
+                .addOnCompleteListener(task -> {
+                    if(!task.isSuccessful()){
+                        String error = task.getException() != null
+                                ? task.getException().getMessage()
+                                : "Unknown error occurred";
+                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                        listener.onFailure(error);
+                    }else{
+                        user.updatePassword(newPassword)
+                                .addOnCompleteListener(updatePasswordTask->{
+                                    if(!updatePasswordTask.isSuccessful()){
+                                        String error = updatePasswordTask.getException() != null
+                                                ? updatePasswordTask.getException().getMessage()
+                                                : "Unknown error occurred";
+                                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                                        listener.onFailure(error);
+                                    }else{
+                                        listener.onSuccess();
+                                    }
+                                });
+                        }
+                    });
     }
 }

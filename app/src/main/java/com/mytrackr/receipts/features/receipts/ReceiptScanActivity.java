@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -25,6 +24,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -41,8 +41,24 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanner;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.mytrackr.receipts.BuildConfig;
+import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.Receipt;
+import com.mytrackr.receipts.data.models.ReceiptItem;
 import com.mytrackr.receipts.data.repository.ReceiptRepository;
+import com.mytrackr.receipts.databinding.ActivityReceiptScanBinding;
+import com.mytrackr.receipts.utils.GeminiApiService;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,18 +66,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class ReceiptScanActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 1001;
     private static final String TAG = "ReceiptScanActivity";
+    private ActivityReceiptScanBinding binding;
     private Uri imageUri;
 
     private ImageView previewImageView;
     private TextView ocrTextView;
+    private View ocrProcessingProgressBar;
     private View cameraCard, galleryCard;
     private View emptyStateLayout;
     private View ocrResultCard;
@@ -85,6 +101,9 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // progress overlay view (in-layout) shown while processing (OCR/enhance)
     private View progressOverlay;
 
+    // Gemini API service
+    private GeminiApiService geminiApiService;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,33 +112,38 @@ public class ReceiptScanActivity extends AppCompatActivity {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
         }
+        binding = ActivityReceiptScanBinding.inflate(getLayoutInflater());
 
-        setContentView(com.mytrackr.receipts.R.layout.activity_receipt_scan);
+        setContentView(binding.getRoot());
 
         // Setup toolbar
-        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(com.mytrackr.receipts.R.id.toolbar);
+        com.google.android.material.appbar.MaterialToolbar toolbar = binding.toolbar.toolbar;
+        TextView toolbarTitle = binding.toolbar.toolbarTitle;
+        toolbarTitle.setText(getString(R.string.receipt_scan));
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        previewImageView = findViewById(com.mytrackr.receipts.R.id.previewImageView);
-        ocrTextView = findViewById(com.mytrackr.receipts.R.id.ocrTextView);
-        cameraCard = findViewById(com.mytrackr.receipts.R.id.cameraCard);
-        galleryCard = findViewById(com.mytrackr.receipts.R.id.galleryCard);
-        emptyStateLayout = findViewById(com.mytrackr.receipts.R.id.emptyStateLayout);
-        ocrResultCard = findViewById(com.mytrackr.receipts.R.id.ocrResultCard);
-        cornerEditSection = findViewById(com.mytrackr.receipts.R.id.cornerEditSection);
-        btnProcess = findViewById(com.mytrackr.receipts.R.id.btnProcess);
-        btnSave = findViewById(com.mytrackr.receipts.R.id.btnSave);
+        previewImageView = binding.previewImageView;
+        ocrTextView = binding.ocrTextView;
+        ocrProcessingProgressBar = binding.processingBar;
+        cameraCard = binding.cameraCard;
+        galleryCard = binding.galleryCard;
+        emptyStateLayout = binding.emptyStateLayout;
+        ocrResultCard = binding.ocrResultCard;
+        cornerEditSection = binding.cornerEditSection;
+        btnProcess = binding.btnProcess;
+        btnSave = binding.btnSave;
 
         // corner editing controls
-        cornerOverlay = findViewById(com.mytrackr.receipts.R.id.cornerOverlay);
-        btnEditCorners = findViewById(com.mytrackr.receipts.R.id.btnEditCorners);
-        btnAcceptCrop = findViewById(com.mytrackr.receipts.R.id.btnAcceptCrop);
-        btnCancelCrop = findViewById(com.mytrackr.receipts.R.id.btnCancelCrop);
+        cornerOverlay = binding.cornerOverlay;
+        btnEditCorners = binding.btnEditCorners;
+        btnAcceptCrop = binding.btnAcceptCrop;
+        btnCancelCrop = binding.btnCancelCrop;
 
         // Register Activity Result launchers
         permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -164,7 +188,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
         });
 
         // bind progress overlay from layout
-        progressOverlay = findViewById(com.mytrackr.receipts.R.id.progressOverlay);
+        progressOverlay = binding.progressOverlay;
+
+        // Initialize Gemini API service
+        geminiApiService = new GeminiApiService(BuildConfig.GEMINI_API_KEY);
 
         checkAndRequestPermissions();
     }
@@ -928,19 +955,46 @@ public class ReceiptScanActivity extends AppCompatActivity {
             TextRecognizer recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
             recognizer.process(image)
                     .addOnSuccessListener(text -> {
-                        hideProcessingDialog();
                         String fullText = text.getText();
-                        ocrTextView.setText(fullText != null ? fullText : "");
+                        Log.d(TAG, "OCR completed, text length: " + (fullText != null ? fullText.length() : 0));
 
-                        // Show OCR result card and save button
-                        if (ocrResultCard != null) ocrResultCard.setVisibility(View.VISIBLE);
-                        if (btnSave != null) {
-                            btnSave.setVisibility(View.VISIBLE);
-                            btnSave.setEnabled(true);
+                        // Show OCR result card first
+                        if (ocrResultCard != null) {
+                            ocrResultCard.setVisibility(View.VISIBLE);
+                            Log.d(TAG, "OCR result card made visible");
                         }
-
-                        currentReceipt = ReceiptParser.parse(fullText);
-                        Toast.makeText(this, "OCR complete", Toast.LENGTH_SHORT).show();
+                        
+                        // Hide text view and show progress bar while processing
+                        if (ocrTextView != null) {
+                            ocrTextView.setVisibility(View.GONE);
+                        }
+                        if (ocrProcessingProgressBar != null) {
+                            ocrProcessingProgressBar.setVisibility(View.VISIBLE);
+                        }
+                        
+                        // Call Gemini API to extract structured data
+                        if (fullText != null && !fullText.trim().isEmpty() && geminiApiService != null) {
+                            Log.d(TAG, "Calling Gemini API");
+                            callGeminiApi(fullText);
+                        } else {
+                            Log.d(TAG, "Skipping Gemini API - fullText: " + (fullText != null ? "not null" : "null") + ", geminiApiService: " + (geminiApiService != null ? "not null" : "null"));
+                            // Fallback to basic parser if Gemini is not available
+                            hideProcessingDialog();
+                            // Hide progress and show text
+                            if (ocrProcessingProgressBar != null) {
+                                ocrProcessingProgressBar.setVisibility(View.GONE);
+                            }
+                            if (ocrTextView != null) {
+                                ocrTextView.setVisibility(View.VISIBLE);
+                                ocrTextView.setText(fullText != null ? fullText : "");
+                            }
+                            currentReceipt = ReceiptParser.parse(fullText);
+                            if (btnSave != null) {
+                                btnSave.setVisibility(View.VISIBLE);
+                                btnSave.setEnabled(true);
+                            }
+                            Toast.makeText(this, "OCR complete", Toast.LENGTH_SHORT).show();
+                        }
                     })
                     .addOnFailureListener(e -> {
                         hideProcessingDialog();
@@ -1037,7 +1091,6 @@ public class ReceiptScanActivity extends AppCompatActivity {
         }
     }
 
-    // Save the current receipt (uploads image and receipt metadata using ReceiptRepository)
     private void saveReceipt() {
         if (imageUri == null) {
             Toast.makeText(this, "No image to save", Toast.LENGTH_SHORT).show();
@@ -1050,11 +1103,42 @@ public class ReceiptScanActivity extends AppCompatActivity {
             return;
         }
 
-        if (currentReceipt == null) currentReceipt = ReceiptParser.parse(ocrText);
-        else currentReceipt.setRawText(ocrText);
+        if (currentReceipt == null) {
+            currentReceipt = ReceiptParser.parse(ocrText);
+            // Update metadata with OCR text if metadata exists
+            if (currentReceipt.getMetadata() != null) {
+                currentReceipt.getMetadata().setOcrText(ocrText);
+            }
+        } else {
+            // Update metadata with OCR text if metadata exists
+            if (currentReceipt.getMetadata() != null) {
+                currentReceipt.getMetadata().setOcrText(ocrText);
+            }
+        }
 
-        // set a timestamp if missing
-        if (currentReceipt.getDate() == 0) currentReceipt.setDate(System.currentTimeMillis());
+        // Set dateTimestamp to current upload time (for sorting)
+        if (currentReceipt.getReceipt() == null) {
+            currentReceipt.setReceipt(new Receipt.ReceiptInfo());
+        }
+        
+        long currentUploadTime = System.currentTimeMillis();
+        currentReceipt.getReceipt().setDateTimestamp(currentUploadTime);
+        Log.d(TAG, "Set dateTimestamp to current upload time: " + currentUploadTime);
+        
+        // If receiptDateTimestamp is not set, use current time as fallback
+        if (currentReceipt.getReceipt().getReceiptDateTimestamp() == 0) {
+            currentReceipt.getReceipt().setReceiptDateTimestamp(currentUploadTime);
+            Log.d(TAG, "Set receiptDateTimestamp to current time (fallback)");
+        } else {
+            Log.d(TAG, "Using receipt date for receiptDateTimestamp: " + currentReceipt.getReceipt().getReceiptDateTimestamp());
+        }
+
+        // Log category before saving for debugging
+        if (currentReceipt.getReceipt() != null && currentReceipt.getReceipt().getCategory() != null) {
+            Log.d(TAG, "Saving receipt with category: " + currentReceipt.getReceipt().getCategory());
+        } else {
+            Log.w(TAG, "Receipt category is null or receipt.getReceipt() is null before saving");
+        }
 
         // call repository to save
         ReceiptRepository repo = new ReceiptRepository();
@@ -1079,6 +1163,264 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    // Call Gemini API to extract structured receipt data from OCR text
+    private void callGeminiApi(String ocrText) {
+        if (geminiApiService == null) {
+            hideProcessingDialog();
+            currentReceipt = ReceiptParser.parse(ocrText);
+            if (btnSave != null) {
+                btnSave.setVisibility(View.VISIBLE);
+                btnSave.setEnabled(true);
+            }
+            Toast.makeText(this, "OCR complete (Gemini not configured)", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        geminiApiService.extractReceiptData(ocrText, new GeminiApiService.GeminiCallback() {
+            @Override
+            public void onSuccess(JSONObject structuredData) {
+                Log.d(TAG, "Gemini API success, received structured data");
+                runOnUiThread(() -> {
+                    hideProcessingDialog();
+                    try {
+                        // Display formatted JSON in the OCR text view
+                        String formattedJson = formatJsonForDisplay(structuredData);
+                        Log.d(TAG, "Formatted JSON length: " + formattedJson.length());
+                        
+                        // Hide progress bar and show text view with JSON
+                        if (ocrProcessingProgressBar != null) {
+                            ocrProcessingProgressBar.setVisibility(View.GONE);
+                        }
+                        if (ocrTextView != null) {
+                            ocrTextView.setVisibility(View.VISIBLE);
+                            ocrTextView.setText(formattedJson);
+                            Log.d(TAG, "JSON set in TextView");
+                        } else {
+                            Log.e(TAG, "ocrTextView is null!");
+                        }
+                        
+                        // Ensure OCR card is visible
+                        if (ocrResultCard != null) {
+                            ocrResultCard.setVisibility(View.VISIBLE);
+                        }
+                        
+                        currentReceipt = mapGeminiResponseToReceipt(structuredData, ocrText);
+                        if (btnSave != null) {
+                            btnSave.setVisibility(View.VISIBLE);
+                            btnSave.setEnabled(true);
+                        }
+                        Toast.makeText(ReceiptScanActivity.this, "Receipt data extracted successfully", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to map Gemini response to Receipt", e);
+                        e.printStackTrace();
+                        // Hide progress bar and show error in TextView
+                        if (ocrProcessingProgressBar != null) {
+                            ocrProcessingProgressBar.setVisibility(View.GONE);
+                        }
+                        if (ocrTextView != null) {
+                            ocrTextView.setVisibility(View.VISIBLE);
+                            ocrTextView.setText("Error parsing response:\n" + e.getMessage() + "\n\nOriginal OCR:\n" + ocrText);
+                        }
+                        // Fallback to basic parser
+                        currentReceipt = ReceiptParser.parse(ocrText);
+                        if (btnSave != null) {
+                            btnSave.setVisibility(View.VISIBLE);
+                            btnSave.setEnabled(true);
+                        }
+                        Toast.makeText(ReceiptScanActivity.this, "OCR complete (parsing fallback)", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Log.e(TAG, "Gemini API call failed", e);
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    hideProcessingDialog();
+                    // Hide progress bar and show error message in TextView
+                    if (ocrProcessingProgressBar != null) {
+                        ocrProcessingProgressBar.setVisibility(View.GONE);
+                    }
+                    if (ocrTextView != null) {
+                        ocrTextView.setVisibility(View.VISIBLE);
+                        ocrTextView.setText("Gemini API Error: " + e.getMessage() + "\n\nOriginal OCR Text:\n" + ocrText);
+                    }
+                    // Ensure OCR card is visible
+                    if (ocrResultCard != null) {
+                        ocrResultCard.setVisibility(View.VISIBLE);
+                    }
+                    // Fallback to basic parser
+                    currentReceipt = ReceiptParser.parse(ocrText);
+                    if (btnSave != null) {
+                        btnSave.setVisibility(View.VISIBLE);
+                        btnSave.setEnabled(true);
+                    }
+                    Toast.makeText(ReceiptScanActivity.this, "Gemini unavailable: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    // Format JSON for display in TextView with proper indentation
+    private String formatJsonForDisplay(JSONObject json) {
+        try {
+            // toString(2) provides nicely formatted JSON with 2-space indentation
+            return json.toString(2);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to format JSON for display", e);
+            try {
+                return json.toString();
+            } catch (Exception ex) {
+                return "Error formatting JSON";
+            }
+        }
+    }
+
+    // Map Gemini's structured JSON response to Receipt object
+    private Receipt mapGeminiResponseToReceipt(JSONObject structuredData, String ocrText) throws Exception {
+        Receipt receipt = new Receipt();
+
+        // Extract store information
+        if (structuredData.has("store")) {
+            JSONObject storeObj = structuredData.getJSONObject("store");
+            Receipt.StoreInfo store = new Receipt.StoreInfo();
+            if (storeObj.has("name")) store.setName(storeObj.getString("name"));
+            if (storeObj.has("address")) store.setAddress(storeObj.getString("address"));
+            if (storeObj.has("phone")) store.setPhone(storeObj.getString("phone"));
+            if (storeObj.has("website")) store.setWebsite(storeObj.getString("website"));
+            receipt.setStore(store);
+        }
+
+        // Extract receipt information
+        Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
+        if (structuredData.has("receipt")) {
+            JSONObject receiptObj = structuredData.getJSONObject("receipt");
+            
+            if (receiptObj.has("receiptId")) receiptInfo.setReceiptId(receiptObj.getString("receiptId"));
+            if (receiptObj.has("date")) receiptInfo.setDate(receiptObj.getString("date"));
+            if (receiptObj.has("time")) receiptInfo.setTime(receiptObj.getString("time"));
+            if (receiptObj.has("currency")) receiptInfo.setCurrency(receiptObj.getString("currency"));
+            if (receiptObj.has("paymentMethod")) receiptInfo.setPaymentMethod(receiptObj.getString("paymentMethod"));
+            if (receiptObj.has("cardLast4")) receiptInfo.setCardLast4(receiptObj.getString("cardLast4"));
+            if (receiptObj.has("subtotal")) receiptInfo.setSubtotal(receiptObj.getDouble("subtotal"));
+            if (receiptObj.has("tax")) receiptInfo.setTax(receiptObj.getDouble("tax"));
+            if (receiptObj.has("total")) receiptInfo.setTotal(receiptObj.getDouble("total"));
+            if (receiptObj.has("category")) {
+                String category = receiptObj.getString("category");
+                receiptInfo.setCategory(category);
+                Log.d(TAG, "Extracted category from Gemini response: " + category);
+            } else {
+                Log.w(TAG, "Category field not found in Gemini receipt object");
+            }
+            
+            // Parse date string to receiptDateTimestamp (actual receipt date for notifications)
+            if (receiptInfo.getDate() != null && !receiptInfo.getDate().isEmpty()) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                    Date date = sdf.parse(receiptInfo.getDate());
+                    if (date != null) {
+                        receiptInfo.setReceiptDateTimestamp(date.getTime());
+                        Log.d(TAG, "Set receiptDateTimestamp from receipt date: " + receiptInfo.getDate() + " = " + date.getTime());
+                    } else {
+                        receiptInfo.setReceiptDateTimestamp(System.currentTimeMillis());
+                    }
+                } catch (ParseException e) {
+                    Log.w(TAG, "Failed to parse date from Gemini response", e);
+                    receiptInfo.setReceiptDateTimestamp(System.currentTimeMillis());
+                }
+            } else {
+                receiptInfo.setReceiptDateTimestamp(System.currentTimeMillis());
+            }
+        } else {
+            receiptInfo.setReceiptDateTimestamp(System.currentTimeMillis());
+        }
+
+        // Extract items
+        String primaryCategoryFromItems = null;
+        if (structuredData.has("items")) {
+            JSONArray itemsArray = structuredData.getJSONArray("items");
+            List<ReceiptItem> items = new ArrayList<>();
+            
+            for (int i = 0; i < itemsArray.length(); i++) {
+                JSONObject itemObj = itemsArray.getJSONObject(i);
+                ReceiptItem item = new ReceiptItem();
+                
+                if (itemObj.has("name")) item.setName(itemObj.getString("name"));
+                if (itemObj.has("quantity")) item.setQuantity(itemObj.getInt("quantity"));
+                if (itemObj.has("unitPrice")) item.setUnitPrice(itemObj.getDouble("unitPrice"));
+                if (itemObj.has("totalPrice")) item.setTotalPrice(itemObj.getDouble("totalPrice"));
+                if (itemObj.has("category")) {
+                    String itemCategory = itemObj.getString("category");
+                    item.setCategory(itemCategory);
+                    // Use first non-empty category from items as fallback
+                    if (primaryCategoryFromItems == null && itemCategory != null && !itemCategory.isEmpty()) {
+                        primaryCategoryFromItems = itemCategory;
+                    }
+                }
+                
+                items.add(item);
+            }
+            receipt.setItems(items);
+        }
+        
+        // If receipt-level category is not set, use primary category from items as fallback
+        if (receiptInfo.getCategory() == null || receiptInfo.getCategory().isEmpty()) {
+            if (primaryCategoryFromItems != null && !primaryCategoryFromItems.isEmpty()) {
+                receiptInfo.setCategory(primaryCategoryFromItems);
+                Log.d(TAG, "Set category from items: " + primaryCategoryFromItems);
+            }
+        }
+        
+        // Log category for debugging
+        if (receiptInfo.getCategory() != null) {
+            Log.d(TAG, "Final receipt category: " + receiptInfo.getCategory());
+        } else {
+            Log.w(TAG, "Receipt category is null after mapping");
+        }
+        
+        receipt.setReceipt(receiptInfo);
+
+        // Extract additional information
+        if (structuredData.has("additional")) {
+            JSONObject additionalObj = structuredData.getJSONObject("additional");
+            Receipt.AdditionalInfo additional = new Receipt.AdditionalInfo();
+            if (additionalObj.has("taxNumber")) additional.setTaxNumber(additionalObj.getString("taxNumber"));
+            if (additionalObj.has("cashier")) additional.setCashier(additionalObj.getString("cashier"));
+            if (additionalObj.has("storeNumber")) additional.setStoreNumber(additionalObj.getString("storeNumber"));
+            if (additionalObj.has("notes")) additional.setNotes(additionalObj.getString("notes"));
+            receipt.setAdditional(additional);
+        }
+
+        // Extract metadata
+        Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
+        if (structuredData.has("metadata")) {
+            JSONObject metadataObj = structuredData.getJSONObject("metadata");
+            if (metadataObj.has("ocrText")) metadata.setOcrText(metadataObj.getString("ocrText"));
+            if (metadataObj.has("processedBy")) metadata.setProcessedBy(metadataObj.getString("processedBy"));
+            if (metadataObj.has("uploadedAt")) metadata.setUploadedAt(metadataObj.getString("uploadedAt"));
+            if (metadataObj.has("userId")) metadata.setUserId(metadataObj.getString("userId"));
+        }
+        // Always set/override with current values
+        metadata.setOcrText(ocrText);
+        metadata.setProcessedBy("gemini");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        metadata.setUploadedAt(sdf.format(new Date()));
+        // Set userId from Firebase Auth
+        try {
+            FirebaseAuth auth = FirebaseAuth.getInstance();
+            if (auth.getCurrentUser() != null) {
+                metadata.setUserId(auth.getCurrentUser().getUid());
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to get user ID for metadata", e);
+        }
+        receipt.setMetadata(metadata);
+
+        return receipt;
     }
 
     // Helper to load an image Uri into the preview ImageView using Glide.
@@ -1116,5 +1458,12 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 }
             } catch (Exception ex) { Log.d(TAG, "setImageURI fallback failed", ex); }
         }
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // Handle camera and storage permissions (request code 1234)
+        // Notification permission is now handled in MainActivity
     }
 }

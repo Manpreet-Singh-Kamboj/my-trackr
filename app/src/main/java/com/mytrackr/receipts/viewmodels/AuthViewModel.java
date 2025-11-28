@@ -4,18 +4,25 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.net.Uri;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.viewbinding.ViewBinding;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
 import com.mytrackr.receipts.R;
+import com.mytrackr.receipts.data.interfaces.OnChangePasswordUpdateListener;
+import com.mytrackr.receipts.data.interfaces.OnProfileUpdateListener;
+import com.mytrackr.receipts.data.models.User;
 import com.mytrackr.receipts.data.repository.AuthRepository;
+import com.mytrackr.receipts.databinding.ActivityEditProfileBinding;
 import com.mytrackr.receipts.databinding.ActivityForgotPasswordBinding;
 import com.mytrackr.receipts.databinding.ActivitySignInBinding;
 import com.mytrackr.receipts.databinding.ActivitySignupBinding;
@@ -26,7 +33,7 @@ public class AuthViewModel extends AndroidViewModel {
     private final Utils utils;
     public AuthViewModel(@NonNull Application application){
         super(application);
-        authRepository = AuthRepository.getInstance(application.getApplicationContext(),application.getString(R.string.google_web_client_id));
+        authRepository = AuthRepository.getInstance(application.getApplicationContext(),application.getString(R.string.default_web_client_id));
         utils = Utils.getInstance();
     }
     public LiveData<FirebaseUser> getUser(){
@@ -170,9 +177,57 @@ public class AuthViewModel extends AndroidViewModel {
         authRepository.handleForgotPasswordRequest(email);
     }
 
+    public LiveData<User> getUserDetails(){
+        return authRepository.getUserDetails();
+    }
+
     @Override
     public void onCleared(){
         super.onCleared();
         authRepository.removeAuthStateListener();
+    }
+
+    public void refreshUserDetails(){
+        authRepository.refreshUserDetails();
+    }
+    public boolean isGoogleSignedInUser(){
+        return authRepository.isGoogleSignedInUser();
+    }
+    public void updateUserProfile(ActivityEditProfileBinding binding, Uri newProfilePictureUri){
+        binding.saveChanges.setEnabled(false);
+        FirebaseUser user = getUser().getValue();
+        if(user != null){
+            String uid = user.getUid();
+            String fullName = binding.userFullName.getText() != null ? binding.userFullName.getText().toString() : "";
+            String aboutMe = binding.aboutMe.getText() != null ? binding.aboutMe.getText().toString() : "";
+            String phoneNo = binding.phoneNumber.getText() != null ? binding.phoneNumber.getText().toString() : "";
+            String city = binding.city.getText() != null ? binding.city.getText().toString() : "";
+
+            authRepository.updateUserProfile(
+                    getApplication().getApplicationContext(),
+                    uid,
+                    fullName,
+                    aboutMe,
+                    phoneNo,
+                    city,
+                    newProfilePictureUri,
+                    new OnProfileUpdateListener() {
+                        @Override
+                        public void onSuccess() {
+                            Snackbar.make(binding.getRoot(), "Profile updated successfully", Snackbar.LENGTH_SHORT).show();
+                            binding.saveChanges.setEnabled(true);
+                            refreshUserDetails();
+                        }
+
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            Snackbar.make(binding.getRoot(), "Failed to update profile: " + errorMessage, Snackbar.LENGTH_SHORT).show();
+                            binding.saveChanges.setEnabled(true);
+                        }
+                    });
+        }
+    }
+    public void changePassword(String currentPassword, String newPassword, OnChangePasswordUpdateListener listener){
+        authRepository.changePassword(currentPassword, newPassword, listener);
     }
 }

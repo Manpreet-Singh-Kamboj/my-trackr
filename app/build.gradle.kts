@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
@@ -7,14 +9,20 @@ android {
     namespace = "com.mytrackr.receipts"
     compileSdk = 36
 
+    val properties = Properties().apply {
+        load(project.rootProject.file("local.properties").inputStream())
+    }
+    val geminiKey = properties["GEMINI_API_KEY"] as String
+
     defaultConfig {
         applicationId = "com.mytrackr.receipts"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -33,6 +41,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
 }
@@ -57,6 +66,8 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     // Firebase Storage for saving receipt images
     implementation("com.google.firebase:firebase-storage")
+    // Firebase Cloud Messaging for push notifications
+    implementation("com.google.firebase:firebase-messaging")
     // ML Kit on-device Text Recognition (use latest stable suggested)
     implementation("com.google.mlkit:text-recognition:16.0.1")
     // ML Kit Document Scanner for cropping and enhancing receipt images
@@ -77,4 +88,10 @@ dependencies {
     // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
     implementation("com.cloudinary:cloudinary-android:3.1.2")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    
+    // WorkManager for background tasks and scheduled notifications
+    implementation("androidx.work:work-runtime:2.9.0")
+    
+    // Guava for ListenableFuture (required by WorkManager)
+    implementation("com.google.guava:guava:31.1-android")
 }
