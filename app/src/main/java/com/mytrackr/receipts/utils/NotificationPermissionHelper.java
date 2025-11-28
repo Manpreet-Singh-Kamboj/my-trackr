@@ -16,14 +16,8 @@ public class NotificationPermissionHelper {
     private static final String TAG = "NotificationPermissionHelper";
     private static final int PERMISSION_REQUEST_CODE = 200;
     
-    /**
-     * Check if notification permission is granted
-     * Returns false if notifications are disabled at system level or permission is denied
-     */
     public static boolean hasNotificationPermission(Context context) {
         try {
-            // First check if notifications are enabled at the system level
-            // This can throw SecurityException if notifications are disabled at system level
             boolean notificationsEnabled = false;
             try {
                 notificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled();
@@ -37,7 +31,6 @@ public class NotificationPermissionHelper {
                 return false;
             }
             
-            // Then check runtime permission (Android 13+)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 try {
                     int result = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS);
@@ -47,48 +40,23 @@ public class NotificationPermissionHelper {
                     return false;
                 }
             }
-            // Android 12 and below don't need explicit permission
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Unexpected exception when checking notification permission", e);
-            // On any exception, assume permission is not granted
             return false;
         }
     }
     
-    /**
-     * Request notification permission if not granted
-     * Returns true if permission is already granted, false if request was made
-     */
     public static boolean requestNotificationPermission(Activity activity) {
         try {
-            if (hasNotificationPermission(activity)) {
-                return true;
-            }
-            
-            // Check if notifications are disabled at system level
-            // This can throw SecurityException if notifications are disabled
-            boolean notificationsEnabled = false;
-            try {
-                notificationsEnabled = NotificationManagerCompat.from(activity).areNotificationsEnabled();
-            } catch (SecurityException e) {
-                Log.w(TAG, "SecurityException when checking if notifications are enabled - likely disabled at system level", e);
-                Toast.makeText(activity, 
-                    "Please enable notifications for this app in System Settings to receive reminders.", 
-                    Toast.LENGTH_LONG).show();
-                return false;
-            }
-            
-            if (!notificationsEnabled) {
-                Log.d(TAG, "Notifications disabled at system level, cannot request permission");
-                Toast.makeText(activity, 
-                    "Please enable notifications for this app in System Settings to receive reminders.", 
-                    Toast.LENGTH_LONG).show();
-                return false;
-            }
-            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (hasNotificationPermission(activity)) {
+                    Log.d(TAG, "Notification permission already granted");
+                    return true;
+                }
+                
                 try {
+                    Log.d(TAG, "Requesting POST_NOTIFICATIONS permission");
                     ActivityCompat.requestPermissions(
                         activity,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
@@ -101,26 +69,52 @@ public class NotificationPermissionHelper {
                         "Unable to request notification permission. Please enable notifications in System Settings.", 
                         Toast.LENGTH_LONG).show();
                     return false;
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception when requesting notification permission", e);
+                    Toast.makeText(activity, 
+                        "Unable to request notification permission. Please try again.", 
+                        Toast.LENGTH_LONG).show();
+                    return false;
                 }
+            }
+
+            boolean notificationsEnabled = false;
+            try {
+                notificationsEnabled = NotificationManagerCompat.from(activity).areNotificationsEnabled();
+            } catch (SecurityException e) {
+                Log.w(TAG, "SecurityException when checking if notifications are enabled - likely disabled at system level", e);
+                Toast.makeText(activity, 
+                    "Please enable notifications for this app in System Settings to receive reminders.", 
+                    Toast.LENGTH_LONG).show();
+                return false;
+            }
+            
+            if (!notificationsEnabled) {
+                Log.d(TAG, "Notifications disabled at system level");
+                Toast.makeText(activity, 
+                    "Please enable notifications for this app in System Settings to receive reminders.", 
+                    Toast.LENGTH_LONG).show();
+                return false;
             }
             
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Unexpected exception when requesting notification permission", e);
             Toast.makeText(activity, 
-                "Unable to request notification permission. Please enable notifications in System Settings.", 
+                "Unable to request notification permission. Please try again.", 
                 Toast.LENGTH_LONG).show();
             return false;
         }
     }
-    
-    /**
-     * Check permission result and show appropriate message
-     */
+
     public static void handlePermissionResult(Activity activity, int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(activity, "Notification permission granted", Toast.LENGTH_SHORT).show();
+                
+                NotificationPreferences prefs = new NotificationPreferences(activity);
+                prefs.setExpenseAlertsEnabled(true);
+                prefs.setReplacementReminderEnabled(true);
             } else {
                 Toast.makeText(activity, 
                     "Notification permission is required to receive reminders. You can enable it in Settings.", 

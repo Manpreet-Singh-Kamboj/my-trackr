@@ -98,7 +98,6 @@ public class HomeViewModel extends AndroidViewModel {
             Map<String, Object> data = document.getData();
             if (data == null) return null;
 
-            // Parse store information
             if (data.containsKey("store")) {
                 Map<String, Object> storeMap = (Map<String, Object>) data.get("store");
                 Receipt.StoreInfo store = new Receipt.StoreInfo();
@@ -111,7 +110,6 @@ public class HomeViewModel extends AndroidViewModel {
                 receipt.setStore(store);
             }
 
-            // Parse receipt information
             if (data.containsKey("receipt")) {
                 Map<String, Object> receiptMap = (Map<String, Object>) data.get("receipt");
                 Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
@@ -160,7 +158,6 @@ public class HomeViewModel extends AndroidViewModel {
                 receipt.setReceipt(receiptInfo);
             }
 
-            // Parse items
             if (data.containsKey("items")) {
                 List<Map<String, Object>> itemsMap = (List<Map<String, Object>>) data.get("items");
                 if (itemsMap != null) {
@@ -187,7 +184,6 @@ public class HomeViewModel extends AndroidViewModel {
                 }
             }
 
-            // Parse additional information
             if (data.containsKey("additional")) {
                 Map<String, Object> additionalMap = (Map<String, Object>) data.get("additional");
                 Receipt.AdditionalInfo additional = new Receipt.AdditionalInfo();
@@ -200,7 +196,6 @@ public class HomeViewModel extends AndroidViewModel {
                 receipt.setAdditional(additional);
             }
 
-            // Parse metadata
             if (data.containsKey("metadata")) {
                 Map<String, Object> metadataMap = (Map<String, Object>) data.get("metadata");
                 Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
@@ -213,12 +208,10 @@ public class HomeViewModel extends AndroidViewModel {
                 receipt.setMetadata(metadata);
             }
 
-            // Parse image URL
             if (data.containsKey("imageUrl")) {
                 receipt.setImageUrl((String) data.get("imageUrl"));
             }
 
-            // Parse cloudinary public id
             if (data.containsKey("cloudinaryPublicId")) {
                 receipt.setCloudinaryPublicId((String) data.get("cloudinaryPublicId"));
             }

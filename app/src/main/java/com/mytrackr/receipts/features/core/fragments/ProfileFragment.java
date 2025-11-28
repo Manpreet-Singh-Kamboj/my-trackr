@@ -26,7 +26,7 @@ import com.mytrackr.receipts.features.change_password.ChangePasswordActivity;
 import com.mytrackr.receipts.features.core.adapters.ProfileMenuAdapter;
 import com.mytrackr.receipts.features.edit_profile.EditProfileActivity;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
-import com.mytrackr.receipts.utils.Utils;
+import com.mytrackr.receipts.features.settings.SettingsActivity;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 import java.util.ArrayList;
@@ -137,7 +137,7 @@ public class ProfileFragment extends Fragment {
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_settings,
                 "Settings",
-                () -> {}
+                () -> startActivity(new Intent(getContext(), SettingsActivity.class))
         ));
         return profileMenuItems;
     }

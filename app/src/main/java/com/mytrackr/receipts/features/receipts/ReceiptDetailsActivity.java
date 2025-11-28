@@ -77,8 +77,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         setupToolbar();
         initViews();
         
-        // Check if receipt has all necessary data (items, full receipt info, etc.)
-        // If not, fetch from Firestore to ensure we have complete data
         if (isReceiptIncomplete(receipt)) {
             Log.d(TAG, "Receipt data incomplete, fetching from Firestore...");
             fetchReceiptFromFirestore(receipt.getId());
@@ -141,20 +139,17 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             receiptPreviewImage.setImageResource(R.drawable.ic_receipt_icon);
         }
         
-        // Merchant name
         if (receipt.getStore() != null && receipt.getStore().getName() != null && !receipt.getStore().getName().isEmpty()) {
             merchantName.setText(receipt.getStore().getName());
         } else {
             merchantName.setText("-");
         }
         
-        // Date
         if (receipt.getReceipt() != null) {
             String dateStr = receipt.getReceipt().getDate();
             if (dateStr != null && !dateStr.isEmpty()) {
                 receiptDate.setText(formatDate(dateStr));
             } else {
-                // Fallback to timestamp
                 long timestamp = receipt.getReceipt().getDateTimestamp();
                 if (timestamp > 0) {
                     receiptDate.setText(formatTimestamp(timestamp));
@@ -170,8 +165,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         
         populatePriceBreakdown();
         
-        // Category
-        if (receipt.getReceipt() != null && receipt.getReceipt().getCategory() != null 
+        if (receipt.getReceipt() != null && receipt.getReceipt().getCategory() != null
             && !receipt.getReceipt().getCategory().isEmpty()) {
             receiptCategory.setText(receipt.getReceipt().getCategory());
         } else {
@@ -189,7 +183,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             paymentMethod.setText("-");
         }
         
-        // Populate notification date
         populateNotificationDate();
     }
     
@@ -201,10 +194,8 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         
         long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
         if (customNotificationTimestamp > 0) {
-            // Show custom notification date
             notificationDate.setText(formatTimestamp(customNotificationTimestamp) + " (Custom)");
         } else {
-            // Calculate and show default notification date
             long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
             if (receiptDate == 0) {
                 receiptDate = receipt.getReceipt().getDateTimestamp();
@@ -251,22 +242,18 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         if (receipt.getReceipt() != null) {
             Receipt.ReceiptInfo info = receipt.getReceipt();
             
-            // Subtotal - show even if 0 (might be a valid value)
             double subtotalValue = info.getSubtotal();
             subtotal.setText(formatCurrency(subtotalValue, currency));
             Log.d(TAG, "Subtotal: " + subtotalValue);
             
-            // Tax - show even if 0 (might be a valid value)
             double taxValue = info.getTax();
             tax.setText(formatCurrency(taxValue, currency));
             Log.d(TAG, "Tax: " + taxValue);
             
-            // Total - always show (most important field)
             double totalValue = info.getTotal();
             if (totalValue > 0) {
                 total.setText(formatCurrency(totalValue, currency));
             } else {
-                // If total is 0 but subtotal+tax exists, calculate it
                 double calculatedTotal = subtotalValue + taxValue;
                 if (calculatedTotal > 0) {
                     total.setText(formatCurrency(calculatedTotal, currency));
@@ -302,7 +289,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
     private void showNotificationDatePicker() {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         
-        // If custom date exists, use it; otherwise use default calculated date
         long initialDate = receipt.getReceipt().getCustomNotificationTimestamp();
         if (initialDate == 0) {
             long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
@@ -322,7 +308,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         
         calendar.setTimeInMillis(initialDate);
         
-        // Show date picker first
         android.app.DatePickerDialog datePickerDialog = new android.app.DatePickerDialog(
             this,
             android.R.style.Theme_Material_Dialog,
@@ -330,7 +315,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                 java.util.Calendar selectedCalendar = java.util.Calendar.getInstance();
                 selectedCalendar.set(year, month, dayOfMonth);
                 
-                // After date is selected, show time picker
                 android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
                     this,
                     android.R.style.Theme_Material_Dialog,
@@ -355,7 +339,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             calendar.get(java.util.Calendar.DAY_OF_MONTH)
         );
         datePickerDialog.setTitle("Select Reminder Date");
-        // Set minimum date to today
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         datePickerDialog.show();
     }
@@ -367,16 +350,13 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         
         receipt.getReceipt().setCustomNotificationTimestamp(customTimestamp);
         
-        // Save to Firestore - ONLY update customNotificationTimestamp, nothing else
         if (receipt.getId() != null && !receipt.getId().isEmpty()) {
-            // Use dot notation to update only the nested field without affecting other receipt fields
             java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
             updateMap.put("receipt.customNotificationTimestamp", customTimestamp);
             
             com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
             String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "anonymous";
             
-            // Store original timestamps to verify they don't change
             long originalDateTimestamp = receipt.getReceipt().getDateTimestamp();
             long originalReceiptDateTimestamp = receipt.getReceipt().getReceiptDateTimestamp();
             
@@ -392,10 +372,8 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                 .update(updateMap)
                 .addOnSuccessListener(aVoid -> {
                     runOnUiThread(() -> {
-                        // Update local receipt object
                         receipt.getReceipt().setCustomNotificationTimestamp(customTimestamp);
                         
-                        // Verify dateTimestamp was not changed in local object
                         long currentDateTimestamp = receipt.getReceipt().getDateTimestamp();
                         long currentReceiptDateTimestamp = receipt.getReceipt().getReceiptDateTimestamp();
                         
@@ -417,8 +395,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                         Toast.makeText(this, "Reminder date updated", Toast.LENGTH_SHORT).show();
                         populateNotificationDate();
                         
-                        // Reschedule notification with new custom date
-                        com.mytrackr.receipts.utils.NotificationPreferences prefs = 
+                        com.mytrackr.receipts.utils.NotificationPreferences prefs =
                             new com.mytrackr.receipts.utils.NotificationPreferences(this);
                         if (prefs.isReplacementReminderEnabled()) {
                             long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
@@ -527,36 +504,26 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             default: return currency + " ";
         }
     }
-    
-    /**
-     * Check if receipt data is incomplete (missing items, full receipt info, etc.)
-     * This happens when receipt is passed from notification worker which only parses minimal fields
-     */
+
     private boolean isReceiptIncomplete(Receipt receipt) {
-        // Check if receipt is missing critical data that would indicate it's incomplete
         if (receipt.getReceipt() == null) {
             Log.d(TAG, "Receipt incomplete: receipt info is null");
             return true;
         }
         
-        // Check if items are missing (worker doesn't parse items)
         if (receipt.getItems() == null || receipt.getItems().isEmpty()) {
             Log.d(TAG, "Receipt incomplete: items are missing or empty");
             return true;
         }
         
-        // Check if receipt info is missing key fields (worker only parses timestamps)
         Receipt.ReceiptInfo info = receipt.getReceipt();
-        
-        // Check if subtotal/tax/total are all zero (likely incomplete)
-        // But allow if at least one is non-zero
+
         boolean hasFinancialData = info.getSubtotal() > 0 || info.getTax() > 0 || info.getTotal() > 0;
         if (!hasFinancialData) {
             Log.d(TAG, "Receipt incomplete: missing financial data (subtotal/tax/total all zero)");
             return true;
         }
         
-        // Check if date is completely missing
         boolean hasDate = (info.getDate() != null && !info.getDate().isEmpty()) || info.getDateTimestamp() > 0 || info.getReceiptDateTimestamp() > 0;
         if (!hasDate) {
             Log.d(TAG, "Receipt incomplete: missing date information");
@@ -566,10 +533,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         Log.d(TAG, "Receipt appears complete, using provided data");
         return false;
     }
-    
-    /**
-     * Fetch complete receipt data from Firestore
-     */
+
     private void fetchReceiptFromFirestore(String receiptId) {
         Log.d(TAG, "Fetching receipt from Firestore: " + receiptId);
         receiptRepository.fetchReceiptById(receiptId, new ReceiptRepository.FetchReceiptCallback() {
@@ -577,7 +541,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             public void onSuccess(Receipt fetchedReceipt) {
                 runOnUiThread(() -> {
                     if (fetchedReceipt != null) {
-                        // Log the fetched data for debugging
                         if (fetchedReceipt.getReceipt() != null) {
                             Receipt.ReceiptInfo info = fetchedReceipt.getReceipt();
                             Log.d(TAG, "Fetched receipt data:");
@@ -602,7 +565,6 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             public void onFailure(Exception e) {
                 runOnUiThread(() -> {
                     Log.e(TAG, "Failed to fetch receipt from Firestore", e);
-                    // Still try to populate with incomplete data
                     populateReceiptDetails();
                     Toast.makeText(ReceiptDetailsActivity.this, "Using cached receipt data", Toast.LENGTH_SHORT).show();
                 });

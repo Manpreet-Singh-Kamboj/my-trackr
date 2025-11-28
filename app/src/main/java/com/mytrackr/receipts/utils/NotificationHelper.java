@@ -18,10 +18,8 @@ public class NotificationHelper {
     private static final String CHANNEL_ID = "receipt_notifications";
     private static final String CHANNEL_NAME = "Receipt Notifications";
     
-    // Track recently shown notifications to prevent duplicates in the same execution (5 seconds)
-    // This prevents the same notification from being triggered multiple times in quick succession
     private static final java.util.Map<String, Long> recentNotifications = new java.util.HashMap<>();
-    private static final long NOTIFICATION_COOLDOWN_MS = 5 * 1000; // 5 seconds - only to prevent duplicates in same execution
+    private static final long NOTIFICATION_COOLDOWN_MS = 5 * 1000;
     
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -49,7 +47,6 @@ public class NotificationHelper {
             return;
         }
         
-        // Check if we've shown a notification for this receipt in the last 5 seconds (prevent duplicates in same execution)
         String receiptId = receipt.getId();
         long currentTime = System.currentTimeMillis();
         
@@ -61,7 +58,6 @@ public class NotificationHelper {
                 return;
             }
             
-            // Mark this notification as shown and clean up old entries
             recentNotifications.put(receiptId, currentTime);
             recentNotifications.entrySet().removeIf(entry -> 
                 (currentTime - entry.getValue()) > NOTIFICATION_COOLDOWN_MS);
@@ -69,8 +65,7 @@ public class NotificationHelper {
         
         createNotificationChannel(context);
         
-        // Get store name with better null/empty handling
-        String storeName = "Your receipt"; // Default fallback
+        String storeName = "Your receipt";
         if (receipt.getStore() != null && receipt.getStore().getName() != null) {
             String name = receipt.getStore().getName().trim();
             if (!name.isEmpty() && !name.equals("null") && !name.equalsIgnoreCase("null")) {
@@ -78,7 +73,6 @@ public class NotificationHelper {
             }
         }
         
-        // Log for debugging
         android.util.Log.d("NotificationHelper", "Showing notification for receipt " + receipt.getId());
         android.util.Log.d("NotificationHelper", "  Store object: " + (receipt.getStore() != null ? "exists" : "null"));
         android.util.Log.d("NotificationHelper", "  Store name: '" + storeName + "'");
@@ -110,19 +104,12 @@ public class NotificationHelper {
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
-            // Use receipt ID hash as notification ID to ensure same receipt gets same notification ID
             int notificationId = receipt.getId().hashCode();
             notificationManager.notify(notificationId, notificationBuilder.build());
             android.util.Log.d("NotificationHelper", "Notification shown with ID: " + notificationId);
         }
     }
     
-    /**
-     * Test method to show a sample notification immediately
-     * Useful for testing notification display and permissions
-     * 
-     * @param context Application context
-     */
     public static void showTestNotification(Context context) {
         createNotificationChannel(context);
         

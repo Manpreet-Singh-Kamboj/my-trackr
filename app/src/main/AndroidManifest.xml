@@ -73,6 +73,14 @@
                 android:value=".features.core.MainActivity" />
         </activity>
         <activity
+            android:name=".features.settings.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
+        <activity
             android:name=".features.auth.ForgotPassword"
             android:exported="false" />
         <activity

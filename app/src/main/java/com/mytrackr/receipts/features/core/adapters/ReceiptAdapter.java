@@ -49,32 +49,27 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void setReceipts(List<Receipt> receipts) {
         items.clear();
         if (receipts != null && !receipts.isEmpty()) {
-            // Group receipts by date
             Map<String, List<Receipt>> groupedReceipts = groupReceiptsByDate(receipts);
             
-            // Add date headers and receipts to items list
             for (Map.Entry<String, List<Receipt>> entry : groupedReceipts.entrySet()) {
-                items.add(entry.getKey()); // Add date header
-                items.addAll(entry.getValue()); // Add receipts for that date
+                items.add(entry.getKey());
+                items.addAll(entry.getValue());
             }
         }
         notifyDataSetChanged();
     }
 
     private Map<String, List<Receipt>> groupReceiptsByDate(List<Receipt> receipts) {
-        // First, sort all receipts by date (most recent first)
         List<Receipt> sortedReceipts = new ArrayList<>(receipts);
         Collections.sort(sortedReceipts, new Comparator<Receipt>() {
             @Override
             public int compare(Receipt r1, Receipt r2) {
                 long timestamp1 = getReceiptTimestamp(r1);
                 long timestamp2 = getReceiptTimestamp(r2);
-                // Sort in descending order (most recent first)
                 return Long.compare(timestamp2, timestamp1);
             }
         });
         
-        // Group receipts by date
         Map<String, List<Receipt>> grouped = new LinkedHashMap<>();
         SimpleDateFormat headerFormat = new SimpleDateFormat("MMMM dd yyyy", Locale.US);
         
@@ -88,14 +83,12 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             grouped.get(dateKey).add(receipt);
         }
         
-        // Sort receipts within each date group (most recent first)
         for (List<Receipt> receiptList : grouped.values()) {
             Collections.sort(receiptList, new Comparator<Receipt>() {
                 @Override
                 public int compare(Receipt r1, Receipt r2) {
                     long timestamp1 = getReceiptTimestamp(r1);
                     long timestamp2 = getReceiptTimestamp(r2);
-                    // Sort in descending order (most recent first)
                     return Long.compare(timestamp2, timestamp1);
                 }
             });
@@ -227,7 +220,6 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         private String getCategoryFromReceipt(Receipt receipt) {
-            // First try to get category from receipt level
             if (receipt.getReceipt() != null) {
                 String receiptCategory = receipt.getReceipt().getCategory();
                 if (receiptCategory != null && !receiptCategory.trim().isEmpty() && !receiptCategory.equals("null")) {
@@ -240,7 +232,6 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 Log.d("ReceiptAdapter", "Receipt.getReceipt() is null");
             }
             
-            // Fallback: get category from first item if available
             if (receipt.getItems() != null && !receipt.getItems().isEmpty()) {
                 for (ReceiptItem item : receipt.getItems()) {
                     if (item.getCategory() != null && !item.getCategory().isEmpty() && !item.getCategory().equals("null")) {

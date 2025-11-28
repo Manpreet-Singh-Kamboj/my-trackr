@@ -47,7 +47,6 @@ import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.models.ReceiptItem;
 import com.mytrackr.receipts.data.repository.ReceiptRepository;
-import com.mytrackr.receipts.utils.NotificationPermissionHelper;
 import com.mytrackr.receipts.databinding.ActivityReceiptScanBinding;
 import com.mytrackr.receipts.utils.GeminiApiService;
 
@@ -1141,11 +1140,6 @@ public class ReceiptScanActivity extends AppCompatActivity {
             Log.w(TAG, "Receipt category is null or receipt.getReceipt() is null before saving");
         }
 
-        // Request notification permission if not granted (for first-time users)
-        if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
-            NotificationPermissionHelper.requestNotificationPermission(this);
-        }
-        
         // call repository to save
         ReceiptRepository repo = new ReceiptRepository();
         btnSave.setEnabled(false);
@@ -1469,6 +1463,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        NotificationPermissionHelper.handlePermissionResult(this, requestCode, permissions, grantResults);
+        // Handle camera and storage permissions (request code 1234)
+        // Notification permission is now handled in MainActivity
     }
 }

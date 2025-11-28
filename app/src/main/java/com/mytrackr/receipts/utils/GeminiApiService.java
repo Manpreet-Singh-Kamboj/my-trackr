@@ -211,8 +211,6 @@ public class GeminiApiService {
         Log.d(TAG, "Extracted text from response, length: " + text.length());
         Log.d(TAG, "Text preview: " + text.substring(0, Math.min(200, text.length())));
         
-        // Parse the JSON text response
-        // Remove markdown code blocks if present
         text = text.trim();
         if (text.startsWith("```json")) {
             text = text.substring(7);

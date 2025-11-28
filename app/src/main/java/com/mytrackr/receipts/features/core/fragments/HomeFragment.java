@@ -92,7 +92,6 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh receipts when fragment resumes (in case receipt was deleted)
         homeViewModel.refreshReceipts();
     }
 
@@ -150,7 +149,6 @@ public class HomeFragment extends Fragment {
         if (loadingProgressLayout != null) {
             loadingProgressLayout.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
-        // Hide other views while loading
         if (isLoading) {
             if (receiptsRecyclerView != null) {
                 receiptsRecyclerView.setVisibility(View.GONE);
@@ -159,7 +157,6 @@ public class HomeFragment extends Fragment {
                 emptyStateLayout.setVisibility(View.GONE);
             }
         } else {
-            // When loading finishes, show appropriate view based on data
             List<Receipt> receipts = homeViewModel.getReceipts().getValue();
             if (receipts != null) {
                 updateEmptyState(receipts.isEmpty());

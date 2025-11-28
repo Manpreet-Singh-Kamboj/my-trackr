@@ -11,11 +11,9 @@ import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.models.ReceiptItem;
 
 public class ReceiptParser {
-    // Very lightweight heuristic parser to extract store name, total, and date from OCR text
     public static Receipt parse(String ocrText) {
         Receipt r = new Receipt();
         if (ocrText == null || ocrText.trim().isEmpty()) {
-            // Set empty metadata
             Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
             metadata.setOcrText(ocrText != null ? ocrText : "");
             metadata.setProcessedBy("parser");
@@ -23,16 +21,13 @@ public class ReceiptParser {
             return r;
         }
         
-        // Set metadata with OCR text
         Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
         metadata.setOcrText(ocrText);
         metadata.setProcessedBy("parser");
         r.setMetadata(metadata);
 
-        // Create store info
         Receipt.StoreInfo store = new Receipt.StoreInfo();
         String[] lines = ocrText.split("\\r?\\n");
-        // store name: first non-empty line
         for (String l : lines) {
             if (l != null && !l.trim().isEmpty()) {
                 store.setName(l.trim());

@@ -24,23 +24,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-/**
- * Utility class for uploading images to Cloudinary
- */
 public class CloudinaryUtils {
     private static final String TAG = "CloudinaryUtils";
 
-    /**
-     * Callback interface for Cloudinary upload results
-     */
     public interface CloudinaryUploadCallback {
         void onSuccess(String secureUrl, String publicId);
         void onFailure(Exception e);
     }
 
-    /**
-     * Configuration class for Cloudinary upload
-     */
     public static class UploadConfig {
         public String cloudName;
         public String uploadPreset;
@@ -58,12 +49,6 @@ public class CloudinaryUtils {
         }
     }
 
-    /**
-     * Read Cloudinary configuration from app resources
-     *
-     * @param context Android context
-     * @return UploadConfig if configuration is available, null otherwise
-     */
     public static UploadConfig readConfig(Context context, String resourceId) {
         try {
             String cloudName = context.getString(R.string.cloudinary_cloud_name);
@@ -85,12 +70,6 @@ public class CloudinaryUtils {
         return null;
     }
 
-    /**
-     * Check if Cloudinary is configured and available
-     *
-     * @param context Android context
-     * @return true if Cloudinary is configured, false otherwise
-     */
     public static boolean isConfigured(Context context) {
         try {
             String cloudName = context.getString(R.string.cloudinary_cloud_name);
@@ -102,14 +81,6 @@ public class CloudinaryUtils {
         }
     }
 
-    /**
-     * Upload an image to Cloudinary using unsigned upload preset
-     *
-     * @param context Android context
-     * @param imageUri URI of the image to upload
-     * @param config Upload configuration
-     * @param callback Callback for upload result
-     */
     public static void uploadImage(Context context, Uri imageUri, UploadConfig config,
                                    CloudinaryUploadCallback callback) {
         Log.d(TAG, "Attempting Cloudinary upload: cloud=" + config.cloudName +
@@ -118,7 +89,6 @@ public class CloudinaryUtils {
         OkHttpClient client = new OkHttpClient.Builder().build();
 
         try {
-            // Read image data from URI
             InputStream is = context.getContentResolver().openInputStream(imageUri);
             if (is == null) {
                 if (callback != null) {
@@ -137,11 +107,9 @@ public class CloudinaryUtils {
             is.close();
             byte[] imageBytes = baos.toByteArray();
 
-            // Prepare multipart request
             MediaType mediaType = MediaType.parse("image/jpeg");
             RequestBody fileBody = RequestBody.create(imageBytes, mediaType);
 
-            // Compute folder path: <folderRoot>/<userId>/<resourceId>
             String folderPath = buildFolderPath(config);
 
             MultipartBody.Builder mb = new MultipartBody.Builder()
@@ -152,11 +120,9 @@ public class CloudinaryUtils {
 
             MultipartBody requestBody = mb.build();
 
-            // Build request URL
             String url = "https://api.cloudinary.com/v1_1/" + config.cloudName + "/image/upload";
             Request request = new Request.Builder().url(url).post(requestBody).build();
 
-            // Execute async request
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
@@ -235,12 +201,6 @@ public class CloudinaryUtils {
         }
     }
 
-    /**
-     * Build the folder path for Cloudinary storage
-     *
-     * @param config Upload configuration
-     * @return Folder path string
-     */
     private static String buildFolderPath(UploadConfig config) {
         if (config.folderRoot != null && !config.folderRoot.isEmpty()) {
             return config.folderRoot + "/" + config.userId + "/" + config.resourceId;
@@ -249,29 +209,12 @@ public class CloudinaryUtils {
         }
     }
 
-    /**
-     * Generate transformation URL for an uploaded image
-     *
-     * @param publicId The public ID from Cloudinary
-     * @param cloudName The Cloudinary cloud name
-     * @param transformations Transformation string (e.g., "w_300,h_300,c_fill")
-     * @return Transformed image URL
-     */
     public static String getTransformationUrl(String publicId, String cloudName, String transformations) {
         if (publicId == null || cloudName == null) return null;
         return "https://res.cloudinary.com/" + cloudName + "/image/upload/" +
                transformations + "/" + publicId;
     }
 
-    /**
-     * Generate thumbnail URL for an uploaded image
-     *
-     * @param publicId The public ID from Cloudinary
-     * @param cloudName The Cloudinary cloud name
-     * @param width Thumbnail width
-     * @param height Thumbnail height
-     * @return Thumbnail URL
-     */
     public static String getThumbnailUrl(String publicId, String cloudName, int width, int height) {
         return getTransformationUrl(publicId, cloudName,
             "w_" + width + ",h_" + height + ",c_fill,q_auto");

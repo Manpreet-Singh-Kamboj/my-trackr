@@ -36,8 +36,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(String token) {
-        // Send token to your server if needed
-        // For now, we'll use local notifications primarily
     }
 
     private void createNotificationChannel() {

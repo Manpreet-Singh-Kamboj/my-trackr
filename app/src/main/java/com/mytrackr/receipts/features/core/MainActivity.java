@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -23,7 +25,9 @@ import com.mytrackr.receipts.features.core.fragments.HomeFragment;
 import com.mytrackr.receipts.features.core.fragments.ProfileFragment;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.utils.NotificationHelper;
+import com.mytrackr.receipts.utils.NotificationPermissionHelper;
 import com.mytrackr.receipts.utils.NotificationScheduler;
+import com.mytrackr.receipts.utils.ThemePreferences;
 import com.mytrackr.receipts.viewmodels.AuthViewModel;
 
 
@@ -32,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private static AuthViewModel authViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemePreferences themePreferences = new ThemePreferences(this);
+        themePreferences.applySavedThemeMode();
+        
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -54,11 +61,18 @@ public class MainActivity extends AppCompatActivity {
         binding.bottomNavigation.setOnItemSelectedListener(this::onBottomNavItemSelected);
         
         initializeNotifications();
+        requestNotificationPermissionIfNeeded();
     }
     
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
         NotificationScheduler.scheduleReplacementPeriodCheck(this);
+    }
+    
+    private void requestNotificationPermissionIfNeeded() {
+        if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
+            NotificationPermissionHelper.requestNotificationPermission(this);
+        }
     }
 
     private boolean onBottomNavItemSelected(MenuItem item){
@@ -82,5 +96,11 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frameLayout, fragment);
         fragmentTransaction.commit();
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        NotificationPermissionHelper.handlePermissionResult(this, requestCode, permissions, grantResults);
     }
 }

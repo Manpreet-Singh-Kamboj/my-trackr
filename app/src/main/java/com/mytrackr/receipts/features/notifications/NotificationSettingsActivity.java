@@ -153,43 +153,20 @@ public class NotificationSettingsActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Save preferences when leaving the screen
         saveReplacementDays();
         saveNotificationDaysBefore();
     }
-    
-    private boolean hasNotificationPermission() {
-        try {
-            // Use the helper method which handles exceptions gracefully
-            return NotificationPermissionHelper.hasNotificationPermission(this);
-        } catch (Exception e) {
-            // If any exception occurs, assume permission is not granted
-            return false;
-        }
-    }
-    
-    private void requestNotificationPermission() {
-        try {
-            NotificationPermissionHelper.requestNotificationPermission(this);
-        } catch (Exception e) {
-            // If any exception occurs, show a message to the user
-            Toast.makeText(this, 
-                "Unable to request notification permission. Please enable notifications in System Settings.", 
-                Toast.LENGTH_LONG).show();
-        }
-    }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Notification permission granted", Toast.LENGTH_SHORT).show();
-                // Re-enable the switch that triggered the request
-                if (!notificationPrefs.isReplacementReminderEnabled()) {
-                    switchReplacementReminder.setChecked(true);
-                    notificationPrefs.setReplacementReminderEnabled(true);
-                }
+                notificationPrefs.setExpenseAlertsEnabled(true);
+                notificationPrefs.setReplacementReminderEnabled(true);
+                switchReplacementReminder.setChecked(true);
+                switchExpenseAlerts.setChecked(true);
             } else {
                 Toast.makeText(this, "Notification permission is required to receive reminders", Toast.LENGTH_LONG).show();
             }

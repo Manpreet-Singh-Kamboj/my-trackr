@@ -15,7 +15,7 @@ public class CornerOverlayView extends View {
     private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint handlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint handleFill = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private float[] pts = null; // view coordinates: [tlx,tly, trx,try, brx,bry, blx,bly]
+    private float[] pts = null;
     private int activeHandle = -1;
     private final float handleRadius = 20f;
     private final Path path = new Path();
@@ -29,7 +29,7 @@ public class CornerOverlayView extends View {
     public CornerOverlayView(Context context, AttributeSet attrs) { this(context, attrs, 0); }
     public CornerOverlayView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        linePaint.setColor(Color.argb(180, 255, 193, 7)); // amber-ish
+        linePaint.setColor(Color.argb(180, 255, 193, 7));
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setStrokeWidth(4f);
         handlePaint.setColor(Color.WHITE);
@@ -97,7 +97,6 @@ public class CornerOverlayView extends View {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 if (activeHandle != -1) {
-                    // accessibility: report click
                     performClick();
                 }
                 activeHandle = -1;

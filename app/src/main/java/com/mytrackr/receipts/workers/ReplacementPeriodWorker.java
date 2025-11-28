@@ -47,27 +47,21 @@ public class ReplacementPeriodWorker extends Worker {
                 return Result.success();
             }
             
-            // Check if this is a one-time notification (has receiptId in input data)
             androidx.work.Data inputData = getInputData();
             String receiptId = inputData.getString("receiptId");
             boolean isOneTimeNotification = inputData.getBoolean("isOneTimeNotification", false);
             
             if (isOneTimeNotification && receiptId != null && !receiptId.isEmpty()) {
-                // This is a one-time notification - fetch the receipt and show notification
                 Log.d(TAG, "Processing one-time notification for receipt: " + receiptId);
                 return handleOneTimeNotification(context, receiptId);
             }
             
-            // Otherwise, this is a periodic check - proceed with date range query
             String userId = auth.getCurrentUser().getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             
             int replacementDays = prefs.getReplacementDays();
             int notificationDaysBefore = prefs.getNotificationDaysBefore();
             
-            // Calculate the target date range for receipts that need notification
-            // We want receipts where: receiptDate + replacementDays - notificationDaysBefore = today (approximately)
-            // So: receiptDate = today - (replacementDays - notificationDaysBefore)
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -82,8 +76,6 @@ public class ReplacementPeriodWorker extends Worker {
             
             Log.d(TAG, "Checking receipts with date between " + new Date(receiptDateStart) + " and " + new Date(receiptDateEnd));
             
-            // Query receipts where receiptDateTimestamp is in the target range
-            // Use a blocking call since this is a Worker
             java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
             final Result[] workResult = {Result.success()};
             
@@ -113,7 +105,6 @@ public class ReplacementPeriodWorker extends Worker {
                     latch.countDown();
                 });
             
-            // Wait for the query to complete (with timeout)
             try {
                 latch.await(30, java.util.concurrent.TimeUnit.SECONDS);
             } catch (InterruptedException e) {
@@ -133,15 +124,12 @@ public class ReplacementPeriodWorker extends Worker {
             return;
         }
         
-        // Skip if receipt has a custom notification timestamp - one-time notifications handle those
         long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
         if (customNotificationTimestamp > 0) {
             Log.d(TAG, "Skipping periodic notification for receipt " + receipt.getId() + " - has custom notification timestamp");
             return;
         }
         
-        // Use receiptDateTimestamp for notification calculation (actual receipt date)
-        // Fallback to dateTimestamp if receiptDateTimestamp is not set
         long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
         if (receiptDate == 0) {
             receiptDate = receipt.getReceipt().getDateTimestamp();
@@ -153,10 +141,8 @@ public class ReplacementPeriodWorker extends Worker {
         long replacementEndDate = receiptDate + (replacementDays * 24 * 60 * 60 * 1000L);
         long currentTime = System.currentTimeMillis();
         
-        // Calculate days remaining
         long daysRemaining = (replacementEndDate - currentTime) / (24 * 60 * 60 * 1000L);
         
-        // Only notify if we're within the notification window
         if (daysRemaining >= 0 && daysRemaining <= notificationDaysBefore) {
             Log.d(TAG, "Sending periodic notification for receipt: " + receipt.getId() + ", days remaining: " + daysRemaining);
             NotificationHelper.showReplacementPeriodNotification(
@@ -173,7 +159,6 @@ public class ReplacementPeriodWorker extends Worker {
         Log.d(TAG, "Current time: " + System.currentTimeMillis());
         
         try {
-            // Initialize Firebase if not already initialized
             try {
                 FirebaseApp.getInstance();
             } catch (IllegalStateException e) {
@@ -184,8 +169,6 @@ public class ReplacementPeriodWorker extends Worker {
             FirebaseAuth auth = FirebaseAuth.getInstance();
             if (auth.getCurrentUser() == null) {
                 Log.w(TAG, "No user logged in for one-time notification");
-                // Even without user, we should still try to show notification if we have the receipt data
-                // But we can't fetch from Firestore without auth, so return success
                 return Result.success();
             }
             
@@ -193,7 +176,6 @@ public class ReplacementPeriodWorker extends Worker {
             Log.d(TAG, "User ID: " + userId);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             
-            // Use blocking call to fetch receipt
             java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
             final Result[] workResult = {Result.success()};
             final boolean[] notificationShown = {false};
@@ -225,8 +207,6 @@ public class ReplacementPeriodWorker extends Worker {
                                 int replacementDays = prefs.getReplacementDays();
                                 int notificationDaysBefore = prefs.getNotificationDaysBefore();
                                 
-                                // Calculate days remaining
-                                // For one-time notifications, always show even if date is missing
                                 long receiptDate = 0;
                                 if (receipt.getReceipt() != null) {
                                     receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
@@ -243,14 +223,11 @@ public class ReplacementPeriodWorker extends Worker {
                                     daysRemaining = (int) ((replacementEndDate - currentTime) / (24 * 60 * 60 * 1000L));
                                     daysRemaining = Math.max(0, daysRemaining);
                                 } else {
-                                    // For one-time notifications, show with 0 days if date is missing
-                                    // This ensures scheduled notifications always show
                                     Log.w(TAG, "No receipt date found for one-time notification, showing with 0 days remaining");
                                     daysRemaining = 0;
                                 }
                                 
-                                // Always show notification for one-time notifications (even if date is missing)
-                                Log.d(TAG, "Showing one-time notification for receipt: " + receiptId + 
+                                Log.d(TAG, "Showing one-time notification for receipt: " + receiptId +
                                     ", days remaining: " + daysRemaining + 
                                     ", store: " + (receipt.getStore() != null && receipt.getStore().getName() != null 
                                         ? receipt.getStore().getName() : "null"));
@@ -276,7 +253,6 @@ public class ReplacementPeriodWorker extends Worker {
                     } catch (Exception e) {
                         Log.e(TAG, "Error processing one-time notification", e);
                         e.printStackTrace();
-                        // Don't retry - return success to avoid infinite retries
                         workResult[0] = Result.success();
                     } finally {
                         latch.countDown();
@@ -284,8 +260,6 @@ public class ReplacementPeriodWorker extends Worker {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching receipt for one-time notification: " + e.getMessage(), e);
-                    // Don't retry on network errors - return success to avoid infinite retries
-                    // The periodic worker will catch missed notifications
                     workResult[0] = Result.success();
                     latch.countDown();
                 });
@@ -294,11 +268,11 @@ public class ReplacementPeriodWorker extends Worker {
                 boolean completed = latch.await(30, java.util.concurrent.TimeUnit.SECONDS);
                 if (!completed) {
                     Log.w(TAG, "Timeout waiting for receipt fetch");
-                    return Result.success(); // Return success to avoid retries
+                    return Result.success();
                 }
             } catch (InterruptedException e) {
                 Log.e(TAG, "Interrupted while waiting for receipt fetch", e);
-                return Result.success(); // Return success to avoid retries
+                return Result.success();
             }
             
             if (notificationShown[0]) {
@@ -308,12 +282,11 @@ public class ReplacementPeriodWorker extends Worker {
             return workResult[0];
         } catch (Exception e) {
             Log.e(TAG, "Unexpected error in handleOneTimeNotification", e);
-            return Result.success(); // Return success to avoid infinite retries
+            return Result.success();
         }
     }
     
     private Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
-        // This method works with both DocumentSnapshot and QueryDocumentSnapshot
         try {
             Receipt receipt = new Receipt();
             Map<String, Object> data = document.getData();
@@ -321,7 +294,6 @@ public class ReplacementPeriodWorker extends Worker {
             
             receipt.setId(document.getId());
             
-            // Parse receipt information
             if (data.containsKey("receipt")) {
                 Map<String, Object> receiptMap = (Map<String, Object>) data.get("receipt");
                 Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
@@ -348,7 +320,6 @@ public class ReplacementPeriodWorker extends Worker {
                 receipt.setReceipt(receiptInfo);
             }
             
-            // Parse store information - check both "store" and "storeName" for backward compatibility
             Receipt.StoreInfo store = new Receipt.StoreInfo();
             boolean storeParsed = false;
             
@@ -379,7 +350,6 @@ public class ReplacementPeriodWorker extends Worker {
                 Log.w(TAG, "Data doesn't contain 'store' key. Available keys: " + data.keySet());
             }
             
-            // Fallback to storeName field if store.name wasn't found or was empty
             if (!storeParsed && data.containsKey("storeName")) {
                 Object nameObj = data.get("storeName");
                 if (nameObj != null) {
@@ -399,7 +369,6 @@ public class ReplacementPeriodWorker extends Worker {
                 Log.d(TAG, "Store successfully parsed for receipt " + document.getId() + ": '" + store.getName() + "'");
             } else {
                 Log.w(TAG, "No valid store name found for receipt " + document.getId() + ". Available data keys: " + data.keySet());
-                // Set store to null so NotificationHelper can use fallback
                 receipt.setStore(null);
             }
             
