@@ -132,7 +132,7 @@ public class ExpensesFragment extends Fragment {
         progressBudget.setVisibility(View.VISIBLE);
         tvBudgetStatus.setVisibility(View.VISIBLE);
 
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "CA"));
         
         tvBudgetAmount.setText(currencyFormat.format(budget.getAmount()));
         tvSpentAmount.setText(currencyFormat.format(budget.getSpent()));
