@@ -66,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
     
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
-        NotificationScheduler.scheduleReplacementPeriodCheck(this);
+        // Notifications are now scheduled using AlarmManager when receipts are saved/updated
+        // No need for periodic checks since each receipt gets its own precise alarm
     }
     
     private void requestNotificationPermissionIfNeeded() {

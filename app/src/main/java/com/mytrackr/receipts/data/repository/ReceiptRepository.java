@@ -527,7 +527,7 @@ public class ReceiptRepository {
             .get()
             .addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
-                    Receipt receipt = parseReceiptFromDocument(documentSnapshot);
+                    Receipt receipt = ReceiptRepository.parseReceiptFromDocument(documentSnapshot);
                     if (receipt != null) {
                         if (callback != null) callback.onSuccess(receipt);
                     } else {
@@ -550,8 +550,9 @@ public class ReceiptRepository {
     
     /**
      * Parse a receipt from a Firestore document (full parsing with all fields)
+     * Made public so it can be reused by other classes like NotificationAlarmReceiver
      */
-    private Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
+    public static Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
         try {
             Receipt receipt = new Receipt();
             Map<String, Object> data = document.getData();

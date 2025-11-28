@@ -1,57 +1,32 @@
 package com.mytrackr.receipts.utils;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
-
-import com.mytrackr.receipts.workers.ReplacementPeriodWorker;
-
-import java.util.concurrent.TimeUnit;
+import com.mytrackr.receipts.receivers.NotificationAlarmReceiver;
 
 public class NotificationScheduler {
     private static final String TAG = "NotificationScheduler";
-    private static final String WORK_NAME = "replacement_period_check";
-    
-    public static void scheduleReplacementPeriodCheck(Context context) {
-        NotificationPreferences prefs = new NotificationPreferences(context);
-        
-        if (!prefs.isReplacementReminderEnabled()) {
-            Log.d(TAG, "Replacement reminders disabled, cancelling work");
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME);
-            return;
-        }
-        
-        Constraints constraints = new Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build();
-        
-        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
-            ReplacementPeriodWorker.class,
-            15,
-            TimeUnit.MINUTES
-        )
-        .setConstraints(constraints)
-        .setInitialDelay(15, TimeUnit.MINUTES)
-        .build();
-        
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            WORK_NAME,
-            ExistingPeriodicWorkPolicy.REPLACE,
-            workRequest
-        );
-        
-        Log.d(TAG, "Scheduled replacement period check work");
-    }
     
     public static void cancelReceiptNotification(Context context, String receiptId) {
-        String uniqueWorkName = "replacement_notification_" + receiptId;
-        WorkManager.getInstance(context).cancelUniqueWork(uniqueWorkName);
-        Log.d(TAG, "Cancelled notification for receipt " + receiptId);
+        // Cancel AlarmManager notification
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            Intent intent = new Intent(context, NotificationAlarmReceiver.class);
+            intent.putExtra(NotificationAlarmReceiver.EXTRA_RECEIPT_ID, receiptId);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                receiptId.hashCode(),
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            alarmManager.cancel(pendingIntent);
+            Log.d(TAG, "Cancelled alarm notification for receipt " + receiptId);
+        }
     }
     
 
@@ -98,45 +73,64 @@ public class NotificationScheduler {
         long delayMinutes = (delay % (60 * 60 * 1000L)) / (60 * 1000L);
         long delaySeconds = (delay % (60 * 1000L)) / 1000L;
 
-        Constraints constraints = new Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .setRequiresBatteryNotLow(false)
-            .setRequiresCharging(false)
-            .setRequiresDeviceIdle(false)
-            .build();
+        // Use AlarmManager for precise notification scheduling
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) {
+            Log.e(TAG, "AlarmManager is null, cannot schedule notification");
+            return;
+        }
         
-        String uniqueWorkName = "replacement_notification_" + receiptId;
+        Intent intent = new Intent(context, NotificationAlarmReceiver.class);
+        intent.putExtra(NotificationAlarmReceiver.EXTRA_RECEIPT_ID, receiptId);
         
-        android.util.Log.d(TAG, "Creating work request with receipt ID: " + receiptId);
-        androidx.work.Data inputData = new androidx.work.Data.Builder()
-            .putString("receiptId", receiptId)
-            .putLong("notificationTime", notificationTime)
-            .putBoolean("isOneTimeNotification", true)
-            .build();
-        
-        androidx.work.OneTimeWorkRequest workRequest = new androidx.work.OneTimeWorkRequest.Builder(
-            ReplacementPeriodWorker.class
-        )
-        .setInputData(inputData)
-        .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-        .setConstraints(constraints)
-        .addTag("receipt_notification")
-        .addTag("receipt_" + receiptId)
-        .build();
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            context,
+            receiptId.hashCode(),
+            intent,
+            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
         
         try {
-            WorkManager workManager = WorkManager.getInstance(context);
-            workManager.enqueueUniqueWork(
-                uniqueWorkName,
-                androidx.work.ExistingWorkPolicy.REPLACE,
-                workRequest
-            );
+            // Use exact alarm for precise timing (Android 12+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // Check if exact alarms are allowed
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        notificationTime,
+                        pendingIntent
+                    );
+                    Log.d(TAG, "Scheduled exact alarm for receipt " + receiptId + " at " + sdf.format(new java.util.Date(notificationTime)));
+                } else {
+                    // Fallback to inexact alarm if exact alarms not allowed
+                    Log.w(TAG, "Exact alarms not allowed, using inexact alarm");
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        notificationTime,
+                        pendingIntent
+                    );
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // Android 6.0-11: Use setExactAndAllowWhileIdle
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTime,
+                    pendingIntent
+                );
+            } else {
+                // Android 5.1 and below: Use setExact
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTime,
+                    pendingIntent
+                );
+            }
             
-            android.util.Log.d(TAG, "Work enqueued successfully. Work name: " + uniqueWorkName);
             Log.d(TAG, "Scheduled notification for receipt " + receiptId + " in " + delayDays + " days, " + delayHours + " hours, " + delayMinutes + " minutes, " + delaySeconds + " seconds (total delay: " + delay + " ms)");
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException when scheduling alarm - exact alarms may not be allowed. Please enable exact alarms in system settings.", e);
         } catch (Exception e) {
-            Log.e(TAG, "Error enqueueing work for notification", e);
-            e.printStackTrace();
+            Log.e(TAG, "Error scheduling alarm", e);
         }
     }
 }
