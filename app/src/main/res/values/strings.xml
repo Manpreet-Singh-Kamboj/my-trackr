@@ -81,7 +81,6 @@
     <string name="set_monthly_budget">Set Monthly Budget</string>
     <string name="budget_amount">Budget Amount (₹)</string>
     <string name="save">Save</string>
-    <string name="cancel">Cancel</string>
     <string name="test_add_expense">Test: Add Expense</string>
     <string name="add_expense_title">Add Test Expense</string>
     <string name="expense_amount">Expense Amount (₹)</string>
