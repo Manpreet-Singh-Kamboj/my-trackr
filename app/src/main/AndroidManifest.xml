@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.mytrackr.receipts">
+    <!-- Permissions for camera and external storage -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -11,6 +28,61 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyTrackr">
+        <activity
+            android:name=".features.change_password.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.edit_profile.EditProfileActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity> <!-- FileProvider for camera capture -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider> <!-- Receipt scanning activity -->
+        <activity
+            android:name=".features.receipts.ReceiptScanActivity"
+            android:exported="false" />
+        <activity
+            android:name=".features.receipts.ReceiptDetailsActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
+        <activity
+            android:name=".features.receipts.ViewReceiptImageActivity"
+            android:exported="false"
+            android:parentActivityName=".features.receipts.ReceiptDetailsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.receipts.ReceiptDetailsActivity" />
+        </activity>
+        <activity
+            android:name=".features.notifications.NotificationSettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
+        <activity
+            android:name=".features.settings.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
         <activity
             android:name=".features.auth.ForgotPassword"
             android:exported="false" />
@@ -48,6 +120,21 @@
         <activity
             android:name=".features.core.MainActivity"
             android:exported="false" />
+
+        <!-- Firebase Cloud Messaging Service -->
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Notification Alarm Receiver -->
+        <receiver
+            android:name=".receivers.NotificationAlarmReceiver"
+            android:exported="false"
+            android:enabled="true" />
     </application>
 
 </manifest>

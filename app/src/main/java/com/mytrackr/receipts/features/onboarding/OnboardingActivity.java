@@ -63,26 +63,21 @@ public class OnboardingActivity extends AppCompatActivity {
     }
     
     private void updateUI() {
-        // Update Previous button visibility
         binding.btnPrevious.setVisibility(currentPage > 0 ? View.VISIBLE : View.INVISIBLE);
         
-        // Update Next/Get Started button text
         if (currentPage == adapter.getItemCount() - 1) {
             binding.btnNext.setText(R.string.get_started);
         } else {
             binding.btnNext.setText(R.string.next);
         }
         
-        // Update Skip button visibility
         binding.tvSkip.setVisibility(currentPage < adapter.getItemCount() - 1 ? View.VISIBLE : View.INVISIBLE);
     }
     
     private void finishOnboarding() {
-        // Mark onboarding as completed
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         prefs.edit().putBoolean(PREF_ONBOARDING_COMPLETED, true).apply();
         
-        // Navigate to main activity
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

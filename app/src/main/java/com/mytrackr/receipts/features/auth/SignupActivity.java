@@ -29,6 +29,7 @@ public class SignupActivity extends AppCompatActivity {
         authViewModel.getUser().observe(this,user -> {
             if(user != null){
                 // New user signed up successfully - show onboarding first
+                authViewModel.getUserDetails();
                 Intent intent = new Intent(this, OnboardingActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);

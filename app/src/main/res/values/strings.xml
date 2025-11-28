@@ -22,12 +22,49 @@
     <string name="expenses">Expenses</string>
     <string name="dashboard">Dashboard</string>
     <string name="profile">Profile</string>
+    <string name="profile_image_content_description">User Profile Image</string>
+    <string name="user_default_name">Anonymous</string>
+    <string name="user_default_email">anonymous@anon.com</string>
+    <string name="edit_button">Edit Button</string>
+    <string name="profile_menu_icon">Profile Menu icon</string>
+    <string name="logout">Logout</string>
+    <string name="are_you_sure_to_logout">Are you sure you want to logout?</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="full_name">Name</string>
+    <string name="email">Email</string>
+    <string name="bio">About Me</string>
+    <string name="phone_number">Phone No</string>
+    <string name="city">City</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="receipt_scan">Receipt Scan</string>
+    <string name="change_password">Change Password</string>
+    <string name="set_new_password">Set a new password</string>
+    <string name="create_new_password">Create a new password. Ensure it differs from the previous ones for security</string>
+    <string name="current_password">Current Password</string>
+    <string name="enter_your_current_password">Enter your current password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_new_password">Confirm New Password</string>
+    <string name="enter_your_new_password">Enter your new password</string>
+    <string name="re_enter_password">Re-enter password</string>
+    <string name="update_password">Update password</string>
+    <string name="processing_ocr">Processing Receipt with MLKit and Gemini</string>
+    <string name="process_receipt">Process Receipt</string>
+    <string name="save_receipt">Save Receipt</string>
+    <string name="view_receipt_image">Receipt Image</string>
+    <string name="your_receipts">Your Receipts</string>
+    <string name="receipt_details">Receipt Details</string>
+    <string name="no_receipts">No receipts yet</string>
+    <string name="replacement_period">Replacement period reminders are based on the receipt date. For example, if a receipt is dated today and the period is 7 days, you\'ll be notified 1 day before the 7-day period ends.</string>
+
 
     <!-- Google Client IDS -->
     <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
+    <!-- Gemini API Key - Replace with your actual API key -->
+    <string name="gemini_api_key">AIzaSyByGZ4XCEaxvhRF72GSFlu9QXFul08njY8</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    
+
     <!-- Onboarding strings -->
     <string name="next">Next</string>
     <string name="previous">Previous</string>

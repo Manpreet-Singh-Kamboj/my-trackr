@@ -35,4 +35,7 @@
     <color name="indicator_inactive">#E0E0E0</color>
     <color name="white">#FFFFFF</color>
 
+    <color name="input_disabled_bg">#E0E0E0</color>
+    <color name="input_disabled_text">#757575</color>
+
 </resources>

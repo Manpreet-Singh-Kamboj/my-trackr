@@ -20,5 +20,8 @@
 
     <color name="bottom_nav_bg">#252525</color>
 
+    <color name="input_disabled_bg">#2C2C2C</color>
+    <color name="input_disabled_text">#A9A9A9</color>
+
 </resources>
 

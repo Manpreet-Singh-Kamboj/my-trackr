@@ -33,8 +33,7 @@ public class SplashActivity extends AppCompatActivity {
             public void run() {
                 authViewModel.getUser().observe(SplashActivity.this, user->{
                     if(user != null){
-                        // User is logged in - go directly to main activity
-                        // Onboarding is only for first-time signups, handled in SignupActivity
+                        authViewModel.getUserDetails();
                         startActivity(new Intent(SplashActivity.this, MainActivity.class));
                         finish();
                     }else{

@@ -6,5 +6,6 @@
     <dimen name="text_xl">17sp</dimen>
     <dimen name="text_medium">15sp</dimen>
     <dimen name="text_sm">13sp</dimen>
+    <dimen name="text_xs">11sp</dimen>
     <dimen name="margin_bottom">0sp</dimen>
 </resources>
