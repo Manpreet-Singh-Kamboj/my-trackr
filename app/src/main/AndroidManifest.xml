@@ -135,6 +135,12 @@
             android:name=".receivers.NotificationAlarmReceiver"
             android:exported="false"
             android:enabled="true" />
+        
+        <!-- Budget Notification Receiver -->
+        <receiver
+            android:name=".receivers.BudgetNotificationReceiver"
+            android:exported="false"
+            android:enabled="true" />
     </application>
 
 </manifest>

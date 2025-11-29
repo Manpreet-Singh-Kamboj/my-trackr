@@ -1,4 +1,4 @@
-package com.mytrackr.receipts.features.core.adapters;
+package com.mytrackr.receipts.ui.adapter;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_DATE_HEADER = 0;

@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.card.MaterialCardView;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.model.Transaction;
 import java.text.NumberFormat;
@@ -51,6 +53,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     class TransactionViewHolder extends RecyclerView.ViewHolder {
         private final ImageView ivTransactionIcon;
+        private final MaterialCardView iconContainer;
         private final TextView tvTransactionDescription;
         private final TextView tvTransactionDate;
         private final TextView tvTransactionAmount;
@@ -58,6 +61,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             ivTransactionIcon = itemView.findViewById(R.id.ivTransactionIcon);
+            iconContainer = itemView.findViewById(R.id.iconContainer);
             tvTransactionDescription = itemView.findViewById(R.id.tvTransactionDescription);
             tvTransactionDate = itemView.findViewById(R.id.tvTransactionDate);
             tvTransactionAmount = itemView.findViewById(R.id.tvTransactionAmount);
@@ -67,18 +71,44 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             tvTransactionDescription.setText(transaction.getDescription());
             tvTransactionDate.setText(getFormattedDateWithMonth(transaction.getTimestamp()));
 
+            // Set icon and colors based on transaction type
+            int iconRes;
+            int iconTintColor;
+            int containerColorRes;
+            int amountColor;
+            
+            if (transaction.isExpense()) {
+                // Expense (debit) - red/orange theme
+                iconRes = R.drawable.ic_receipt_icon;
+                iconTintColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
+                containerColorRes = R.color.error;
+                amountColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
+            } else {
+                // Income (credit) - green theme
+                iconRes = R.drawable.ic_receipt_icon;
+                iconTintColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_safe);
+                containerColorRes = R.color.budget_safe;
+                amountColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_safe);
+            }
+            
+            ivTransactionIcon.setImageResource(iconRes);
+            ivTransactionIcon.setColorFilter(iconTintColor);
+            if (iconContainer != null) {
+                int containerColor = ContextCompat.getColor(itemView.getContext(), containerColorRes);
+                // Set background with 15% opacity
+                iconContainer.setCardBackgroundColor(containerColor);
+                iconContainer.getBackground().setAlpha(38); // ~15% opacity (255 * 0.15 ≈ 38)
+            }
+
             // Format amount with + or - prefix
             String amountStr;
-            int textColor;
             if (transaction.isExpense()) {
                 amountStr = "- " + currencyFormat.format(transaction.getAmount());
-                textColor = itemView.getContext().getColor(R.color.light_red);
             } else {
                 amountStr = "+ " + currencyFormat.format(transaction.getAmount());
-                textColor = itemView.getContext().getColor(R.color.dark_green);
             }
             tvTransactionAmount.setText(amountStr);
-            tvTransactionAmount.setTextColor(textColor);
+            tvTransactionAmount.setTextColor(amountColor);
         }
 
         private String getFormattedDateWithMonth(long timestamp) {

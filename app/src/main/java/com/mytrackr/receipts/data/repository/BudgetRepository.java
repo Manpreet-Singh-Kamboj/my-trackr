@@ -9,6 +9,7 @@ import com.google.firebase.firestore.SetOptions;
 import com.mytrackr.receipts.data.model.Budget;
 import java.util.HashMap;
 import java.util.Map;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 public class BudgetRepository {
     private static BudgetRepository instance;
@@ -86,6 +87,38 @@ public class BudgetRepository {
                     successLiveData.postValue(false);
                 });
     }
+    
+    /**
+     * Save budget silently without triggering success callbacks (for internal syncs)
+     */
+    public void saveBudgetSilently(Budget budget, MutableLiveData<String> errorMessage) {
+        String uid = getCurrentUserId();
+        if (uid == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+
+        String docId = budget.getMonth() + "_" + budget.getYear();
+        Map<String, Object> budgetData = new HashMap<>();
+        budgetData.put("amount", budget.getAmount());
+        budgetData.put("month", budget.getMonth());
+        budgetData.put("year", budget.getYear());
+        budgetData.put("spent", budget.getSpent());
+
+        firestore
+                .collection("users")
+                .document(uid)
+                .collection("budgets")
+                .document(docId)
+                .set(budgetData, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("BUDGET_SYNCED", "Budget synced silently");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("BUDGET_SYNC_ERROR", "Failed to sync budget", e);
+                    errorMessage.postValue(e.getMessage());
+                });
+    }
 
     public void updateSpentAmount(String month, String year, double spentAmount, MutableLiveData<Boolean> successLiveData, MutableLiveData<String> errorMessage) {
         String uid = getCurrentUserId();
@@ -110,6 +143,38 @@ public class BudgetRepository {
                     errorMessage.postValue(e.getMessage());
                     successLiveData.postValue(false);
                 });
+    }
+
+    public static Budget parseBudgetFromDocument(DocumentSnapshot document) {
+        try {
+            Budget budget = new Budget();
+            Map<String, Object> data = document.getData();
+            if (data == null) return null;
+
+            if (data.containsKey("amount")) {
+                Object amount = data.get("amount");
+                if (amount instanceof Number) {
+                    budget.setAmount(((Number) amount).doubleValue());
+                }
+            }
+            if (data.containsKey("month")) {
+                budget.setMonth((String) data.get("month"));
+            }
+            if (data.containsKey("year")) {
+                budget.setYear((String) data.get("year"));
+            }
+            if (data.containsKey("spent")) {
+                Object spent = data.get("spent");
+                if (spent instanceof Number) {
+                    budget.setSpent(((Number) spent).doubleValue());
+                }
+            }
+
+            return budget;
+        } catch (Exception e) {
+            Log.e("BudgetRepository", "Error parsing budget from document", e);
+            return null;
+        }
     }
 
     private String getCurrentUserId() {

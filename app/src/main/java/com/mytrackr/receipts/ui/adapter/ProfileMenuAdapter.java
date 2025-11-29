@@ -1,4 +1,4 @@
-package com.mytrackr.receipts.features.core.adapters;
+package com.mytrackr.receipts.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;

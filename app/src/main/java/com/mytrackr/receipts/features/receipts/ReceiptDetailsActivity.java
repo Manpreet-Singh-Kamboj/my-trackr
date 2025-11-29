@@ -443,6 +443,11 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             public void onSuccess() {
                 runOnUiThread(() -> {
                     Toast.makeText(ReceiptDetailsActivity.this, "Receipt deleted", Toast.LENGTH_SHORT).show();
+                    // Cancel any scheduled notifications for this receipt
+                    com.mytrackr.receipts.utils.NotificationScheduler.cancelReceiptNotification(
+                        ReceiptDetailsActivity.this, 
+                        receipt.getId()
+                    );
                     finish();
                 });
             }

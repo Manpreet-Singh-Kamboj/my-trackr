@@ -23,7 +23,7 @@ import com.mytrackr.receipts.data.models.ProfileMenuItem;
 import com.mytrackr.receipts.databinding.FragmentProfileBinding;
 import com.mytrackr.receipts.databinding.LogoutBottomSheetLayoutBinding;
 import com.mytrackr.receipts.features.change_password.ChangePasswordActivity;
-import com.mytrackr.receipts.features.core.adapters.ProfileMenuAdapter;
+import com.mytrackr.receipts.ui.adapter.ProfileMenuAdapter;
 import com.mytrackr.receipts.features.edit_profile.EditProfileActivity;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
 import com.mytrackr.receipts.features.settings.SettingsActivity;

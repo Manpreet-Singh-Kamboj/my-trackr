@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,10 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.databinding.FragmentHomeBinding;
-import com.mytrackr.receipts.features.core.adapters.ReceiptAdapter;
+import com.mytrackr.receipts.ui.adapter.ReceiptAdapter;
 import com.mytrackr.receipts.features.receipts.ReceiptDetailsActivity;
 import com.mytrackr.receipts.features.receipts.ReceiptScanActivity;
 import com.mytrackr.receipts.viewmodels.HomeViewModel;
@@ -81,7 +79,7 @@ public class HomeFragment extends Fragment {
             layoutParams.leftMargin = insets.left;
             layoutParams.topMargin = insets.top;
             layoutParams.rightMargin = insets.right;
-            layoutParams.bottomMargin = insets.bottom;
+            layoutParams.bottomMargin = 0;
             v.setLayoutParams(layoutParams);
             return WindowInsetsCompat.CONSUMED;
         });

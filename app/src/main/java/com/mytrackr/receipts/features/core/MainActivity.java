@@ -57,17 +57,18 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager = getSupportFragmentManager();
         if(savedInstanceState == null){
             loadFragments(new HomeFragment());
+            initializeNotifications();
+        } else {
+            NotificationHelper.createNotificationChannel(this);
         }
         binding.bottomNavigation.setOnItemSelectedListener(this::onBottomNavItemSelected);
         
-        initializeNotifications();
         requestNotificationPermissionIfNeeded();
     }
     
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
-        // Notifications are now scheduled using AlarmManager when receipts are saved/updated
-        // No need for periodic checks since each receipt gets its own precise alarm
+        NotificationScheduler.scheduleDailyBudgetCheck(this);
     }
     
     private void requestNotificationPermissionIfNeeded() {

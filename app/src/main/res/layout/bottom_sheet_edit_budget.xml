@@ -1,66 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="?attr/colorSurface">
 
-    <!-- Title -->
-    <TextView
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/set_monthly_budget"
-        style="@style/TextXL.Bold"
-        android:textColor="@color/text_primary"
-        android:gravity="center" />
+        app:cardCornerRadius="0dp"
+        app:cardBackgroundColor="?attr/background"
+        android:layout_margin="0dp">
 
-    <!-- Budget Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="@string/budget_amount"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/primary"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etBudgetAmount"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:maxLines="1"
-            style="@style/TextMedium" />
+            android:orientation="vertical"
+            android:padding="28dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Header with Icon -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-    <!-- Buttons Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="horizontal"
-        android:gravity="center">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_wallet"
+                    android:contentDescription="@string/budget_amount"
+                    app:tint="?attr/colorPrimary"
+                    android:layout_marginEnd="12dp" />
 
-        <Button
-            android:id="@+id/btnCancel"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:text="@string/cancel"
-            style="@style/ButtonOutline" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/set_monthly_budget"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface" />
 
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:text="@string/save"
-            style="@style/Button" />
+            </LinearLayout>
 
-    </LinearLayout>
+            <!-- Subtitle -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Set your monthly spending limit"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.7"
+                android:layout_marginBottom="24dp" />
 
-</LinearLayout>
+            <!-- Budget Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/budget_amount"
+                app:hintTextColor="?attr/colorPrimary"
+                app:startIconDrawable="@drawable/ic_dollar"
+                app:startIconTint="?attr/colorPrimary"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp"
+                >
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etBudgetAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:minHeight="56dp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Buttons Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/cancel"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="?attr/colorPrimary"
+                    android:textColor="?attr/colorPrimary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSave"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/save"
+                    style="@style/Widget.Material3.Button"
+                    app:cornerRadius="16dp"
+                    android:textColor="?attr/colorOnPrimary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -138,6 +138,30 @@ public class TransactionRepository {
                 });
     }
 
+    public void deleteTransaction(String transactionId, MutableLiveData<Boolean> successLiveData, MutableLiveData<String> errorMessage) {
+        String uid = getCurrentUserId();
+        if (uid == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+
+        firestore
+                .collection("users")
+                .document(uid)
+                .collection("transactions")
+                .document(transactionId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("TRANSACTION_DELETED", "Transaction deleted successfully: " + transactionId);
+                    successLiveData.postValue(true);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("TRANSACTION_DELETE_ERROR", "Failed to delete transaction", e);
+                    errorMessage.postValue(e.getMessage());
+                    successLiveData.postValue(false);
+                });
+    }
+
     private String getCurrentUserId() {
         if (firebaseAuth.getCurrentUser() != null) {
             return firebaseAuth.getCurrentUser().getUid();

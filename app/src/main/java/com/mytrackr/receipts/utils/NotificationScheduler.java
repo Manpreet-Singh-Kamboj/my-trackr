@@ -8,6 +8,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.mytrackr.receipts.receivers.NotificationAlarmReceiver;
+import com.mytrackr.receipts.receivers.BudgetNotificationReceiver;
 
 public class NotificationScheduler {
     private static final String TAG = "NotificationScheduler";
@@ -132,6 +133,147 @@ public class NotificationScheduler {
         } catch (Exception e) {
             Log.e(TAG, "Error scheduling alarm", e);
         }
+    }
+    
+    public static void scheduleBudgetNotification(Context context, String month, String year, long notificationTime) {
+        NotificationPreferences prefs = new NotificationPreferences(context);
+        
+        if (!prefs.isExpenseAlertsEnabled()) {
+            return;
+        }
+        
+        long currentTime = System.currentTimeMillis();
+        
+        if (notificationTime <= currentTime) {
+            Log.d(TAG, "Budget notification time has passed, not scheduling");
+            return;
+        }
+        
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) {
+            Log.e(TAG, "AlarmManager is null, cannot schedule budget notification");
+            return;
+        }
+        
+        Intent intent = new Intent(context, BudgetNotificationReceiver.class);
+        intent.putExtra(BudgetNotificationReceiver.EXTRA_BUDGET_MONTH, month);
+        intent.putExtra(BudgetNotificationReceiver.EXTRA_BUDGET_YEAR, year);
+        
+        String uniqueId = month + "_" + year;
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            context,
+            uniqueId.hashCode(),
+            intent,
+            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+        
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        notificationTime,
+                        pendingIntent
+                    );
+                    Log.d(TAG, "Scheduled exact budget alarm for " + month + " " + year);
+                } else {
+                    Log.w(TAG, "Exact alarms not allowed, using inexact alarm for budget");
+                    alarmManager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        notificationTime,
+                        pendingIntent
+                    );
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTime,
+                    pendingIntent
+                );
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    notificationTime,
+                    pendingIntent
+                );
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException when scheduling budget alarm", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Error scheduling budget alarm", e);
+        }
+    }
+    
+    public static void cancelBudgetNotification(Context context, String month, String year) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            Intent intent = new Intent(context, BudgetNotificationReceiver.class);
+            intent.putExtra(BudgetNotificationReceiver.EXTRA_BUDGET_MONTH, month);
+            intent.putExtra(BudgetNotificationReceiver.EXTRA_BUDGET_YEAR, year);
+            
+            String uniqueId = month + "_" + year;
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                context,
+                uniqueId.hashCode(),
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            alarmManager.cancel(pendingIntent);
+            Log.d(TAG, "Cancelled budget alarm for " + month + " " + year);
+        }
+    }
+
+    /**
+     * Schedule a daily budget check at 7:00 AM for the current month/year.
+     * This is called from MainActivity and from the BudgetNotificationReceiver after each run.
+     */
+    public static void scheduleDailyBudgetCheck(Context context) {
+        NotificationPreferences prefs = new NotificationPreferences(context);
+        if (!prefs.isExpenseAlertsEnabled()) {
+            Log.d(TAG, "Expense alerts disabled, not scheduling daily budget check");
+            return;
+        }
+
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        String month = new java.text.SimpleDateFormat("MMMM", java.util.Locale.getDefault()).format(calendar.getTime());
+        String year = String.valueOf(calendar.get(java.util.Calendar.YEAR));
+
+        // Compute next 7:00 AM
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 7);
+        calendar.set(java.util.Calendar.MINUTE, 0);
+        calendar.set(java.util.Calendar.SECOND, 0);
+        calendar.set(java.util.Calendar.MILLISECOND, 0);
+
+        long now = System.currentTimeMillis();
+        long notificationTime = calendar.getTimeInMillis();
+
+        // If it's already past 7:00 AM today, schedule for tomorrow
+        if (notificationTime <= now) {
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1);
+            notificationTime = calendar.getTimeInMillis();
+        }
+
+        // Guard: only schedule once per day even across cold starts
+        android.content.SharedPreferences metaPrefs =
+                context.getSharedPreferences("budget_notification_meta", android.content.Context.MODE_PRIVATE);
+        String lastScheduledDate = metaPrefs.getString("last_scheduled_date", null);
+        String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(new java.util.Date(notificationTime));
+
+        if (todayDate.equals(lastScheduledDate)) {
+            Log.d(TAG, "Daily budget check already scheduled for " + todayDate + ", skipping re-schedule");
+            return;
+        }
+
+        Log.d(TAG, "Scheduling daily budget check at 7:00 AM, trigger time: " +
+                new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+                        .format(new java.util.Date(notificationTime)));
+
+        // Just schedule; using the same PendingIntent/uniqueId means the latest call wins
+        scheduleBudgetNotification(context, month, year, notificationTime);
+
+        // Remember that we've scheduled for this date
+        metaPrefs.edit().putString("last_scheduled_date", todayDate).apply();
     }
 }
 
