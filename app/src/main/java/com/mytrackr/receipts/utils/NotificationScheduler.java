@@ -224,13 +224,13 @@ public class NotificationScheduler {
     }
 
     /**
-     * Schedule a daily budget check at 7:00 AM for the current month/year.
+     * Schedule a weekly budget check at 7:00 AM every Monday for the current month/year.
      * This is called from MainActivity and from the BudgetNotificationReceiver after each run.
      */
-    public static void scheduleDailyBudgetCheck(Context context) {
+    public static void scheduleWeeklyBudgetCheck(Context context) {
         NotificationPreferences prefs = new NotificationPreferences(context);
         if (!prefs.isExpenseAlertsEnabled()) {
-            Log.d(TAG, "Expense alerts disabled, not scheduling daily budget check");
+            Log.d(TAG, "Expense alerts disabled, not scheduling weekly budget check");
             return;
         }
 
@@ -238,42 +238,49 @@ public class NotificationScheduler {
         String month = new java.text.SimpleDateFormat("MMMM", java.util.Locale.getDefault()).format(calendar.getTime());
         String year = String.valueOf(calendar.get(java.util.Calendar.YEAR));
 
-        // Compute next 7:00 AM
+        // Compute next Monday at 7:00 AM
         calendar.set(java.util.Calendar.HOUR_OF_DAY, 7);
         calendar.set(java.util.Calendar.MINUTE, 0);
         calendar.set(java.util.Calendar.SECOND, 0);
         calendar.set(java.util.Calendar.MILLISECOND, 0);
 
-        long now = System.currentTimeMillis();
-        long notificationTime = calendar.getTimeInMillis();
-
-        // If it's already past 7:00 AM today, schedule for tomorrow
-        if (notificationTime <= now) {
-            calendar.add(java.util.Calendar.DAY_OF_YEAR, 1);
-            notificationTime = calendar.getTimeInMillis();
+        int todayDow = calendar.get(java.util.Calendar.DAY_OF_WEEK);
+        int daysUntilMonday = (java.util.Calendar.MONDAY - todayDow + 7) % 7;
+        if (daysUntilMonday == 0) {
+            // If we're already past 7:00 AM Monday, schedule for next week
+            long now = System.currentTimeMillis();
+            long candidate = calendar.getTimeInMillis();
+            if (candidate <= now) {
+                daysUntilMonday = 7;
+            }
+        } else {
+            // Move to upcoming Monday
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, daysUntilMonday);
         }
 
-        // Guard: only schedule once per day even across cold starts
+        long notificationTime = calendar.getTimeInMillis();
+
+        // Guard: only schedule once per week even across cold starts
         android.content.SharedPreferences metaPrefs =
                 context.getSharedPreferences("budget_notification_meta", android.content.Context.MODE_PRIVATE);
-        String lastScheduledDate = metaPrefs.getString("last_scheduled_date", null);
-        String todayDate = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        String lastScheduledWeek = metaPrefs.getString("last_scheduled_week", null);
+        String weekKey = new java.text.SimpleDateFormat("YYYY-'W'ww", java.util.Locale.US)
                 .format(new java.util.Date(notificationTime));
 
-        if (todayDate.equals(lastScheduledDate)) {
-            Log.d(TAG, "Daily budget check already scheduled for " + todayDate + ", skipping re-schedule");
+        if (weekKey.equals(lastScheduledWeek)) {
+            Log.d(TAG, "Weekly budget check already scheduled for week " + weekKey + ", skipping re-schedule");
             return;
         }
 
-        Log.d(TAG, "Scheduling daily budget check at 7:00 AM, trigger time: " +
+        Log.d(TAG, "Scheduling weekly budget check (Monday 7:00 AM), trigger time: " +
                 new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
                         .format(new java.util.Date(notificationTime)));
 
         // Just schedule; using the same PendingIntent/uniqueId means the latest call wins
         scheduleBudgetNotification(context, month, year, notificationTime);
 
-        // Remember that we've scheduled for this date
-        metaPrefs.edit().putString("last_scheduled_date", todayDate).apply();
+        // Remember that we've scheduled for this week
+        metaPrefs.edit().putString("last_scheduled_week", weekKey).apply();
     }
 }
 

@@ -194,18 +194,21 @@ public class NotificationHelper {
         
         if (status.equals("budget_exceeded")) {
             title = context.getString(R.string.budget_exceeded);
-            message = String.format("You are spending high. Amount spent %s out of budget %s", spentAmount, budgetAmount);
+            message = String.format("Weekly summary: You have exceeded your budget. Spent %s out of %s", spentAmount, budgetAmount);
             priority = NotificationCompat.PRIORITY_HIGH;
         } else if (status.equals("almost_exceeded")) {
             title = context.getString(R.string.almost_exceeded);
-            message = String.format("You are spending high. Amount spent %s out of budget %s", spentAmount, budgetAmount);
+            message = String.format("Weekly summary: You are close to exceeding your budget. Spent %s out of %s", spentAmount, budgetAmount);
             priority = NotificationCompat.PRIORITY_DEFAULT;
         } else if (status.equals("spending_high")) {
             title = context.getString(R.string.spending_high);
-            message = String.format("You are spending high. Amount spent %s out of budget %s", spentAmount, budgetAmount);
+            message = String.format("Weekly summary: You are spending high. Spent %s out of %s", spentAmount, budgetAmount);
             priority = NotificationCompat.PRIORITY_DEFAULT;
         } else {
-            return; // Don't show notification for "on_track"
+            // "on_track" or any other status: still send a friendly summary
+            title = "Budget on track";
+            message = String.format("Weekly summary: Your spending is on track. Spent %s out of %s", spentAmount, budgetAmount);
+            priority = NotificationCompat.PRIORITY_DEFAULT;
         }
         
         Intent intent = new Intent(context, MainActivity.class);

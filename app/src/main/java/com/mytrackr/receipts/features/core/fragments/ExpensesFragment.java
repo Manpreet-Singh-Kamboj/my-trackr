@@ -98,7 +98,7 @@ public class ExpensesFragment extends Fragment {
             layoutParams.leftMargin = insets.left;
             layoutParams.topMargin = insets.top;
             layoutParams.rightMargin = insets.right;
-            layoutParams.bottomMargin = insets.bottom;
+            layoutParams.bottomMargin = 0;
             v.setLayoutParams(layoutParams);
             return WindowInsetsCompat.CONSUMED;
         });
@@ -157,7 +157,7 @@ public class ExpensesFragment extends Fragment {
     
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
         showLoading(false);
-        
+
         List<ExpenseItem> expenseItems = new ArrayList<>();
         
         int receiptCount = 0;

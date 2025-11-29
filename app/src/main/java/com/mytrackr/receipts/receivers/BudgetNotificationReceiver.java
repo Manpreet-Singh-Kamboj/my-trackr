@@ -96,9 +96,9 @@ public class BudgetNotificationReceiver extends BroadcastReceiver {
                         Log.e(TAG, "Error processing notification", e);
                     } finally {
                         try {
-                            com.mytrackr.receipts.utils.NotificationScheduler.scheduleDailyBudgetCheck(context);
+                            com.mytrackr.receipts.utils.NotificationScheduler.scheduleWeeklyBudgetCheck(context);
                         } catch (Exception e) {
-                            Log.e(TAG, "Error scheduling next daily budget check", e);
+                            Log.e(TAG, "Error scheduling next weekly budget check", e);
                         }
                         pendingResult.finish();
                     }
@@ -106,9 +106,9 @@ public class BudgetNotificationReceiver extends BroadcastReceiver {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error fetching budget for notification: " + e.getMessage(), e);
                     try {
-                        com.mytrackr.receipts.utils.NotificationScheduler.scheduleDailyBudgetCheck(context);
+                        com.mytrackr.receipts.utils.NotificationScheduler.scheduleWeeklyBudgetCheck(context);
                     } catch (Exception ex) {
-                        Log.e(TAG, "Error scheduling next daily budget check after failure", ex);
+                        Log.e(TAG, "Error scheduling next weekly budget check after failure", ex);
                     }
                     pendingResult.finish();
                 });
