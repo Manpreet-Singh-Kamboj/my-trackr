@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
-        NotificationScheduler.scheduleDailyBudgetCheck(this);
+        NotificationScheduler.scheduleWeeklyBudgetCheck(this);
     }
     
     private void requestNotificationPermissionIfNeeded() {
