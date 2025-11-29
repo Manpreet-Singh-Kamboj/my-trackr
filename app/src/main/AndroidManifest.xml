@@ -120,7 +120,7 @@
         <activity
             android:name=".features.core.MainActivity"
             android:exported="false" />
-        
+
         <!-- Firebase Cloud Messaging Service -->
         <service
             android:name=".services.MyFirebaseMessagingService"
@@ -129,10 +129,16 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-        
+
         <!-- Notification Alarm Receiver -->
         <receiver
             android:name=".receivers.NotificationAlarmReceiver"
+            android:exported="false"
+            android:enabled="true" />
+        
+        <!-- Budget Notification Receiver -->
+        <receiver
+            android:name=".receivers.BudgetNotificationReceiver"
             android:exported="false"
             android:enabled="true" />
     </application>

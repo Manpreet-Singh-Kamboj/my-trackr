@@ -55,7 +55,7 @@
                 android:gravity="center_vertical"
                 android:padding="12dp"
                 android:text="@string/skip"
-                android:textColor="?android:attr/textColorPrimary"
+                android:textColor="@color/text_secondary"
                 android:textSize="16sp" />
 
             <com.google.android.material.button.MaterialButton
@@ -70,7 +70,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNext"
-                style="@style/Button.Rounded"
+                style="@style/Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

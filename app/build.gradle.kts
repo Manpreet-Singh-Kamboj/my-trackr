@@ -72,6 +72,16 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     // ML Kit Document Scanner for cropping and enhancing receipt images
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")    // Lifecycle (ViewModel + LiveData)
+
+    // ML Kit for Receipt Scanning
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+
+    // Image Loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
+    // Lifecycle (ViewModel + LiveData)
     implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.6")
     implementation("androidx.lifecycle:lifecycle-livedata:2.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime:2.8.6")
@@ -88,10 +98,10 @@ dependencies {
     // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
     implementation("com.cloudinary:cloudinary-android:3.1.2")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
-    
+
     // WorkManager for background tasks and scheduled notifications
     implementation("androidx.work:work-runtime:2.9.0")
-    
+
     // Guava for ListenableFuture (required by WorkManager)
     implementation("com.google.guava:guava:31.1-android")
 }

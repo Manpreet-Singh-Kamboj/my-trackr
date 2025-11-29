@@ -69,6 +69,29 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="skip">Skip</string>
-    <string name="get_started">Finish</string>
+    <string name="get_started">Get Started</string>
     <string name="onboarding_illustration">Onboarding illustration</string>
+    
+    <!-- Budget strings -->
+    <string name="monthly_budget">Monthly Budget</string>
+    <string name="edit_budget">Edit Budget</string>
+    <string name="spent">Spent</string>
+    <string name="remaining">Remaining</string>
+    <string name="no_budget_set">No budget set for this month. Tap the edit icon to set your budget.</string>
+    <string name="set_monthly_budget">Set Monthly Budget</string>
+    <string name="budget_amount">Budget Amount ($)</string>
+    <string name="save">Save</string>
+    <string name="test_add_expense">Test: Add Expense</string>
+    <string name="add_expense_title">Add Expense</string>
+    <string name="expense_amount">Expense Amount ($)</string>
+    <string name="expense_description">What are you spending on?</string>
+    <string name="add">Add</string>
+    <string name="recent_transactions">Recent Transactions (Last 30 Days)</string>
+    <string name="no_transactions_yet">No transactions yet. Add an expense to get started!</string>
+    <string name="transaction_icon">Transaction icon</string>
+    <string name="budget_exceeded">Budget Exceeded!</string>
+    <string name="almost_exceeded">Almost Exceeded</string>
+    <string name="spending_high">Spending High</string>
+    <string name="on_track">On Track</string>
+    <string name="manage_your_monthly_budget">Manage your monthly budget</string>
 </resources>
