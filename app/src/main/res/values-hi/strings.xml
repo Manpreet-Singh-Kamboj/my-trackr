@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Trackr</string>
+    <string name="welcome_image_description">स्वागत छवि</string>
+    <string name="get_started_title">आइए शुरू करें</string>
+    <string name="get_started_description">MyTrackr आपको अपने रसीदों को आसानी से प्रबंधित करने में मदद करता है। आसानी से स्कैन करें, स्टोर करें और खर्चों को ट्रैक करें, साथ ही अपने खर्च और बजट के बारे में स्पष्ट अंतर्दृष्टि प्राप्त करें।</string>
+    <string name="sign_up">साइन अप करें</string>
+    <string name="sign_in">साइन इन करें</string>
+    <string name="sign_in_heading">साइन इन करें</string>
+    <string name="sign_up_heading">साइन अप करें</string>
+    <string name="dont_have_a_account">खाता नहीं है? </string>
+    <string name="already_have_a_account">पहले से खाता है? </string>
+    <string name="email_hint">ईमेल पता</string>
+    <string name="full_name_hint">पूरा नाम</string>
+    <string name="forgot_password_heading">पासवर्ड भूल गए</string>
+    <string name="send">भेजें</string>
+    <string name="password_hint">पासवर्ड</string>
+    <string name="forgot_password">पासवर्ड भूल गए?</string>
+    <string name="or">या</string>
+    <string name="continue_with_google">Google के साथ जारी रखें</string>
+    <string name="sign_out">साइन आउट करें</string>
+    <string name="home">होम</string>
+    <string name="expenses">खर्च</string>
+    <string name="dashboard">डैशबोर्ड</string>
+    <string name="profile">प्रोफ़ाइल</string>
+    <string name="profile_image_content_description">उपयोगकर्ता प्रोफ़ाइल छवि</string>
+    <string name="user_default_name">अज्ञात</string>
+    <string name="user_default_email">anonymous@anon.com</string>
+    <string name="edit_button">संपादन बटन</string>
+    <string name="profile_menu_icon">प्रोफ़ाइल मेनू आइकन</string>
+    <string name="logout">लॉगआउट</string>
+    <string name="are_you_sure_to_logout">क्या आप वाकई लॉगआउट करना चाहते हैं?</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="edit_profile">प्रोफ़ाइल संपादित करें</string>
+    <string name="full_name">नाम</string>
+    <string name="email">ईमेल</string>
+    <string name="bio">मेरे बारे में</string>
+    <string name="phone_number">फोन नंबर</string>
+    <string name="city">शहर</string>
+    <string name="save_changes">परिवर्तन सहेजें</string>
+    <string name="receipt_scan">रसीद स्कैन</string>
+    <string name="change_password">पासवर्ड बदलें</string>
+    <string name="set_new_password">एक नया पासवर्ड सेट करें</string>
+    <string name="create_new_password">एक नया पासवर्ड बनाएं। सुरक्षा के लिए सुनिश्चित करें कि यह पिछले वाले से अलग है</string>
+    <string name="current_password">वर्तमान पासवर्ड</string>
+    <string name="enter_your_current_password">अपना वर्तमान पासवर्ड दर्ज करें</string>
+    <string name="new_password">नया पासवर्ड</string>
+    <string name="confirm_new_password">नया पासवर्ड पुष्टि करें</string>
+    <string name="enter_your_new_password">अपना नया पासवर्ड दर्ज करें</string>
+    <string name="re_enter_password">पासवर्ड फिर से दर्ज करें</string>
+    <string name="update_password">पासवर्ड अपडेट करें</string>
+    <string name="processing_ocr">MLKit और Gemini के साथ रसीद प्रसंस्करण</string>
+    <string name="process_receipt">रसीद प्रसंस्करण करें</string>
+    <string name="save_receipt">रसीद सहेजें</string>
+    <string name="view_receipt_image">रसीद छवि</string>
+    <string name="your_receipts">आपकी रसीदें</string>
+    <string name="receipt_details">रसीद विवरण</string>
+    <string name="no_receipts">अभी तक कोई रसीद नहीं</string>
+    <string name="replacement_period">प्रतिस्थापन अवधि अनुस्मारक रसीद की तारीख पर आधारित होते हैं। उदाहरण के लिए, यदि एक रसीद आज की तारीख की है और अवधि 7 दिन है, तो आपको 7 दिन की अवधि समाप्त होने से 1 दिन पहले सूचित किया जाएगा।</string>
+
+    <!-- Google Client IDS -->
+    <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
+    <!-- Gemini API Key - Replace with your actual API key -->
+    <string name="gemini_api_key">AIzaSyC1Q5Dw-RiqTtB3I6hPyoFat477tBe_sG8</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">नमस्ते रिक्त फ़्रैगमेंट</string>
+
+    <!-- Onboarding strings -->
+    <string name="next">अगला</string>
+    <string name="previous">पिछला</string>
+    <string name="skip">छोड़ें</string>
+    <string name="get_started">शुरू करें</string>
+    <string name="onboarding_illustration">ऑनबोर्डिंग चित्र</string>
+    
+    <!-- Budget strings -->
+    <string name="monthly_budget">मासिक बजट</string>
+    <string name="edit_budget">बजट संपादित करें</string>
+    <string name="spent">खर्च किया</string>
+    <string name="remaining">शेष</string>
+    <string name="no_budget_set">इस महीने के लिए कोई बजट सेट नहीं है। अपना बजट सेट करने के लिए संपादन आइकन पर टैप करें।</string>
+    <string name="set_monthly_budget">मासिक बजट सेट करें</string>
+    <string name="budget_amount">बजट राशि ($)</string>
+    <string name="save">सहेजें</string>
+    <string name="test_add_expense">परीक्षण: खर्च जोड़ें</string>
+    <string name="add_expense_title">खर्च जोड़ें</string>
+    <string name="expense_amount">खर्च राशि ($)</string>
+    <string name="expense_description">आप किस पर खर्च कर रहे हैं?</string>
+    <string name="add">जोड़ें</string>
+    <string name="recent_transactions">हाल की लेनदेन (पिछले 30 दिन)</string>
+    <string name="no_transactions_yet">अभी तक कोई लेनदेन नहीं। शुरू करने के लिए एक खर्च जोड़ें!</string>
+    <string name="transaction_icon">लेनदेन आइकन</string>
+    <string name="budget_exceeded">बजट पार हो गया!</string>
+    <string name="almost_exceeded">लगभग पार</string>
+    <string name="spending_high">खर्च अधिक</string>
+    <string name="on_track">ट्रैक पर</string>
+    <string name="manage_your_monthly_budget">अपने मासिक बजट का प्रबंधन करें</string>
+
+    <!-- Dashboard strings -->
+    <string name="dashboard_subtitle">अपने खर्च और अंतर्दृष्टि ट्रैक करें</string>
+    <string name="receipts_this_week">इस सप्ताह की रसीदें</string>
+    <string name="receipts_uploaded">रसीदें अपलोड की गईं</string>
+    <string name="weekly_spending">साप्ताहिक खर्च</string>
+    <string name="vs_last_week">पिछले सप्ताह की तुलना में</string>
+    <string name="from_receipts">रसीदों से</string>
+    <string name="manual_entries">मैन्युअल प्रविष्टियां</string>
+    <string name="week">सप्ताह</string>
+    <string name="month">महीना</string>
+    <string name="year">वर्ष</string>
+    <string name="range">सीमा</string>
+    <string name="expense_statistics">खर्च आंकड़े</string>
+    <string name="expenses_by_category">श्रेणी के अनुसार खर्च</string>
+    <string name="no_data_available">कोई डेटा उपलब्ध नहीं</string>
+    <string name="expense">खर्च</string>
+    <string name="same_as_last_week">पिछले सप्ताह के समान</string>
+    <string name="failed_to_load_receipts">रसीदें लोड करने में विफल</string>
+    <string name="categories">श्रेणियां</string>
+    <string name="receipts">रसीदें</string>
+    <string name="vs_last_week_format">↑ %1$s पिछले सप्ताह की तुलना में</string>
+    <string name="vs_last_week_format_down">↓ %1$s पिछले सप्ताह की तुलना में</string>
+
+    <!-- Common strings -->
+    <string name="delete">हटाएं</string>
+    <string name="today">आज</string>
+    <string name="yesterday">कल</string>
+    <string name="unknown_store">अज्ञात स्टोर</string>
+    <string name="unknown_date">अज्ञात तारीख</string>
+    <string name="manual_transaction">स्वयं लेनदेन</string>
+    <string name="unknown_item">अज्ञात आइटम</string>
+    <string name="loading_data">डेटा लोड हो रहा है…</string>
+    <string name="loading_dashboard">डैशबोर्ड लोड हो रहा है…</string>
+    <string name="loading_expenses">खर्च लोड हो रहे हैं…</string>
+    <string name="other">अन्य</string>
+    <string name="quantity">मात्रा: %1$d</string>
+    <string name="transaction">लेनदेन</string>
+    <string name="recent_expenses">हाल के खर्च</string>
+    <string name="no_expenses_this_month">इस महीने कोई खर्च नहीं</string>
+    <string name="receipts_and_manual_expenses_will_appear_here">रसीदें और मैन्युअल खर्च यहां दिखाई देंगे</string>
+    <string name="scan_your_first_receipt_to_get_started">शुरू करने के लिए अपनी पहली रसीद स्कैन करें</string>
+    <string name="loading_receipts">रसीदें लोड हो रही हैं…</string>
+    <string name="item_name">आइटम नाम</string>
+    <string name="store_name">स्टोर नाम</string>
+    <string name="store_date">स्टोर • तारीख</string>
+    <string name="set_a_budget_to_start_tracking_your_expenses">अपने खर्चों को ट्रैक करना शुरू करने के लिए एक बजट सेट करें</string>
+    <string name="set_your_monthly_spending_limit">अपनी मासिक खर्च सीमा सेट करें</string>
+    <string name="track_your_spending_manually">अपने खर्चों को मैन्युअल रूप से ट्रैक करें</string>
+
+    <!-- Validation messages -->
+    <string name="please_enter_budget_amount">कृपया बजट राशि दर्ज करें</string>
+    <string name="please_enter_a_valid_amount">कृपया एक वैध राशि दर्ज करें</string>
+    <string name="please_enter_a_valid_number">कृपया एक वैध संख्या दर्ज करें</string>
+    <string name="please_enter_what_youre_spending_on">कृपया दर्ज करें कि आप किस पर खर्च कर रहे हैं</string>
+    <string name="please_enter_expense_amount">कृपया खर्च राशि दर्ज करें</string>
+    <string name="please_set_a_budget_first">कृपया पहले एक बजट सेट करें!</string>
+    <string name="expense_added">खर्च जोड़ा गया: %1$s - $%2$.2f</string>
+    <string name="expense_deleted">खर्च हटाया गया</string>
+    <string name="receipt_expenses_can_only_be_deleted_from_receipt_details">रसीद खर्च केवल रसीद विवरण से हटाए जा सकते हैं</string>
+    <string name="cannot_delete_receipt_from_expense_list">खर्च सूची से रसीद हटाई नहीं जा सकती</string>
+    <string name="transaction_id_not_found">लेनदेन ID नहीं मिला</string>
+    <string name="delete_expense">खर्च हटाएं</string>
+    <string name="are_you_sure_you_want_to_delete">क्या आप वाकई \"%1$s\" हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।</string>
+
+    <!-- Settings -->
+    <string name="settings">सेटिंग्स</string>
+    <string name="app_settings">ऐप सेटिंग्स</string>
+    <string name="customize_your_app_experience">अपने ऐप अनुभव को अनुकूलित करें</string>
+    <string name="appearance">उपस्थिति</string>
+    <string name="theme">थीम</string>
+    <string name="choose_your_preferred_theme">अपनी पसंदीदा थीम चुनें</string>
+    <string name="system_default">सिस्टम डिफ़ॉल्ट</string>
+    <string name="light">हल्का</string>
+    <string name="dark">गहरा</string>
+    <string name="notifications">सूचनाएं</string>
+    <string name="notification_permission">सूचना अनुमति</string>
+    <string name="status_not_granted">स्थिति: अनुमति नहीं दी गई</string>
+    <string name="status_granted">स्थिति: अनुमति दी गई</string>
+    <string name="status_enabled_android_12_below">स्थिति: सक्षम (Android 12 और नीचे)</string>
+    <string name="enable">सक्षम करें</string>
+    <string name="granted">अनुमति दी गई</string>
+    <string name="notification_permission_is_already_granted">सूचना अनुमति पहले से ही दी गई है</string>
+    <string name="about">के बारे में</string>
+    <string name="version">संस्करण 1.0.0</string>
+
+    <!-- Receipt details -->
+    <string name="merchant">व्यापारी</string>
+    <string name="date">तारीख</string>
+    <string name="time">समय</string>
+    <string name="category">श्रेणी</string>
+    <string name="method_of_payment">भुगतान विधि</string>
+    <string name="reminder_date">अनुस्मारक तारीख</string>
+    <string name="set">सेट करें</string>
+    <string name="items">आइटम</string>
+    <string name="price_breakdown">मूल्य विवरण</string>
+    <string name="subtotal">उप-योग</string>
+    <string name="tax">कर</string>
+    <string name="total">कुल</string>
+    <string name="view_receipt">रसीद देखें</string>
+    <string name="delete_receipt">रसीद हटाएं</string>
+    <string name="receipt_not_found">रसीद नहीं मिली</string>
+    <string name="delete_receipt_title">रसीद हटाएं</string>
+    <string name="are_you_sure_you_want_to_delete_this_receipt">क्या आप वाकई इस रसीद को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।</string>
+    <string name="receipt_deleted">रसीद हटाई गई</string>
+    <string name="failed_to_delete_receipt">रसीद हटाने में विफल: %1$s</string>
+    <string name="receipt_image_not_available">रसीद छवि उपलब्ध नहीं</string>
+    <string name="reminder_date_updated">अनुस्मारक तारीख अपडेट की गई</string>
+    <string name="failed_to_update_reminder_date">अनुस्मारक तारीख अपडेट करने में विफल</string>
+    <string name="receipt_id_not_found">रसीद ID नहीं मिला</string>
+    <string name="select_reminder_time">अनुस्मारक समय चुनें</string>
+    <string name="select_reminder_date">अनुस्मारक तारीख चुनें</string>
+    <string name="using_cached_receipt_data">कैश की गई रसीद डेटा का उपयोग कर रहे हैं</string>
+    <string name="failed_to_load_receipt_data">रसीद डेटा लोड करने में विफल</string>
+
+    <!-- Receipt scan -->
+    <string name="receipt_preview">रसीद पूर्वावलोकन</string>
+    <string name="no_receipt_selected">कोई रसीद चयनित नहीं</string>
+    <string name="tap_camera_or_gallery_below">नीचे कैमरा या गैलरी पर टैप करें</string>
+    <string name="quick_actions">त्वरित कार्रवाई</string>
+    <string name="camera">कैमरा</string>
+    <string name="gallery">गैलरी</string>
+    <string name="adjust_corners">कोनों को समायोजित करें</string>
+    <string name="apply">लागू करें</string>
+    <string name="edit_corners">कोनों को संपादित करें</string>
+    <string name="processing">प्रसंस्करण…</string>
+    <string name="storage_permission_is_required_to_access_gallery">गैलरी तक पहुंचने के लिए स्टोरेज अनुमति आवश्यक है</string>
+    <string name="failed_to_start_scanner">स्कैनर शुरू करने में विफल: %1$s</string>
+    <string name="scanner_failed">स्कैनर विफल: %1$s</string>
+    <string name="failed_to_save_scanned_image">स्कैन की गई छवि सहेजने में विफल</string>
+    <string name="no_scanned_image_available">कोई स्कैन की गई छवि उपलब्ध नहीं</string>
+    <string name="no_image_available_to_edit_corners">कोनों को संपादित करने के लिए कोई छवि उपलब्ध नहीं</string>
+    <string name="unable_to_show_corner_editor">कोने संपादक दिखाने में असमर्थ (पूर्वावलोकन तैयार नहीं)</string>
+    <string name="no_image_to_crop">काटने के लिए कोई छवि नहीं</string>
+    <string name="no_corners_available">कोई कोने उपलब्ध नहीं</string>
+    <string name="failed_to_map_corners">कोनों को मैप करने में विफल</string>
+    <string name="crop_failed">काटने में विफल</string>
+    <string name="no_image_selected_to_process">प्रसंस्करण के लिए कोई छवि चयनित नहीं</string>
+    <string name="failed_to_load_image_for_ocr">OCR के लिए छवि लोड करने में विफल</string>
+    <string name="ocr_complete">OCR पूर्ण</string>
+    <string name="ocr_failed">OCR विफल: %1$s</string>
+    <string name="no_image_to_save">सहेजने के लिए कोई छवि नहीं</string>
+    <string name="please_run_ocr_before_saving">कृपया सहेजने से पहले OCR चलाएं</string>
+    <string name="receipt_saved">रसीद सहेजी गई</string>
+    <string name="save_failed">सहेजने में विफल: %1$s</string>
+    <string name="ocr_complete_gemini_not_configured">OCR पूर्ण (Gemini कॉन्फ़िगर नहीं किया गया)</string>
+    <string name="receipt_data_extracted_successfully">रसीद डेटा सफलतापूर्वक निकाला गया</string>
+    <string name="ocr_complete_parsing_fallback">OCR पूर्ण (पार्सिंग फॉलबैक)</string>
+    <string name="gemini_unavailable">Gemini अनुपलब्ध: %1$s</string>
+    <string name="error_parsing_response">प्रतिक्रिया पार्स करने में त्रुटि:\n%1$s\n\nमूल OCR:\n%2$s</string>
+    <string name="gemini_api_error">Gemini API त्रुटि: %1$s\n\nमूल OCR पाठ:\n%2$s</string>
+
+    <!-- View receipt image -->
+    <string name="image_url_not_found">छवि URL नहीं मिला</string>
+    <string name="permission_denied_cannot_download_image">अनुमति अस्वीकृत। छवि डाउनलोड नहीं कर सकते।</string>
+    <string name="failed_to_download_image">छवि डाउनलोड करने में विफल: %1$s</string>
+    <string name="downloading_receipt">रसीद डाउनलोड हो रही है</string>
+    <string name="receipt_image_download">रसीद छवि डाउनलोड</string>
+    <string name="download_started_check_your_downloads_folder">डाउनलोड शुरू हो गया। अपना डाउनलोड फ़ोल्डर जांचें।</string>
+    <string name="failed_to_start_download">डाउनलोड शुरू करने में विफल: %1$s</string>
+    <string name="image_saved_to_downloads_folder">छवि डाउनलोड फ़ोल्डर में सहेजी गई</string>
+    <string name="failed_to_download">डाउनलोड करने में विफल: %1$s</string>
+
+    <!-- Notification settings -->
+    <string name="notification_preferences">सूचना प्राथमिकताएं</string>
+    <string name="manage_how_and_when_you_receive_notifications">प्रबंधित करें कि आप कैसे और कब सूचनाएं प्राप्त करते हैं</string>
+    <string name="replacement_period_reminder">प्रतिस्थापन अवधि अनुस्मारक</string>
+    <string name="get_notified_when_return_exchange_period_is_ending_soon">सूचित हो जब वापसी/एक्सचेंज अवधि जल्द समाप्त हो रही हो</string>
+    <string name="expense_alerts">खर्च अलर्ट</string>
+    <string name="weekly_and_monthly_spending_summaries">साप्ताहिक और मासिक खर्च सारांश</string>
+    <string name="replacement_period_settings">प्रतिस्थापन अवधि सेटिंग्स</string>
+    <string name="default_replacement_period_days">डिफ़ॉल्ट प्रतिस्थापन अवधि (दिन)</string>
+    <string name="notification_timing">सूचना समय</string>
+    <string name="please_enter_a_value_between_1_and_365">कृपया 1 और 365 के बीच एक मान दर्ज करें</string>
+    <string name="please_enter_a_value_between_0_and_30">कृपया 0 और 30 के बीच एक मान दर्ज करें</string>
+    <string name="notification_permission_granted">सूचना अनुमति दी गई</string>
+    <string name="notification_permission_is_required_to_receive_reminders">अनुस्मारक प्राप्त करने के लिए सूचना अनुमति आवश्यक है</string>
+
+    <!-- Profile/CSV Export -->
+    <string name="please_grant_storage_permission_to_export_csv">CSV निर्यात करने के लिए कृपया स्टोरेज अनुमति दें</string>
+    <string name="no_expenses_to_export_for_this_month">इस महीने निर्यात के लिए कोई खर्च नहीं</string>
+    <string name="unable_to_access_downloads_folder">डाउनलोड फ़ोल्डर तक पहुंचने में असमर्थ</string>
+    <string name="unable_to_create_downloads_folder">डाउनलोड फ़ोल्डर बनाने में असमर्थ</string>
+    <string name="csv_saved_in_downloads">CSV डाउनलोड में सहेजा गया: %1$s</string>
+    <string name="failed_to_export_csv">CSV निर्यात करने में विफल: %1$s</string>
+
+    <!-- Category detail -->
+    <string name="category_expenses">%1$s खर्च</string>
+    <string name="failed_to_load_data">डेटा लोड करने में विफल</string>
+    <string name="no_records_found_for">%1$s के लिए कोई रिकॉर्ड नहीं मिला</string>
+
+    <!-- Edit profile -->
+    <string name="permission_denied_for_accessing_gallery">गैलरी तक पहुंचने के लिए अनुमति अस्वीकृत।</string>
+
+    <!-- Auth -->
+    <string name="password_is_required">पासवर्ड आवश्यक है</string>
+    <string name="email_is_required">ईमेल आवश्यक है</string>
+    <string name="email_is_not_valid">ईमेल वैध नहीं है</string>
+    <string name="full_name_is_required">पूरा नाम आवश्यक है</string>
+    <string name="profile_updated_successfully">प्रोफ़ाइल सफलतापूर्वक अपडेट की गई</string>
+    <string name="failed_to_update_profile">प्रोफ़ाइल अपडेट करने में विफल: %1$s</string>
+
+    <!-- Home -->
+    <string name="self_entered">स्वयं दर्ज किया गया</string>
+
+    <!-- Profile menu items -->
+    <string name="edit_profile_details">प्रोफ़ाइल विवरण संपादित करें</string>
+    <string name="export_expenses_csv">खर्च CSV निर्यात करें</string>
+    <string name="contact_us">हमसे संपर्क करें</string>
+    <string name="privacy_policy">गोपनीयता नीति</string>
+    <string name="terms_and_conditions">नियम और शर्तें</string>
+    <string name="get_help">सहायता प्राप्त करें</string>
+
+    <!-- Language -->
+    <string name="language">भाषा</string>
+    <string name="change_language">भाषा बदलें</string>
+    <string name="select_language">भाषा चुनें</string>
+    <string name="english">अंग्रेजी</string>
+    <string name="french">फ्रेंच</string>
+    <string name="hindi">हिंदी</string>
+    <string name="chinese">चीनी</string>
+    <string name="language_changed">भाषा बदल गई। कृपया परिवर्तन लागू करने के लिए ऐप को पुनः आरंभ करें।</string>
+    <string name="restart_required">पुनः आरंभ आवश्यक</string>
+    <string name="restart_message">भाषा परिवर्तन लागू करने के लिए ऐप को पुनः आरंभ करना होगा। क्या आप अभी पुनः आरंभ करना चाहते हैं?</string>
+    <string name="restart">पुनः आरंभ करें</string>
+    <string name="later">बाद में</string>
+</resources>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Trackr</string>
+    <string name="welcome_image_description">欢迎图片</string>
+    <string name="get_started_title">让我们开始吧</string>
+    <string name="get_started_description">MyTrackr帮助您轻松管理收据。轻松扫描、存储和跟踪费用，同时清楚地了解您的支出和预算。</string>
+    <string name="sign_up">注册</string>
+    <string name="sign_in">登录</string>
+    <string name="sign_in_heading">登录</string>
+    <string name="sign_up_heading">注册</string>
+    <string name="dont_have_a_account">没有账户？ </string>
+    <string name="already_have_a_account">已有账户？ </string>
+    <string name="email_hint">电子邮件地址</string>
+    <string name="full_name_hint">全名</string>
+    <string name="forgot_password_heading">忘记密码</string>
+    <string name="send">发送</string>
+    <string name="password_hint">密码</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="or">或</string>
+    <string name="continue_with_google">使用Google继续</string>
+    <string name="sign_out">登出</string>
+    <string name="home">首页</string>
+    <string name="expenses">支出</string>
+    <string name="dashboard">仪表板</string>
+    <string name="profile">个人资料</string>
+    <string name="profile_image_content_description">用户个人资料图片</string>
+    <string name="user_default_name">匿名</string>
+    <string name="user_default_email">anonymous@anon.com</string>
+    <string name="edit_button">编辑按钮</string>
+    <string name="profile_menu_icon">个人资料菜单图标</string>
+    <string name="logout">登出</string>
+    <string name="are_you_sure_to_logout">您确定要登出吗？</string>
+    <string name="cancel">取消</string>
+    <string name="edit_profile">编辑个人资料</string>
+    <string name="full_name">姓名</string>
+    <string name="email">电子邮件</string>
+    <string name="bio">关于我</string>
+    <string name="phone_number">电话号码</string>
+    <string name="city">城市</string>
+    <string name="save_changes">保存更改</string>
+    <string name="receipt_scan">扫描收据</string>
+    <string name="change_password">更改密码</string>
+    <string name="set_new_password">设置新密码</string>
+    <string name="create_new_password">创建新密码。为确保安全，请确保它与之前的密码不同</string>
+    <string name="current_password">当前密码</string>
+    <string name="enter_your_current_password">输入您的当前密码</string>
+    <string name="new_password">新密码</string>
+    <string name="confirm_new_password">确认新密码</string>
+    <string name="enter_your_new_password">输入您的新密码</string>
+    <string name="re_enter_password">重新输入密码</string>
+    <string name="update_password">更新密码</string>
+    <string name="processing_ocr">使用MLKit和Gemini处理收据</string>
+    <string name="process_receipt">处理收据</string>
+    <string name="save_receipt">保存收据</string>
+    <string name="view_receipt_image">收据图片</string>
+    <string name="your_receipts">您的收据</string>
+    <string name="receipt_details">收据详情</string>
+    <string name="no_receipts">还没有收据</string>
+    <string name="replacement_period">更换期限提醒基于收据日期。例如，如果收据日期是今天，期限是7天，您将在7天期限结束前1天收到通知。</string>
+
+    <!-- Google Client IDS -->
+    <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
+    <!-- Gemini API Key - Replace with your actual API key -->
+    <string name="gemini_api_key">AIzaSyC1Q5Dw-RiqTtB3I6hPyoFat477tBe_sG8</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">你好空白片段</string>
+
+    <!-- Onboarding strings -->
+    <string name="next">下一步</string>
+    <string name="previous">上一步</string>
+    <string name="skip">跳过</string>
+    <string name="get_started">开始</string>
+    <string name="onboarding_illustration">入门插图</string>
+    
+    <!-- Budget strings -->
+    <string name="monthly_budget">月度预算</string>
+    <string name="edit_budget">编辑预算</string>
+    <string name="spent">已花费</string>
+    <string name="remaining">剩余</string>
+    <string name="no_budget_set">本月未设置预算。点击编辑图标设置您的预算。</string>
+    <string name="set_monthly_budget">设置月度预算</string>
+    <string name="budget_amount">预算金额 ($)</string>
+    <string name="save">保存</string>
+    <string name="test_add_expense">测试：添加支出</string>
+    <string name="add_expense_title">添加支出</string>
+    <string name="expense_amount">支出金额 ($)</string>
+    <string name="expense_description">您在什么上花费？</string>
+    <string name="add">添加</string>
+    <string name="recent_transactions">最近交易（过去30天）</string>
+    <string name="no_transactions_yet">还没有交易。添加支出以开始！</string>
+    <string name="transaction_icon">交易图标</string>
+    <string name="budget_exceeded">预算超支！</string>
+    <string name="almost_exceeded">几乎超支</string>
+    <string name="spending_high">支出较高</string>
+    <string name="on_track">正常</string>
+    <string name="manage_your_monthly_budget">管理您的月度预算</string>
+
+    <!-- Dashboard strings -->
+    <string name="dashboard_subtitle">跟踪您的支出和洞察</string>
+    <string name="receipts_this_week">本周收据</string>
+    <string name="receipts_uploaded">已上传的收据</string>
+    <string name="weekly_spending">周支出</string>
+    <string name="vs_last_week">与上周相比</string>
+    <string name="from_receipts">来自收据</string>
+    <string name="manual_entries">手动输入</string>
+    <string name="week">周</string>
+    <string name="month">月</string>
+    <string name="year">年</string>
+    <string name="range">范围</string>
+    <string name="expense_statistics">支出统计</string>
+    <string name="expenses_by_category">按类别分类的支出</string>
+    <string name="no_data_available">无可用数据</string>
+    <string name="expense">支出</string>
+    <string name="same_as_last_week">与上周相同</string>
+    <string name="failed_to_load_receipts">加载收据失败</string>
+    <string name="categories">类别</string>
+    <string name="receipts">收据</string>
+    <string name="vs_last_week_format">↑ %1$s 与上周相比</string>
+    <string name="vs_last_week_format_down">↓ %1$s 与上周相比</string>
+
+    <!-- Common strings -->
+    <string name="delete">删除</string>
+    <string name="today">今天</string>
+    <string name="yesterday">昨天</string>
+    <string name="unknown_store">未知商店</string>
+    <string name="unknown_date">未知日期</string>
+    <string name="manual_transaction">自主交易</string>
+    <string name="unknown_item">未知项目</string>
+    <string name="loading_data">正在加载数据…</string>
+    <string name="loading_dashboard">正在加载仪表板…</string>
+    <string name="loading_expenses">正在加载支出…</string>
+    <string name="other">其他</string>
+    <string name="quantity">数量：%1$d</string>
+    <string name="transaction">交易</string>
+    <string name="recent_expenses">最近支出</string>
+    <string name="no_expenses_this_month">本月无支出</string>
+    <string name="receipts_and_manual_expenses_will_appear_here">收据和手动支出将显示在这里</string>
+    <string name="scan_your_first_receipt_to_get_started">扫描您的第一张收据以开始</string>
+    <string name="loading_receipts">正在加载收据…</string>
+    <string name="item_name">项目名称</string>
+    <string name="store_name">商店名称</string>
+    <string name="store_date">商店 • 日期</string>
+    <string name="set_a_budget_to_start_tracking_your_expenses">设置预算以开始跟踪您的支出</string>
+    <string name="set_your_monthly_spending_limit">设置您的月度支出限额</string>
+    <string name="track_your_spending_manually">手动跟踪您的支出</string>
+
+    <!-- Validation messages -->
+    <string name="please_enter_budget_amount">请输入预算金额</string>
+    <string name="please_enter_a_valid_amount">请输入有效金额</string>
+    <string name="please_enter_a_valid_number">请输入有效数字</string>
+    <string name="please_enter_what_youre_spending_on">请输入您的支出项目</string>
+    <string name="please_enter_expense_amount">请输入支出金额</string>
+    <string name="please_set_a_budget_first">请先设置预算！</string>
+    <string name="expense_added">已添加支出：%1$s - $%2$.2f</string>
+    <string name="expense_deleted">已删除支出</string>
+    <string name="receipt_expenses_can_only_be_deleted_from_receipt_details">收据支出只能从收据详情中删除</string>
+    <string name="cannot_delete_receipt_from_expense_list">无法从支出列表中删除收据</string>
+    <string name="transaction_id_not_found">未找到交易ID</string>
+    <string name="delete_expense">删除支出</string>
+    <string name="are_you_sure_you_want_to_delete">您确定要删除 \"%1$s\" 吗？此操作无法撤销。</string>
+
+    <!-- Settings -->
+    <string name="settings">设置</string>
+    <string name="app_settings">应用设置</string>
+    <string name="customize_your_app_experience">自定义您的应用体验</string>
+    <string name="appearance">外观</string>
+    <string name="theme">主题</string>
+    <string name="choose_your_preferred_theme">选择您喜欢的主题</string>
+    <string name="system_default">系统默认</string>
+    <string name="light">浅色</string>
+    <string name="dark">深色</string>
+    <string name="notifications">通知</string>
+    <string name="notification_permission">通知权限</string>
+    <string name="status_not_granted">状态：未授予</string>
+    <string name="status_granted">状态：已授予</string>
+    <string name="status_enabled_android_12_below">状态：已启用（Android 12及以下）</string>
+    <string name="enable">启用</string>
+    <string name="granted">已授予</string>
+    <string name="notification_permission_is_already_granted">通知权限已授予</string>
+    <string name="about">关于</string>
+    <string name="version">版本 1.0.0</string>
+
+    <!-- Receipt details -->
+    <string name="merchant">商户</string>
+    <string name="date">日期</string>
+    <string name="time">时间</string>
+    <string name="category">类别</string>
+    <string name="method_of_payment">支付方式</string>
+    <string name="reminder_date">提醒日期</string>
+    <string name="set">设置</string>
+    <string name="items">项目</string>
+    <string name="price_breakdown">价格明细</string>
+    <string name="subtotal">小计</string>
+    <string name="tax">税费</string>
+    <string name="total">总计</string>
+    <string name="view_receipt">查看收据</string>
+    <string name="delete_receipt">删除收据</string>
+    <string name="receipt_not_found">未找到收据</string>
+    <string name="delete_receipt_title">删除收据</string>
+    <string name="are_you_sure_you_want_to_delete_this_receipt">您确定要删除此收据吗？此操作无法撤销。</string>
+    <string name="receipt_deleted">已删除收据</string>
+    <string name="failed_to_delete_receipt">删除收据失败：%1$s</string>
+    <string name="receipt_image_not_available">收据图片不可用</string>
+    <string name="reminder_date_updated">已更新提醒日期</string>
+    <string name="failed_to_update_reminder_date">更新提醒日期失败</string>
+    <string name="receipt_id_not_found">未找到收据ID</string>
+    <string name="select_reminder_time">选择提醒时间</string>
+    <string name="select_reminder_date">选择提醒日期</string>
+    <string name="using_cached_receipt_data">使用缓存的收据数据</string>
+    <string name="failed_to_load_receipt_data">加载收据数据失败</string>
+
+    <!-- Receipt scan -->
+    <string name="receipt_preview">收据预览</string>
+    <string name="no_receipt_selected">未选择收据</string>
+    <string name="tap_camera_or_gallery_below">点击下方的相机或图库</string>
+    <string name="quick_actions">快速操作</string>
+    <string name="camera">相机</string>
+    <string name="gallery">图库</string>
+    <string name="adjust_corners">调整角落</string>
+    <string name="apply">应用</string>
+    <string name="edit_corners">编辑角落</string>
+    <string name="processing">处理中…</string>
+    <string name="storage_permission_is_required_to_access_gallery">访问图库需要存储权限</string>
+    <string name="failed_to_start_scanner">启动扫描器失败：%1$s</string>
+    <string name="scanner_failed">扫描器失败：%1$s</string>
+    <string name="failed_to_save_scanned_image">保存扫描图片失败</string>
+    <string name="no_scanned_image_available">无可用扫描图片</string>
+    <string name="no_image_available_to_edit_corners">无可用图片编辑角落</string>
+    <string name="unable_to_show_corner_editor">无法显示角落编辑器（预览未就绪）</string>
+    <string name="no_image_to_crop">无图片可裁剪</string>
+    <string name="no_corners_available">无可用角落</string>
+    <string name="failed_to_map_corners">映射角落失败</string>
+    <string name="crop_failed">裁剪失败</string>
+    <string name="no_image_selected_to_process">未选择要处理的图片</string>
+    <string name="failed_to_load_image_for_ocr">加载OCR图片失败</string>
+    <string name="ocr_complete">OCR完成</string>
+    <string name="ocr_failed">OCR失败：%1$s</string>
+    <string name="no_image_to_save">无图片可保存</string>
+    <string name="please_run_ocr_before_saving">保存前请先运行OCR</string>
+    <string name="receipt_saved">已保存收据</string>
+    <string name="save_failed">保存失败：%1$s</string>
+    <string name="ocr_complete_gemini_not_configured">OCR完成（Gemini未配置）</string>
+    <string name="receipt_data_extracted_successfully">成功提取收据数据</string>
+    <string name="ocr_complete_parsing_fallback">OCR完成（解析回退）</string>
+    <string name="gemini_unavailable">Gemini不可用：%1$s</string>
+    <string name="error_parsing_response">解析响应时出错：\n%1$s\n\n原始OCR：\n%2$s</string>
+    <string name="gemini_api_error">Gemini API错误：%1$s\n\n原始OCR文本：\n%2$s</string>
+
+    <!-- View receipt image -->
+    <string name="image_url_not_found">未找到图片URL</string>
+    <string name="permission_denied_cannot_download_image">权限被拒绝。无法下载图片。</string>
+    <string name="failed_to_download_image">下载图片失败：%1$s</string>
+    <string name="downloading_receipt">正在下载收据</string>
+    <string name="receipt_image_download">收据图片下载</string>
+    <string name="download_started_check_your_downloads_folder">下载已开始。请检查您的下载文件夹。</string>
+    <string name="failed_to_start_download">启动下载失败：%1$s</string>
+    <string name="image_saved_to_downloads_folder">图片已保存到下载文件夹</string>
+    <string name="failed_to_download">下载失败：%1$s</string>
+
+    <!-- Notification settings -->
+    <string name="notification_preferences">通知偏好设置</string>
+    <string name="manage_how_and_when_you_receive_notifications">管理您接收通知的方式和时间</string>
+    <string name="replacement_period_reminder">更换期限提醒</string>
+    <string name="get_notified_when_return_exchange_period_is_ending_soon">当退货/换货期限即将结束时收到通知</string>
+    <string name="expense_alerts">支出提醒</string>
+    <string name="weekly_and_monthly_spending_summaries">周度和月度支出摘要</string>
+    <string name="replacement_period_settings">更换期限设置</string>
+    <string name="default_replacement_period_days">默认更换期限（天）</string>
+    <string name="notification_timing">通知时间</string>
+    <string name="please_enter_a_value_between_1_and_365">请输入1到365之间的值</string>
+    <string name="please_enter_a_value_between_0_and_30">请输入0到30之间的值</string>
+    <string name="notification_permission_granted">已授予通知权限</string>
+    <string name="notification_permission_is_required_to_receive_reminders">接收提醒需要通知权限</string>
+
+    <!-- Profile/CSV Export -->
+    <string name="please_grant_storage_permission_to_export_csv">请授予存储权限以导出CSV</string>
+    <string name="no_expenses_to_export_for_this_month">本月无支出可导出</string>
+    <string name="unable_to_access_downloads_folder">无法访问下载文件夹</string>
+    <string name="unable_to_create_downloads_folder">无法创建下载文件夹</string>
+    <string name="csv_saved_in_downloads">CSV已保存到下载：%1$s</string>
+    <string name="failed_to_export_csv">导出CSV失败：%1$s</string>
+
+    <!-- Category detail -->
+    <string name="category_expenses">%1$s 支出</string>
+    <string name="failed_to_load_data">加载数据失败</string>
+    <string name="no_records_found_for">未找到 %1$s 的记录</string>
+
+    <!-- Edit profile -->
+    <string name="permission_denied_for_accessing_gallery">访问图库的权限被拒绝。</string>
+
+    <!-- Auth -->
+    <string name="password_is_required">需要密码</string>
+    <string name="email_is_required">需要电子邮件</string>
+    <string name="email_is_not_valid">电子邮件无效</string>
+    <string name="full_name_is_required">需要全名</string>
+    <string name="profile_updated_successfully">个人资料更新成功</string>
+    <string name="failed_to_update_profile">更新个人资料失败：%1$s</string>
+
+    <!-- Home -->
+    <string name="self_entered">自主输入</string>
+
+    <!-- Profile menu items -->
+    <string name="edit_profile_details">编辑个人资料详情</string>
+    <string name="export_expenses_csv">导出支出CSV</string>
+    <string name="contact_us">联系我们</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="terms_and_conditions">条款和条件</string>
+    <string name="get_help">获取帮助</string>
+
+    <!-- Language -->
+    <string name="language">语言</string>
+    <string name="change_language">更改语言</string>
+    <string name="select_language">选择语言</string>
+    <string name="english">英语</string>
+    <string name="french">法语</string>
+    <string name="hindi">印地语</string>
+    <string name="chinese">中文</string>
+    <string name="language_changed">语言已更改。请重启应用程序以使更改生效。</string>
+    <string name="restart_required">需要重启</string>
+    <string name="restart_message">应用程序需要重启以使语言更改生效。您要现在重启吗？</string>
+    <string name="restart">重启</string>
+    <string name="later">稍后</string>
+</resources>

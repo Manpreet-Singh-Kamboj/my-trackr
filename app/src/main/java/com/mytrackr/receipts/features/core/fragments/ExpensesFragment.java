@@ -230,7 +230,7 @@ public class ExpensesFragment extends Fragment {
         progressBudget.setVisibility(View.VISIBLE);
         tvBudgetStatus.setVisibility(View.VISIBLE);
 
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.CANADA);
 
         if (budget.getAmount() > 0) {
             tvBudgetAmount.setText(currencyFormat.format(budget.getAmount()));
@@ -348,10 +348,34 @@ public class ExpensesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        
+        // Force refresh UI with current locale first (important after language change)
+        // This ensures existing data is displayed with the new locale format
+        Budget currentBudget = budgetViewModel.getBudgetLiveData().getValue();
+        if (currentBudget != null) {
+            updateBudgetUI(currentBudget);
+        }
+        
+        // Force refresh expense list display with current data if available
+        List<Transaction> transactions = budgetViewModel.getTransactionsLiveData().getValue();
+        List<Receipt> receipts = receiptsLiveData.getValue();
+        boolean hasExistingData = (transactions != null && !transactions.isEmpty()) || 
+                                   (receipts != null && !receipts.isEmpty());
+        
+        // Always reload data to ensure fresh data after language change/restart
         // Reset loading flags
         transactionsLoaded = false;
         receiptsLoaded = false;
-        showLoading(true);
+        
+        if (hasExistingData) {
+            // Show existing data immediately with new locale while loading fresh data
+            combineAndDisplayExpenses(transactions, receipts);
+        } else {
+            // Show loading indicator if no existing data
+            showLoading(true);
+        }
+        
+        // Always reload data from server to ensure it's fresh
         budgetViewModel.refreshBudget();
         budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
         budgetViewModel.loadCurrentMonthTransactions();

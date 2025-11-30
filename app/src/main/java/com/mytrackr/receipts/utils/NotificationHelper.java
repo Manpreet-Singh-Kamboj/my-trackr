@@ -183,7 +183,7 @@ public class NotificationHelper {
         createNotificationChannel(context);
         android.util.Log.d("NotificationHelper", "Notification channel created");
 
-        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("en", "US"));
+        java.text.NumberFormat currencyFormat = java.text.NumberFormat.getCurrencyInstance(java.util.Locale.CANADA);
         String spentAmount = currencyFormat.format(budget.getSpent());
         String budgetAmount = currencyFormat.format(budget.getAmount());
         double percentage = budget.getSpentPercentage();

@@ -120,6 +120,19 @@ public class ProfileFragment extends Fragment {
         authViewModel.refreshUserDetails();
         // Refresh export data when returning to profile so manual + receipt expenses are up to date
         refreshExportData();
+        // Refresh menu items in case language changed
+        setupProfileMenuOptions();
+        setupProfileSupportOptions();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100 && resultCode == android.app.Activity.RESULT_OK) {
+            // Language changed, refresh menu items
+            setupProfileMenuOptions();
+            setupProfileSupportOptions();
+        }
     }
 
     private void refreshExportData() {
@@ -309,30 +322,30 @@ public class ProfileFragment extends Fragment {
         List<ProfileMenuItem> profileMenuItems = new ArrayList<>();
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_user_account,
-                "Edit Profile Details",
+                getString(R.string.edit_profile_details),
                 this::handleEditProfileClick
         ));
         if(!authViewModel.isGoogleSignedInUser()){
             profileMenuItems.add(new ProfileMenuItem(
                     R.drawable.ic_change_password,
-                    "Change Password",
+                    getString(R.string.change_password),
                     this::handleChangePasswordClick
             ));
         }
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_notification_bell,
-                "Notifications",
+                getString(R.string.notifications),
                 () -> startActivity(new Intent(getContext(), com.mytrackr.receipts.features.notifications.NotificationSettingsActivity.class))
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_download,
-                "Export Expenses CSV",
+                getString(R.string.export_expenses_csv),
                 this::handleExportCsvClick
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_settings,
-                "Settings",
-                () -> startActivity(new Intent(getContext(), SettingsActivity.class))
+                getString(R.string.settings),
+                () -> startActivityForResult(new Intent(getContext(), SettingsActivity.class), 100)
         ));
         return profileMenuItems;
     }
@@ -340,27 +353,27 @@ public class ProfileFragment extends Fragment {
         List<ProfileMenuItem> profileMenuItems = new ArrayList<>();
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_contact_us,
-                "Contact Us",
+                getString(R.string.contact_us),
                 () -> {}
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_privacy_policy,
-                "Privacy Policy",
+                getString(R.string.privacy_policy),
                 () -> {}
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_terms_and_conditions,
-                "Terms & Conditions",
+                getString(R.string.terms_and_conditions),
                 () -> {}
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_get_help,
-                "Get Help",
+                getString(R.string.get_help),
                 () -> {}
         ));
         profileMenuItems.add(new ProfileMenuItem(
                 R.drawable.ic_logout,
-                "Logout",
+                getString(R.string.logout),
                 this::handleLogout
         ));
         return profileMenuItems;

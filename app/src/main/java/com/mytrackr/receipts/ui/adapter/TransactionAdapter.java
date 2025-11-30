@@ -24,7 +24,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private final NumberFormat currencyFormat;
 
     public TransactionAdapter() {
-        currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        currencyFormat = NumberFormat.getCurrencyInstance(Locale.CANADA);
     }
 
     @NonNull

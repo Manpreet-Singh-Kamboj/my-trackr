@@ -298,4 +298,27 @@
 
     <!-- Home -->
     <string name="self_entered">Self-Entered</string>
+
+    <!-- Profile menu items -->
+    <string name="edit_profile_details">Edit Profile Details</string>
+    <string name="export_expenses_csv">Export Expenses CSV</string>
+    <string name="contact_us">Contact Us</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_and_conditions">Terms &amp; Conditions</string>
+    <string name="get_help">Get Help</string>
+
+    <!-- Language -->
+    <string name="language">Language</string>
+    <string name="change_language">Change Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="english">English</string>
+    <string name="french">French</string>
+    <string name="hindi">Hindi</string>
+    <string name="chinese">Chinese</string>
+    <string name="language_changed">Language changed. Please restart the app for changes to take effect.</string>
+    <string name="restart_required">Restart Required</string>
+    <string name="restart_message">The app needs to restart for the language change to take effect. Do you want to restart now?</string>
+    <string name="restart">Restart</string>
+    <string name="later">Later</string>
+
 </resources>

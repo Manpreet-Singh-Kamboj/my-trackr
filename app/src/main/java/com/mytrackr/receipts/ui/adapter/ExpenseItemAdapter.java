@@ -29,7 +29,7 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
     }
 
     public ExpenseItemAdapter() {
-        currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+        currencyFormat = NumberFormat.getCurrencyInstance(Locale.CANADA);
     }
 
     public void setOnExpenseItemDeleteListener(OnExpenseItemDeleteListener listener) {

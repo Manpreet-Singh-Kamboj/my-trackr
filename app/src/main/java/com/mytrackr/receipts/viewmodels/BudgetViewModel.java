@@ -75,7 +75,8 @@ public class BudgetViewModel extends ViewModel {
 
     public void loadCurrentMonthBudget() {
         Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
+        // Use English locale for month name to ensure consistency across language changes
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
         // Load budget first, then sync
@@ -91,7 +92,8 @@ public class BudgetViewModel extends ViewModel {
      */
     public void refreshBudget() {
         Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
+        // Use English locale for month name to ensure consistency across language changes
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         debounceSync(month, year, 300);
     }
@@ -270,23 +272,15 @@ public class BudgetViewModel extends ViewModel {
      */
     private int getMonthNumber(String monthName) {
         try {
-            // Try parsing with current locale first
-            SimpleDateFormat sdf = new SimpleDateFormat("MMMM", Locale.getDefault());
+            // Always use English locale since month names are stored in English
+            SimpleDateFormat sdf = new SimpleDateFormat("MMMM", Locale.ENGLISH);
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(monthName));
             return cal.get(Calendar.MONTH);
         } catch (Exception e) {
-            try {
-                // Fallback to English locale
-                SimpleDateFormat sdf = new SimpleDateFormat("MMMM", Locale.ENGLISH);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(sdf.parse(monthName));
-                return cal.get(Calendar.MONTH);
-            } catch (Exception e2) {
-                Log.e(TAG, "Error parsing month: " + monthName, e2);
-                // Return current month as fallback
-                return Calendar.getInstance().get(Calendar.MONTH);
-            }
+            Log.e(TAG, "Error parsing month: " + monthName, e);
+            // Return current month as fallback
+            return Calendar.getInstance().get(Calendar.MONTH);
         }
     }
 
@@ -300,7 +294,8 @@ public class BudgetViewModel extends ViewModel {
      */
     public void loadCurrentMonthReceipts(MutableLiveData<List<com.mytrackr.receipts.data.models.Receipt>> receiptsLiveData) {
         Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
+        // Month name not used for query, but keeping for consistency
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
         // Calculate start and end of current month
@@ -355,7 +350,8 @@ public class BudgetViewModel extends ViewModel {
 
     public void saveBudget(double amount) {
         Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
+        // Use English locale for month name to ensure consistency with stored data
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
         // Get current budget to preserve spent amount
@@ -394,7 +390,8 @@ public class BudgetViewModel extends ViewModel {
 
     public void addTransaction(String description, double amount, String type) {
         Calendar calendar = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMMM", Locale.getDefault()).format(calendar.getTime());
+        // Use English locale for month name to ensure consistency with stored data
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         long timestamp = System.currentTimeMillis();
 

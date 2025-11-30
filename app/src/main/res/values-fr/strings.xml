@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Trackr</string>
+    <string name="welcome_image_description">Image de bienvenue</string>
+    <string name="get_started_title">Commençons</string>
+    <string name="get_started_description">MyTrackr vous aide à gérer vos reçus facilement. Scannez, stockez et suivez vos dépenses tout en obtenant des informations claires sur vos dépenses et vos budgets.</string>
+    <string name="sign_up">S\'INSCRIRE</string>
+    <string name="sign_in">SE CONNECTER</string>
+    <string name="sign_in_heading">Se connecter</string>
+    <string name="sign_up_heading">S\'inscrire</string>
+    <string name="dont_have_a_account">Vous n\'avez pas de compte ? </string>
+    <string name="already_have_a_account">Vous avez déjà un compte ? </string>
+    <string name="email_hint">Adresse e-mail</string>
+    <string name="full_name_hint">Nom complet</string>
+    <string name="forgot_password_heading">Mot de passe oublié</string>
+    <string name="send">Envoyer</string>
+    <string name="password_hint">Mot de passe</string>
+    <string name="forgot_password">Mot de passe oublié ?</string>
+    <string name="or">ou</string>
+    <string name="continue_with_google">Continuer avec Google</string>
+    <string name="sign_out">Se déconnecter</string>
+    <string name="home">Accueil</string>
+    <string name="expenses">Dépenses</string>
+    <string name="dashboard">Tableau de bord</string>
+    <string name="profile">Profil</string>
+    <string name="profile_image_content_description">Image de profil utilisateur</string>
+    <string name="user_default_name">Anonyme</string>
+    <string name="user_default_email">anonymous@anon.com</string>
+    <string name="edit_button">Bouton Modifier</string>
+    <string name="profile_menu_icon">Icône du menu profil</string>
+    <string name="logout">Déconnexion</string>
+    <string name="are_you_sure_to_logout">Êtes-vous sûr de vouloir vous déconnecter ?</string>
+    <string name="cancel">Annuler</string>
+    <string name="edit_profile">Modifier le profil</string>
+    <string name="full_name">Nom</string>
+    <string name="email">E-mail</string>
+    <string name="bio">À propos de moi</string>
+    <string name="phone_number">Téléphone</string>
+    <string name="city">Ville</string>
+    <string name="save_changes">Enregistrer les modifications</string>
+    <string name="receipt_scan">Scanner un reçu</string>
+    <string name="change_password">Changer le mot de passe</string>
+    <string name="set_new_password">Définir un nouveau mot de passe</string>
+    <string name="create_new_password">Créez un nouveau mot de passe. Assurez-vous qu\'il diffère des précédents pour la sécurité</string>
+    <string name="current_password">Mot de passe actuel</string>
+    <string name="enter_your_current_password">Entrez votre mot de passe actuel</string>
+    <string name="new_password">Nouveau mot de passe</string>
+    <string name="confirm_new_password">Confirmer le nouveau mot de passe</string>
+    <string name="enter_your_new_password">Entrez votre nouveau mot de passe</string>
+    <string name="re_enter_password">Retaper le mot de passe</string>
+    <string name="update_password">Mettre à jour le mot de passe</string>
+    <string name="processing_ocr">Traitement du reçu avec MLKit et Gemini</string>
+    <string name="process_receipt">Traiter le reçu</string>
+    <string name="save_receipt">Enregistrer le reçu</string>
+    <string name="view_receipt_image">Image du reçu</string>
+    <string name="your_receipts">Vos reçus</string>
+    <string name="receipt_details">Détails du reçu</string>
+    <string name="no_receipts">Aucun reçu pour le moment</string>
+    <string name="replacement_period">Les rappels de période de remplacement sont basés sur la date du reçu. Par exemple, si un reçu est daté d\'aujourd\'hui et que la période est de 7 jours, vous serez notifié 1 jour avant la fin de la période de 7 jours.</string>
+
+    <!-- Google Client IDS -->
+    <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
+    <!-- Gemini API Key - Replace with your actual API key -->
+    <string name="gemini_api_key">AIzaSyC1Q5Dw-RiqTtB3I6hPyoFat477tBe_sG8</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Fragment vide bonjour</string>
+
+    <!-- Onboarding strings -->
+    <string name="next">Suivant</string>
+    <string name="previous">Précédent</string>
+    <string name="skip">Passer</string>
+    <string name="get_started">Commencer</string>
+    <string name="onboarding_illustration">Illustration d\'intégration</string>
+    
+    <!-- Budget strings -->
+    <string name="monthly_budget">Budget mensuel</string>
+    <string name="edit_budget">Modifier le budget</string>
+    <string name="spent">Dépensé</string>
+    <string name="remaining">Restant</string>
+    <string name="no_budget_set">Aucun budget défini pour ce mois. Appuyez sur l\'icône de modification pour définir votre budget.</string>
+    <string name="set_monthly_budget">Définir le budget mensuel</string>
+    <string name="budget_amount">Montant du budget ($)</string>
+    <string name="save">Enregistrer</string>
+    <string name="test_add_expense">Test : Ajouter une dépense</string>
+    <string name="add_expense_title">Ajouter une dépense</string>
+    <string name="expense_amount">Montant de la dépense ($)</string>
+    <string name="expense_description">Sur quoi dépensez-vous ?</string>
+    <string name="add">Ajouter</string>
+    <string name="recent_transactions">Transactions récentes (30 derniers jours)</string>
+    <string name="no_transactions_yet">Aucune transaction pour le moment. Ajoutez une dépense pour commencer !</string>
+    <string name="transaction_icon">Icône de transaction</string>
+    <string name="budget_exceeded">Budget dépassé !</string>
+    <string name="almost_exceeded">Presque dépassé</string>
+    <string name="spending_high">Dépenses élevées</string>
+    <string name="on_track">Sur la bonne voie</string>
+    <string name="manage_your_monthly_budget">Gérez votre budget mensuel</string>
+
+    <!-- Dashboard strings -->
+    <string name="dashboard_subtitle">Suivez vos dépenses et vos informations</string>
+    <string name="receipts_this_week">Reçus cette semaine</string>
+    <string name="receipts_uploaded">reçus téléchargés</string>
+    <string name="weekly_spending">Dépenses hebdomadaires</string>
+    <string name="vs_last_week">par rapport à la semaine dernière</string>
+    <string name="from_receipts">Depuis les reçus</string>
+    <string name="manual_entries">Saisies manuelles</string>
+    <string name="week">Semaine</string>
+    <string name="month">Mois</string>
+    <string name="year">Année</string>
+    <string name="range">Plage</string>
+    <string name="expense_statistics">Statistiques des dépenses</string>
+    <string name="expenses_by_category">Dépenses par catégorie</string>
+    <string name="no_data_available">Aucune donnée disponible</string>
+    <string name="expense">Dépense</string>
+    <string name="same_as_last_week">Identique à la semaine dernière</string>
+    <string name="failed_to_load_receipts">Échec du chargement des reçus</string>
+    <string name="categories">Catégories</string>
+    <string name="receipts">Reçus</string>
+    <string name="vs_last_week_format">↑ %1$s par rapport à la semaine dernière</string>
+    <string name="vs_last_week_format_down">↓ %1$s par rapport à la semaine dernière</string>
+
+    <!-- Common strings -->
+    <string name="delete">Supprimer</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="yesterday">Hier</string>
+    <string name="unknown_store">Magasin inconnu</string>
+    <string name="unknown_date">Date inconnue</string>
+    <string name="manual_transaction">Transaction personnelle</string>
+    <string name="unknown_item">Article inconnu</string>
+    <string name="loading_data">Chargement des données…</string>
+    <string name="loading_dashboard">Chargement du tableau de bord…</string>
+    <string name="loading_expenses">Chargement des dépenses…</string>
+    <string name="other">Autre</string>
+    <string name="quantity">Qté : %1$d</string>
+    <string name="transaction">Transaction</string>
+    <string name="recent_expenses">Dépenses récentes</string>
+    <string name="no_expenses_this_month">Aucune dépense ce mois-ci</string>
+    <string name="receipts_and_manual_expenses_will_appear_here">Les reçus et les dépenses manuelles apparaîtront ici</string>
+    <string name="scan_your_first_receipt_to_get_started">Scannez votre premier reçu pour commencer</string>
+    <string name="loading_receipts">Chargement des reçus…</string>
+    <string name="item_name">Nom de l\'article</string>
+    <string name="store_name">Nom du magasin</string>
+    <string name="store_date">Magasin • Date</string>
+    <string name="set_a_budget_to_start_tracking_your_expenses">Définissez un budget pour commencer à suivre vos dépenses</string>
+    <string name="set_your_monthly_spending_limit">Définissez votre limite de dépenses mensuelles</string>
+    <string name="track_your_spending_manually">Suivez vos dépenses manuellement</string>
+
+    <!-- Validation messages -->
+    <string name="please_enter_budget_amount">Veuillez entrer le montant du budget</string>
+    <string name="please_enter_a_valid_amount">Veuillez entrer un montant valide</string>
+    <string name="please_enter_a_valid_number">Veuillez entrer un nombre valide</string>
+    <string name="please_enter_what_youre_spending_on">Veuillez indiquer sur quoi vous dépensez</string>
+    <string name="please_enter_expense_amount">Veuillez entrer le montant de la dépense</string>
+    <string name="please_set_a_budget_first">Veuillez d\'abord définir un budget !</string>
+    <string name="expense_added">Dépense ajoutée : %1$s - $%2$.2f</string>
+    <string name="expense_deleted">Dépense supprimée</string>
+    <string name="receipt_expenses_can_only_be_deleted_from_receipt_details">Les dépenses de reçu ne peuvent être supprimées que depuis les détails du reçu</string>
+    <string name="cannot_delete_receipt_from_expense_list">Impossible de supprimer le reçu de la liste des dépenses</string>
+    <string name="transaction_id_not_found">ID de transaction introuvable</string>
+    <string name="delete_expense">Supprimer la dépense</string>
+    <string name="are_you_sure_you_want_to_delete">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Cette action ne peut pas être annulée.</string>
+
+    <!-- Settings -->
+    <string name="settings">Paramètres</string>
+    <string name="app_settings">Paramètres de l\'application</string>
+    <string name="customize_your_app_experience">Personnalisez votre expérience d\'application</string>
+    <string name="appearance">Apparence</string>
+    <string name="theme">Thème</string>
+    <string name="choose_your_preferred_theme">Choisissez votre thème préféré</string>
+    <string name="system_default">Par défaut du système</string>
+    <string name="light">Clair</string>
+    <string name="dark">Sombre</string>
+    <string name="notifications">Notifications</string>
+    <string name="notification_permission">Autorisation de notification</string>
+    <string name="status_not_granted">Statut : Non accordé</string>
+    <string name="status_granted">Statut : Accordé</string>
+    <string name="status_enabled_android_12_below">Statut : Activé (Android 12 et inférieur)</string>
+    <string name="enable">Activer</string>
+    <string name="granted">Accordé</string>
+    <string name="notification_permission_is_already_granted">L\'autorisation de notification est déjà accordée</string>
+    <string name="about">À propos</string>
+    <string name="version">Version 1.0.0</string>
+
+    <!-- Receipt details -->
+    <string name="merchant">Commerçant</string>
+    <string name="date">Date</string>
+    <string name="time">Heure</string>
+    <string name="category">Catégorie</string>
+    <string name="method_of_payment">Méthode de paiement</string>
+    <string name="reminder_date">Date de rappel</string>
+    <string name="set">Définir</string>
+    <string name="items">Articles</string>
+    <string name="price_breakdown">Détail des prix</string>
+    <string name="subtotal">Sous-total</string>
+    <string name="tax">Taxe</string>
+    <string name="total">Total</string>
+    <string name="view_receipt">Voir le reçu</string>
+    <string name="delete_receipt">Supprimer le reçu</string>
+    <string name="receipt_not_found">Reçu introuvable</string>
+    <string name="delete_receipt_title">Supprimer le reçu</string>
+    <string name="are_you_sure_you_want_to_delete_this_receipt">Êtes-vous sûr de vouloir supprimer ce reçu ? Cette action ne peut pas être annulée.</string>
+    <string name="receipt_deleted">Reçu supprimé</string>
+    <string name="failed_to_delete_receipt">Échec de la suppression du reçu : %1$s</string>
+    <string name="receipt_image_not_available">Image du reçu non disponible</string>
+    <string name="reminder_date_updated">Date de rappel mise à jour</string>
+    <string name="failed_to_update_reminder_date">Échec de la mise à jour de la date de rappel</string>
+    <string name="receipt_id_not_found">ID de reçu introuvable</string>
+    <string name="select_reminder_time">Sélectionner l\'heure du rappel</string>
+    <string name="select_reminder_date">Sélectionner la date du rappel</string>
+    <string name="using_cached_receipt_data">Utilisation des données de reçu en cache</string>
+    <string name="failed_to_load_receipt_data">Échec du chargement des données du reçu</string>
+
+    <!-- Receipt scan -->
+    <string name="receipt_preview">Aperçu du reçu</string>
+    <string name="no_receipt_selected">Aucun reçu sélectionné</string>
+    <string name="tap_camera_or_gallery_below">Appuyez sur Appareil photo ou Galerie ci-dessous</string>
+    <string name="quick_actions">Actions rapides</string>
+    <string name="camera">Appareil photo</string>
+    <string name="gallery">Galerie</string>
+    <string name="adjust_corners">Ajuster les coins</string>
+    <string name="apply">Appliquer</string>
+    <string name="edit_corners">Modifier les coins</string>
+    <string name="processing">Traitement…</string>
+    <string name="storage_permission_is_required_to_access_gallery">L\'autorisation de stockage est requise pour accéder à la galerie</string>
+    <string name="failed_to_start_scanner">Échec du démarrage du scanner : %1$s</string>
+    <string name="scanner_failed">Échec du scanner : %1$s</string>
+    <string name="failed_to_save_scanned_image">Échec de l\'enregistrement de l\'image scannée</string>
+    <string name="no_scanned_image_available">Aucune image scannée disponible</string>
+    <string name="no_image_available_to_edit_corners">Aucune image disponible pour modifier les coins</string>
+    <string name="unable_to_show_corner_editor">Impossible d\'afficher l\'éditeur de coins (aperçu non prêt)</string>
+    <string name="no_image_to_crop">Aucune image à recadrer</string>
+    <string name="no_corners_available">Aucun coin disponible</string>
+    <string name="failed_to_map_corners">Échec du mappage des coins</string>
+    <string name="crop_failed">Échec du recadrage</string>
+    <string name="no_image_selected_to_process">Aucune image sélectionnée à traiter</string>
+    <string name="failed_to_load_image_for_ocr">Échec du chargement de l\'image pour l\'OCR</string>
+    <string name="ocr_complete">OCR terminé</string>
+    <string name="ocr_failed">Échec de l\'OCR : %1$s</string>
+    <string name="no_image_to_save">Aucune image à enregistrer</string>
+    <string name="please_run_ocr_before_saving">Veuillez exécuter l\'OCR avant d\'enregistrer</string>
+    <string name="receipt_saved">Reçu enregistré</string>
+    <string name="save_failed">Échec de l\'enregistrement : %1$s</string>
+    <string name="ocr_complete_gemini_not_configured">OCR terminé (Gemini non configuré)</string>
+    <string name="receipt_data_extracted_successfully">Données du reçu extraites avec succès</string>
+    <string name="ocr_complete_parsing_fallback">OCR terminé (analyse de secours)</string>
+    <string name="gemini_unavailable">Gemini indisponible : %1$s</string>
+    <string name="error_parsing_response">Erreur lors de l\'analyse de la réponse :\n%1$s\n\nOCR original :\n%2$s</string>
+    <string name="gemini_api_error">Erreur API Gemini : %1$s\n\nTexte OCR original :\n%2$s</string>
+
+    <!-- View receipt image -->
+    <string name="image_url_not_found">URL de l\'image introuvable</string>
+    <string name="permission_denied_cannot_download_image">Autorisation refusée. Impossible de télécharger l\'image.</string>
+    <string name="failed_to_download_image">Échec du téléchargement de l\'image : %1$s</string>
+    <string name="downloading_receipt">Téléchargement du reçu</string>
+    <string name="receipt_image_download">Téléchargement de l\'image du reçu</string>
+    <string name="download_started_check_your_downloads_folder">Téléchargement démarré. Vérifiez votre dossier Téléchargements.</string>
+    <string name="failed_to_start_download">Échec du démarrage du téléchargement : %1$s</string>
+    <string name="image_saved_to_downloads_folder">Image enregistrée dans le dossier Téléchargements</string>
+    <string name="failed_to_download">Échec du téléchargement : %1$s</string>
+
+    <!-- Notification settings -->
+    <string name="notification_preferences">Préférences de notification</string>
+    <string name="manage_how_and_when_you_receive_notifications">Gérez comment et quand vous recevez des notifications</string>
+    <string name="replacement_period_reminder">Rappel de période de remplacement</string>
+    <string name="get_notified_when_return_exchange_period_is_ending_soon">Soyez notifié lorsque la période de retour/échange se termine bientôt</string>
+    <string name="expense_alerts">Alertes de dépenses</string>
+    <string name="weekly_and_monthly_spending_summaries">Résumés des dépenses hebdomadaires et mensuelles</string>
+    <string name="replacement_period_settings">Paramètres de période de remplacement</string>
+    <string name="default_replacement_period_days">Période de remplacement par défaut (jours)</string>
+    <string name="notification_timing">Moment de la notification</string>
+    <string name="please_enter_a_value_between_1_and_365">Veuillez entrer une valeur entre 1 et 365</string>
+    <string name="please_enter_a_value_between_0_and_30">Veuillez entrer une valeur entre 0 et 30</string>
+    <string name="notification_permission_granted">Autorisation de notification accordée</string>
+    <string name="notification_permission_is_required_to_receive_reminders">L\'autorisation de notification est requise pour recevoir des rappels</string>
+
+    <!-- Profile/CSV Export -->
+    <string name="please_grant_storage_permission_to_export_csv">Veuillez accorder l\'autorisation de stockage pour exporter le CSV</string>
+    <string name="no_expenses_to_export_for_this_month">Aucune dépense à exporter pour ce mois</string>
+    <string name="unable_to_access_downloads_folder">Impossible d\'accéder au dossier Téléchargements</string>
+    <string name="unable_to_create_downloads_folder">Impossible de créer le dossier Téléchargements</string>
+    <string name="csv_saved_in_downloads">CSV enregistré dans Téléchargements : %1$s</string>
+    <string name="failed_to_export_csv">Échec de l\'exportation CSV : %1$s</string>
+
+    <!-- Category detail -->
+    <string name="category_expenses">Dépenses %1$s</string>
+    <string name="failed_to_load_data">Échec du chargement des données</string>
+    <string name="no_records_found_for">Aucun enregistrement trouvé pour %1$s</string>
+
+    <!-- Edit profile -->
+    <string name="permission_denied_for_accessing_gallery">Autorisation refusée pour accéder à la galerie.</string>
+
+    <!-- Auth -->
+    <string name="password_is_required">Le mot de passe est requis</string>
+    <string name="email_is_required">L\'e-mail est requis</string>
+    <string name="email_is_not_valid">L\'e-mail n\'est pas valide</string>
+    <string name="full_name_is_required">Le nom complet est requis</string>
+    <string name="profile_updated_successfully">Profil mis à jour avec succès</string>
+    <string name="failed_to_update_profile">Échec de la mise à jour du profil : %1$s</string>
+
+    <!-- Home -->
+    <string name="self_entered">Saisi manuellement</string>
+
+    <!-- Profile menu items -->
+    <string name="edit_profile_details">Modifier les détails du profil</string>
+    <string name="export_expenses_csv">Exporter les dépenses CSV</string>
+    <string name="contact_us">Nous contacter</string>
+    <string name="privacy_policy">Politique de confidentialité</string>
+    <string name="terms_and_conditions">Termes et conditions</string>
+    <string name="get_help">Obtenir de l\'aide</string>
+
+    <!-- Language -->
+    <string name="language">Langue</string>
+    <string name="change_language">Changer de langue</string>
+    <string name="select_language">Sélectionner la langue</string>
+    <string name="english">Anglais</string>
+    <string name="french">Français</string>
+    <string name="hindi">Hindi</string>
+    <string name="chinese">Chinois</string>
+    <string name="language_changed">Langue modifiée. Veuillez redémarrer l\'application pour que les modifications prennent effet.</string>
+    <string name="restart_required">Redémarrage requis</string>
+    <string name="restart_message">L\'application doit redémarrer pour que le changement de langue prenne effet. Voulez-vous redémarrer maintenant ?</string>
+    <string name="restart">Redémarrer</string>
+    <string name="later">Plus tard</string>
+</resources>
