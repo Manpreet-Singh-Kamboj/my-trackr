@@ -143,6 +143,11 @@
     <string name="set_a_budget_to_start_tracking_your_expenses">Définissez un budget pour commencer à suivre vos dépenses</string>
     <string name="set_your_monthly_spending_limit">Définissez votre limite de dépenses mensuelles</string>
     <string name="track_your_spending_manually">Suivez vos dépenses manuellement</string>
+    <string name="no_budget_set_title">Aucun budget défini</string>
+    <string name="no_budget_set_message">Créez un budget mensuel pour suivre vos dépenses et garder le contrôle de vos finances</string>
+    <string name="set_budget">Définir le budget</string>
+    <string name="budget_icon">Icône de budget</string>
+
 
     <!-- Validation messages -->
     <string name="please_enter_budget_amount">Veuillez entrer le montant du budget</string>

@@ -143,6 +143,10 @@
     <string name="set_a_budget_to_start_tracking_your_expenses">Set a budget to start tracking your expenses</string>
     <string name="set_your_monthly_spending_limit">Set your monthly spending limit</string>
     <string name="track_your_spending_manually">Track your spending manually</string>
+    <string name="no_budget_set_title">No Budget Set</string>
+    <string name="no_budget_set_message">Create a monthly budget to track your spending and stay on top of your finances</string>
+    <string name="set_budget">Set Budget</string>
+    <string name="budget_icon">Budget icon</string>
 
     <!-- Validation messages -->
     <string name="please_enter_budget_amount">Please enter budget amount</string>
