@@ -61,7 +61,7 @@
     <!-- Google Client IDS -->
     <string name="google_web_client_id">435538549992-qm79an9psf5c9lh933eafqic2h62tmfv.apps.googleusercontent.com</string>
     <!-- Gemini API Key - Replace with your actual API key -->
-    <string name="gemini_api_key">AIzaSyByGZ4XCEaxvhRF72GSFlu9QXFul08njY8</string>
+    <string name="gemini_api_key">AIzaSyC1Q5Dw-RiqTtB3I6hPyoFat477tBe_sG8</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
@@ -94,5 +94,4 @@
     <string name="spending_high">Spending High</string>
     <string name="on_track">On Track</string>
     <string name="manage_your_monthly_budget">Manage your monthly budget</string>
-    <string name="export_expenses_csv">Export expenses as CSV</string>
 </resources>

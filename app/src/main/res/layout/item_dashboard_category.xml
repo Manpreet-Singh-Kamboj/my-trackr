@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="12dp">
+
+    <!-- Category Icon -->
+    <ImageView
+        android:id="@+id/imgIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/circle_icon_bg"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@drawable/ic_food"
+        tools:backgroundTint="#FFE0E0" />
+
+    <!-- Category Name -->
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/imgIcon"
+        app:layout_constraintTop_toTopOf="@id/imgIcon"
+        tools:text="Food" />
+
+    <!-- Percentage -->
+    <TextView
+        android:id="@+id/tvPercent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvCategoryName"
+        app:layout_constraintStart_toEndOf="@id/tvCategoryName"
+        tools:text="67.94%" />
+
+    <!-- Price -->
+    <TextView
+        android:id="@+id/tvPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/iconArrow"
+        app:layout_constraintTop_toTopOf="@id/tvCategoryName"
+        tools:text="¥1,189.16" />
+
+    <!-- Count or Subtext -->
+    <TextView
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="9"
+        android:textSize="12sp"
+        android:textColor="#999"
+        app:layout_constraintEnd_toEndOf="@id/tvPrice"
+        app:layout_constraintTop_toBottomOf="@id/tvPrice"/>
+
+    <!-- Change amount (red/green small text) -->
+    <TextView
+        android:id="@+id/tvChange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:textColor="#FF5252"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvPrice"
+        app:layout_constraintEnd_toStartOf="@id/tvPrice"
+        tools:text="▲¥935.80" />
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:progressDrawable="@drawable/custom_progress_bg"
+        app:layout_constraintEnd_toStartOf="@id/tvChange"
+        app:layout_constraintStart_toStartOf="@id/tvCategoryName"
+        app:layout_constraintTop_toBottomOf="@id/tvCategoryName"
+        tools:progress="60" />
+
+    <ImageView
+        android:id="@+id/iconArrow"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@drawable/ic_chevron_right"
+        app:tint="#CCCCCC"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

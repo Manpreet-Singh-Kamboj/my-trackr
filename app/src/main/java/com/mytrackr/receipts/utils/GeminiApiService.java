@@ -116,7 +116,7 @@ public class GeminiApiService {
                 "    \"subtotal\": 0.0,\n" +
                 "    \"tax\": 0.0,\n" +
                 "    \"total\": 0.0,\n" +
-                "    \"category\": \"Category name - assign most appropriate category based on receipt data (e.g., Groceries, Meal & Entertainment, Travel, Shopping, Gas, Others) or empty string\"\n" +
+                "    \"category\": \"assign these categories based on receipt data (Groceries, Meal, Entertainment, Travel, Shopping, Other)\"\n" +
                 "  },\n" +
                 "  \"items\": [\n" +
                 "    {\n" +
@@ -124,7 +124,7 @@ public class GeminiApiService {
                 "      \"quantity\": 1,\n" +
                 "      \"unitPrice\": 0.0,\n" +
                 "      \"totalPrice\": 0.0,\n" +
-                "      \"category\": \"Category name or empty string\"\n" +
+                "      \"category\": \"assign these categories based on receipt data (Groceries, Meal, Entertainment, Travel, Shopping, Other)\"\n" +
                 "    }\n" +
                 "  ],\n" +
                 "  \"additional\": {\n" +
