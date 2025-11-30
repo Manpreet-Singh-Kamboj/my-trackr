@@ -29,9 +29,9 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
     }
 
     public ExpenseItemAdapter() {
-        currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+        currencyFormat = NumberFormat.getCurrencyInstance(Locale.CANADA);
     }
-    
+
     public void setOnExpenseItemDeleteListener(OnExpenseItemDeleteListener listener) {
         this.deleteListener = listener;
     }
@@ -48,7 +48,7 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
     public void onBindViewHolder(@NonNull ExpenseItemViewHolder holder, int position) {
         ExpenseItem item = expenseItems.get(position);
         holder.bind(item);
-        
+
         holder.itemView.setOnLongClickListener(v -> {
             if (deleteListener != null) {
                 ExpenseItem expenseItem = expenseItems.get(position);
@@ -87,11 +87,11 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
 
         public void bind(ExpenseItem item) {
             tvTransactionDescription.setText(item.getDescription());
-            
+
             tvTransactionDate.setText(getFormattedDateWithMonth(item.getTimestamp()));
 
             IconInfo iconInfo = getIconForExpenseItem(item);
-            
+
             ivTransactionIcon.setImageResource(iconInfo.iconRes);
             ivTransactionIcon.setColorFilter(iconInfo.iconTintColor);
             if (iconContainer != null) {
@@ -108,56 +108,56 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
             tvTransactionAmount.setText(amountStr);
             tvTransactionAmount.setTextColor(iconInfo.amountColor);
         }
-        
+
         private IconInfo getIconForExpenseItem(ExpenseItem item) {
             String description = item.getDescription().toLowerCase();
             String category = item.getCategory() != null ? item.getCategory().toLowerCase() : "";
-            
+
             int iconRes;
             int iconTintColor;
             int containerColor;
             int amountColor;
             int containerAlpha;
-            
+
             if (item.isReceipt()) {
                 iconRes = getReceiptIcon(description, category);
                 iconTintColor = ContextCompat.getColor(itemView.getContext(), R.color.primary);
-                
+
                 if (category.contains("grocery") || category.contains("food") || category.contains("supermarket") ||
-                    description.contains("walmart") || description.contains("target") || 
-                    description.contains("costco") || description.contains("kroger")) {
+                        description.contains("walmart") || description.contains("target") ||
+                        description.contains("costco") || description.contains("kroger")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.primary);
                 } else if (category.contains("restaurant") || category.contains("dining") ||
-                           description.contains("restaurant") || description.contains("cafe") ||
-                           description.contains("mcdonald") || description.contains("starbucks")) {
+                        description.contains("restaurant") || description.contains("cafe") ||
+                        description.contains("mcdonald") || description.contains("starbucks")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_warning);
                 } else if (category.contains("gas") || category.contains("fuel") ||
-                           description.contains("shell") || description.contains("exxon") ||
-                           description.contains("gas") || description.contains("fuel")) {
+                        description.contains("shell") || description.contains("exxon") ||
+                        description.contains("gas") || description.contains("fuel")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_danger);
                 } else {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.primary);
                 }
-                
+
                 amountColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
                 containerAlpha = 38;
             } else if (item.isExpense()) {
                 iconRes = getManualExpenseIcon(description);
                 iconTintColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
-                
+
                 if (description.contains("food") || description.contains("lunch") ||
-                    description.contains("dinner") || description.contains("restaurant")) {
+                        description.contains("dinner") || description.contains("restaurant")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_warning);
-                } else if (description.contains("gas") || description.contains("fuel") || 
-                          description.contains("transport")) {
+                } else if (description.contains("gas") || description.contains("fuel") ||
+                        description.contains("transport")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_danger);
                 } else if (description.contains("shopping") || description.contains("store") ||
-                          description.contains("mall")) {
+                        description.contains("mall")) {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.primary);
                 } else {
                     containerColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
                 }
-                
+
                 amountColor = ContextCompat.getColor(itemView.getContext(), R.color.error);
                 containerAlpha = 38;
             } else {
@@ -167,25 +167,25 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
                 amountColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_safe);
                 containerAlpha = 38;
             }
-            
+
             return new IconInfo(iconRes, iconTintColor, containerColor, amountColor, containerAlpha);
         }
-        
+
         private int getReceiptIcon(String description, String category) {
             return R.drawable.ic_receipt_icon;
         }
-        
+
         private int getManualExpenseIcon(String description) {
             return R.drawable.ic_expense;
         }
-        
+
         private class IconInfo {
             final int iconRes;
             final int iconTintColor;
             final int containerColor;
             final int amountColor;
             final int containerAlpha;
-            
+
             IconInfo(int iconRes, int iconTintColor, int containerColor, int amountColor, int containerAlpha) {
                 this.iconRes = iconRes;
                 this.iconTintColor = iconTintColor;
@@ -204,12 +204,12 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
             yesterday.add(Calendar.DAY_OF_YEAR, -1);
 
             boolean isSameMonth = transactionDate.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                  transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
+                    transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
 
             if (isSameDay(transactionDate, today)) {
-                return "Today";
+                return itemView.getContext().getString(R.string.today);
             } else if (isSameDay(transactionDate, yesterday)) {
-                return "Yesterday";
+                return itemView.getContext().getString(R.string.yesterday);
             } else if (isSameMonth) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
                 return dateFormat.format(new Date(timestamp));
@@ -225,4 +225,3 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
         }
     }
 }
-

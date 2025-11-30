@@ -20,7 +20,7 @@ public class ReceiptParser {
             r.setMetadata(metadata);
             return r;
         }
-        
+
         Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
         metadata.setOcrText(ocrText);
         metadata.setProcessedBy("parser");
@@ -37,7 +37,7 @@ public class ReceiptParser {
         r.setStore(store);
 
         Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
-        
+
         Pattern money = Pattern.compile("\\b(total|amount|balance)\\b.*?([0-9]+[.,][0-9]{2})", Pattern.CASE_INSENSITIVE);
         Matcher m = money.matcher(ocrText);
         if (m.find()) {

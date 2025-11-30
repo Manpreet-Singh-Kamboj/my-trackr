@@ -29,7 +29,7 @@ import java.util.Map;
 public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_DATE_HEADER = 0;
     private static final int TYPE_RECEIPT = 1;
-    
+
     private final List<Object> items;
     private OnReceiptClickListener listener;
 
@@ -49,7 +49,7 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         items.clear();
         if (receipts != null && !receipts.isEmpty()) {
             Map<String, List<Receipt>> groupedReceipts = groupReceiptsByDate(receipts);
-            
+
             for (Map.Entry<String, List<Receipt>> entry : groupedReceipts.entrySet()) {
                 items.add(entry.getKey());
                 items.addAll(entry.getValue());
@@ -68,20 +68,20 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 return Long.compare(timestamp2, timestamp1);
             }
         });
-        
+
         Map<String, List<Receipt>> grouped = new LinkedHashMap<>();
         SimpleDateFormat headerFormat = new SimpleDateFormat("MMMM dd yyyy", Locale.US);
-        
+
         for (Receipt receipt : sortedReceipts) {
             long timestamp = getReceiptTimestamp(receipt);
             String dateKey = headerFormat.format(new Date(timestamp)).toUpperCase();
-            
+
             if (!grouped.containsKey(dateKey)) {
                 grouped.put(dateKey, new ArrayList<>());
             }
             grouped.get(dateKey).add(receipt);
         }
-        
+
         for (List<Receipt> receiptList : grouped.values()) {
             Collections.sort(receiptList, new Comparator<Receipt>() {
                 @Override
@@ -92,10 +92,10 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
             });
         }
-        
+
         return grouped;
     }
-    
+
     private long getReceiptTimestamp(Receipt receipt) {
         if (receipt.getReceipt() != null) {
             if (receipt.getReceipt().getDateTimestamp() > 0) {
@@ -170,7 +170,7 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         public void bind(Receipt receipt) {
-            String storeNameText = "Unknown Store";
+            String storeNameText = itemView.getContext().getString(R.string.unknown_store);
             if (receipt.getStore() != null && receipt.getStore().getName() != null && !receipt.getStore().getName().isEmpty()) {
                 storeNameText = receipt.getStore().getName();
             } else if (receipt.getStoreName() != null && !receipt.getStoreName().isEmpty()) {
@@ -230,7 +230,7 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             } else {
                 Log.d("ReceiptAdapter", "Receipt.getReceipt() is null");
             }
-            
+
             if (receipt.getItems() != null && !receipt.getItems().isEmpty()) {
                 for (ReceiptItem item : receipt.getItems()) {
                     if (item.getCategory() != null && !item.getCategory().isEmpty() && !item.getCategory().equals("null")) {
@@ -239,7 +239,7 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     }
                 }
             }
-            
+
             Log.d("ReceiptAdapter", "No category found for receipt");
             return null;
         }

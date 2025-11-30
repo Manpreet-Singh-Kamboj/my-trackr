@@ -31,7 +31,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Receipt Preview"
+                android:text="@string/receipt_preview"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface"
@@ -74,7 +74,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="No receipt selected"
+                            android:text="@string/no_receipt_selected"
                             android:textSize="16sp"
                             android:textColor="?attr/colorOnSurface"
                             android:alpha="0.6"
@@ -83,7 +83,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tap Camera or Gallery below"
+                            android:text="@string/tap_camera_or_gallery_below"
                             android:textSize="14sp"
                             android:textColor="?attr/colorOnSurface"
                             android:alpha="0.4"
@@ -98,6 +98,7 @@
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
                         android:contentDescription="Receipt preview"
+                        android:paddingVertical="10dp"
                         android:visibility="gone" />
 
                     <com.mytrackr.receipts.features.receipts.CornerOverlayView
@@ -162,7 +163,7 @@
                             android:id="@+id/btnCamera"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Camera"
+                            android:text="@string/camera"
                             android:textSize="15sp"
                             android:textColor="?attr/colorOnPrimary"
                             android:textStyle="bold"
@@ -206,7 +207,7 @@
                             android:id="@+id/btnGallery"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Gallery"
+                            android:text="@string/gallery"
                             android:textSize="15sp"
                             android:textColor="?attr/colorPrimary"
                             android:textStyle="bold"
@@ -230,7 +231,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Adjust Corners"
+                    android:text="@string/adjust_corners"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"
@@ -247,7 +248,7 @@
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:text="Apply"
+                        android:text="@string/apply"
                         android:layout_marginEnd="8dp"
                         style="@style/Widget.Material3.Button" />
 
@@ -256,7 +257,7 @@
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:text="Cancel"
+                        android:text="@string/cancel"
                         android:layout_marginStart="8dp"
                         style="@style/Widget.Material3.Button.OutlinedButton" />
 
@@ -343,7 +344,7 @@
                 android:id="@+id/btnEditCorners"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Edit Corners"
+                android:text="@string/edit_corners"
                 android:layout_marginBottom="12dp"
                 android:visibility="gone"
                 style="@style/Widget.Material3.Button.OutlinedButton"
@@ -358,7 +359,10 @@
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.Material3.Button"
                 app:icon="@android:drawable/ic_menu_search"
-                app:iconGravity="textStart" />
+                app:iconGravity="textStart"
+                app:backgroundTint="@color/button_process_background"
+                android:textColor="@color/button_process_text"
+                app:iconTint="@color/button_process_text" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
@@ -412,7 +416,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Processing..."
+                    android:text="@string/processing"
                     android:textSize="16sp"
                     android:textColor="?attr/colorOnSurface"
                     android:layout_marginTop="16dp"

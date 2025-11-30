@@ -48,7 +48,7 @@
                 android:id="@+id/tvTransactionDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Transaction"
+                android:text="@string/transaction"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface"

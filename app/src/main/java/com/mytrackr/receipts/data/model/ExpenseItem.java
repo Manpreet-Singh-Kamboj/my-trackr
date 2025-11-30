@@ -8,7 +8,7 @@ import com.mytrackr.receipts.data.models.Receipt;
 public class ExpenseItem {
     public enum ExpenseType {
         RECEIPT,
-        MANUAL_TRANSACTION
+        SELF_TRANSACTION
     }
     
     private final ExpenseType expenseType;
@@ -26,15 +26,15 @@ public class ExpenseItem {
         this.timestamp = receipt.getReceipt() != null && receipt.getReceipt().getReceiptDateTimestamp() > 0
             ? receipt.getReceipt().getReceiptDateTimestamp()
             : (receipt.getReceipt() != null ? receipt.getReceipt().getDateTimestamp() : System.currentTimeMillis());
-        this.description = receipt.getStore() != null && receipt.getStore().getName() != null
+        this.description = receipt.getStore() != null && receipt.getStore().getName() != null && !receipt.getStore().getName().isEmpty()
             ? receipt.getStore().getName()
             : "Unknown Store";
         this.category = receipt.getReceipt() != null ? receipt.getReceipt().getCategory() : null;
-        this.transactionType = "expense"; // Receipts are always expenses
+        this.transactionType = "expense";
     }
     
     public ExpenseItem(Transaction transaction) {
-        this.expenseType = ExpenseType.MANUAL_TRANSACTION;
+        this.expenseType = ExpenseType.SELF_TRANSACTION;
         this.id = transaction.getId();
         this.amount = transaction.getAmount();
         this.timestamp = transaction.getTimestamp();

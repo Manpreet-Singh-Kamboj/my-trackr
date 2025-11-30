@@ -24,6 +24,7 @@ import com.mytrackr.receipts.features.core.fragments.ExpensesFragment;
 import com.mytrackr.receipts.features.core.fragments.HomeFragment;
 import com.mytrackr.receipts.features.core.fragments.ProfileFragment;
 import com.mytrackr.receipts.features.get_started.GetStartedActivity;
+import com.mytrackr.receipts.utils.LocaleHelper;
 import com.mytrackr.receipts.utils.NotificationHelper;
 import com.mytrackr.receipts.utils.NotificationPermissionHelper;
 import com.mytrackr.receipts.utils.NotificationScheduler;
@@ -36,9 +37,11 @@ public class MainActivity extends AppCompatActivity {
     private static AuthViewModel authViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Apply locale before super.onCreate to ensure proper initialization
+        LocaleHelper.applySavedLocale(this);
         ThemePreferences themePreferences = new ThemePreferences(this);
         themePreferences.applySavedThemeMode();
-        
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -62,15 +65,34 @@ public class MainActivity extends AppCompatActivity {
             NotificationHelper.createNotificationChannel(this);
         }
         binding.bottomNavigation.setOnItemSelectedListener(this::onBottomNavItemSelected);
-        
+
         requestNotificationPermissionIfNeeded();
+        
+        // Check if this is a restart for language change
+        if (getIntent() != null && getIntent().getBooleanExtra("RESTART_FOR_LANGUAGE", false)) {
+            // Clear the flag to prevent infinite loop
+            getIntent().removeExtra("RESTART_FOR_LANGUAGE");
+            // Recreate to apply new locale
+            recreate();
+        }
     }
-    
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        // If restarting for language change, recreate
+        if (intent != null && intent.getBooleanExtra("RESTART_FOR_LANGUAGE", false)) {
+            intent.removeExtra("RESTART_FOR_LANGUAGE");
+            recreate();
+        }
+    }
+
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
         NotificationScheduler.scheduleWeeklyBudgetCheck(this);
     }
-    
+
     private void requestNotificationPermissionIfNeeded() {
         if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
             NotificationPermissionHelper.requestNotificationPermission(this);
@@ -99,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frameLayout, fragment);
         fragmentTransaction.commit();
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

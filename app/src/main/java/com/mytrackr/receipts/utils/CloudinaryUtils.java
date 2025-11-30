@@ -40,7 +40,7 @@ public class CloudinaryUtils {
         public String resourceId;
 
         public UploadConfig(String cloudName, String uploadPreset, String folderRoot,
-                           String userId, String resourceId) {
+                            String userId, String resourceId) {
             this.cloudName = cloudName;
             this.uploadPreset = uploadPreset;
             this.folderRoot = folderRoot;
@@ -56,11 +56,11 @@ public class CloudinaryUtils {
             String folderRoot = context.getString(R.string.cloudinary_folder_root);
 
             if (cloudName != null && !cloudName.isEmpty() &&
-                uploadPreset != null && !uploadPreset.isEmpty()) {
+                    uploadPreset != null && !uploadPreset.isEmpty()) {
 
                 String userId = FirebaseAuth.getInstance().getCurrentUser() != null
-                    ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                    : "anonymous";
+                        ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                        : "anonymous";
 
                 return new UploadConfig(cloudName, uploadPreset, folderRoot, userId, resourceId);
             }
@@ -75,7 +75,7 @@ public class CloudinaryUtils {
             String cloudName = context.getString(R.string.cloudinary_cloud_name);
             String uploadPreset = context.getString(R.string.cloudinary_upload_preset);
             return cloudName != null && !cloudName.isEmpty() &&
-                   uploadPreset != null && !uploadPreset.isEmpty();
+                    uploadPreset != null && !uploadPreset.isEmpty();
         } catch (Exception ex) {
             return false;
         }
@@ -84,7 +84,7 @@ public class CloudinaryUtils {
     public static void uploadImage(Context context, Uri imageUri, UploadConfig config,
                                    CloudinaryUploadCallback callback) {
         Log.d(TAG, "Attempting Cloudinary upload: cloud=" + config.cloudName +
-              " preset=" + config.uploadPreset);
+                " preset=" + config.uploadPreset);
 
         OkHttpClient client = new OkHttpClient.Builder().build();
 
@@ -93,7 +93,7 @@ public class CloudinaryUtils {
             if (is == null) {
                 if (callback != null) {
                     new Handler(Looper.getMainLooper()).post(() ->
-                        callback.onFailure(new IllegalStateException("Could not open image input stream")));
+                            callback.onFailure(new IllegalStateException("Could not open image input stream")));
                 }
                 return;
             }
@@ -113,10 +113,10 @@ public class CloudinaryUtils {
             String folderPath = buildFolderPath(config);
 
             MultipartBody.Builder mb = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("file", "image.jpg", fileBody)
-                .addFormDataPart("upload_preset", config.uploadPreset)
-                .addFormDataPart("folder", folderPath);
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", "image.jpg", fileBody)
+                    .addFormDataPart("upload_preset", config.uploadPreset)
+                    .addFormDataPart("folder", folderPath);
 
             MultipartBody requestBody = mb.build();
 
@@ -138,7 +138,7 @@ public class CloudinaryUtils {
                         if (!response.isSuccessful()) {
                             String respBody = response.body() != null ? response.body().string() : "";
                             Log.w(TAG, "Cloudinary upload returned non-success: " +
-                                  response.code() + " body=" + respBody);
+                                    response.code() + " body=" + respBody);
 
                             IOException error = new IOException("Upload failed: " + response.code());
                             if (callback != null) {
@@ -173,7 +173,7 @@ public class CloudinaryUtils {
                             Log.d(TAG, "Cloudinary upload succeeded: " + secureUrl);
                             if (callback != null) {
                                 new Handler(Looper.getMainLooper()).post(() ->
-                                    callback.onSuccess(secureUrl, publicId));
+                                        callback.onSuccess(secureUrl, publicId));
                             }
 
                         } catch (Exception ex) {
@@ -212,12 +212,11 @@ public class CloudinaryUtils {
     public static String getTransformationUrl(String publicId, String cloudName, String transformations) {
         if (publicId == null || cloudName == null) return null;
         return "https://res.cloudinary.com/" + cloudName + "/image/upload/" +
-               transformations + "/" + publicId;
+                transformations + "/" + publicId;
     }
 
     public static String getThumbnailUrl(String publicId, String cloudName, int width, int height) {
         return getTransformationUrl(publicId, cloudName,
-            "w_" + width + ",h_" + height + ",c_fill,q_auto");
+                "w_" + width + ",h_" + height + ",c_fill,q_auto");
     }
 }
-

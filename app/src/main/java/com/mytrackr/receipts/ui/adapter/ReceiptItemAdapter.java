@@ -1,4 +1,4 @@
-package com.mytrackr.receipts.features.receipts.adapters;
+package com.mytrackr.receipts.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,11 +60,11 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
             if (item.getName() != null && !item.getName().isEmpty()) {
                 itemName.setText(item.getName());
             } else {
-                itemName.setText("Unknown Item");
+                itemName.setText(itemView.getContext().getString(R.string.unknown_item));
             }
 
             if (item.getQuantity() != null && item.getQuantity() > 0) {
-                itemQuantity.setText("Qty: " + item.getQuantity());
+                itemQuantity.setText(itemView.getContext().getString(R.string.quantity, item.getQuantity()));
                 itemQuantity.setVisibility(View.VISIBLE);
             } else {
                 itemQuantity.setVisibility(View.GONE);
@@ -101,4 +101,3 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
         }
     }
 }
-

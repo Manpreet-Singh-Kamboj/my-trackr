@@ -151,11 +151,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
             Boolean readMediaGranted = result.get(Manifest.permission.READ_MEDIA_IMAGES);
 
             if ((readStorageGranted != null && readStorageGranted) ||
-                (readMediaGranted != null && readMediaGranted)) {
+                    (readMediaGranted != null && readMediaGranted)) {
                 // Permission granted, open gallery
                 galleryLauncher.launch("image/*");
             } else {
-                Toast.makeText(this, "Storage permission is required to access gallery", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.storage_permission_is_required_to_access_gallery), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -256,10 +256,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         IntentSenderRequest req = new IntentSenderRequest.Builder(intentSender).build();
                         scanLauncher.launch(req);
                     } catch (Exception e) {
-                        Toast.makeText(this, "Failed to start scanner: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.failed_to_start_scanner, e.getMessage()), Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Scanner failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, getString(R.string.scanner_failed, e.getMessage()), Toast.LENGTH_SHORT).show());
     }
 
     // Keep a minimal onActivityResult just in case other legacy flows call it (camera fallback)
@@ -407,11 +407,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 imageUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", scannedFile);
                 loadImageIntoPreview(imageUri);
             } catch (IOException e) {
-                Toast.makeText(this, "Failed to save scanned image", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.failed_to_save_scanned_image), Toast.LENGTH_SHORT).show();
                 previewImageView.setImageBitmap(scannedImage);
             }
         } else {
-            Toast.makeText(this, "No scanned image available", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_scanned_image_available), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -833,7 +833,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // Enter corner edit mode: show overlay and allow dragging
     private void enterCornerEditMode() {
         if (lastBitmapOriginal == null) {
-            Toast.makeText(this, "No image available to edit corners", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_image_available_to_edit_corners), Toast.LENGTH_SHORT).show();
             return;
         }
         // determine default corners: use full bitmap corners
@@ -851,7 +851,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 if (btnProcess != null) btnProcess.setEnabled(false);
                 if (btnSave != null) btnSave.setEnabled(false);
             } else {
-                Toast.makeText(this, "Unable to show corner editor (preview not ready)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.unable_to_show_corner_editor), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -873,21 +873,21 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // Apply user crop from the overlay, update image and re-run OCR (automatic)
     private void applyUserCropAndReprocess() {
         if (lastBitmapOriginal == null) {
-            Toast.makeText(this, "No image to crop", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_image_to_crop), Toast.LENGTH_SHORT).show();
             exitCornerEditMode(true);
             return;
         }
         float[] viewCorners = cornerOverlay.getCornersViewCoords();
-        if (viewCorners == null) { Toast.makeText(this, "No corners available", Toast.LENGTH_SHORT).show(); return; }
+        if (viewCorners == null) { Toast.makeText(this, getString(R.string.no_corners_available), Toast.LENGTH_SHORT).show(); return; }
         float[] bmpCorners = viewPointsToBitmap(viewCorners, lastBitmapOriginal);
-        if (bmpCorners == null) { Toast.makeText(this, "Failed to map corners", Toast.LENGTH_SHORT).show(); return; }
+        if (bmpCorners == null) { Toast.makeText(this, getString(R.string.failed_to_map_corners), Toast.LENGTH_SHORT).show(); return; }
 
         showProcessingDialog();
         try {
             Bitmap cropped = perspectiveCrop(lastBitmapOriginal, bmpCorners);
             if (cropped == null) {
                 hideProcessingDialog();
-                Toast.makeText(this, "Crop failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.crop_failed), Toast.LENGTH_SHORT).show();
                 exitCornerEditMode(true);
                 return;
             }
@@ -915,8 +915,13 @@ public class ReceiptScanActivity extends AppCompatActivity {
     // Modify processImageForText to prefer lastBitmapOriginal if present
     private void processImageForText() {
         if (imageUri == null && lastBitmapOriginal == null) {
-            Toast.makeText(this, "No image selected to process", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_image_selected_to_process), Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // Disable button to prevent multiple calls while processing
+        if (btnProcess != null) {
+            btnProcess.setEnabled(false);
         }
 
         showProcessingDialog();
@@ -931,7 +936,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     lastBitmapOriginal = bm; // keep reference
                 } catch (IOException e) {
                     hideProcessingDialog();
-                    Toast.makeText(this, "Failed to load image for OCR", Toast.LENGTH_SHORT).show();
+                    // Re-enable button on image load failure
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
+                    Toast.makeText(this, getString(R.string.failed_to_load_image_for_ocr), Toast.LENGTH_SHORT).show();
                     return;
                 }
             }
@@ -963,7 +972,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             ocrResultCard.setVisibility(View.VISIBLE);
                             Log.d(TAG, "OCR result card made visible");
                         }
-                        
+
                         // Hide text view and show progress bar while processing
                         if (ocrTextView != null) {
                             ocrTextView.setVisibility(View.GONE);
@@ -971,7 +980,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.VISIBLE);
                         }
-                        
+
                         // Call Gemini API to extract structured data
                         if (fullText != null && !fullText.trim().isEmpty() && geminiApiService != null) {
                             Log.d(TAG, "Calling Gemini API");
@@ -980,6 +989,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             Log.d(TAG, "Skipping Gemini API - fullText: " + (fullText != null ? "not null" : "null") + ", geminiApiService: " + (geminiApiService != null ? "not null" : "null"));
                             // Fallback to basic parser if Gemini is not available
                             hideProcessingDialog();
+                            // Re-enable button
+                            if (btnProcess != null) {
+                                btnProcess.setEnabled(true);
+                            }
                             // Hide progress and show text
                             if (ocrProcessingProgressBar != null) {
                                 ocrProcessingProgressBar.setVisibility(View.GONE);
@@ -993,12 +1006,16 @@ public class ReceiptScanActivity extends AppCompatActivity {
                                 btnSave.setVisibility(View.VISIBLE);
                                 btnSave.setEnabled(true);
                             }
-                            Toast.makeText(this, "OCR complete", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.ocr_complete), Toast.LENGTH_SHORT).show();
                         }
                     })
                     .addOnFailureListener(e -> {
                         hideProcessingDialog();
-                        Toast.makeText(this, "OCR failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        // Re-enable button on OCR failure
+                        if (btnProcess != null) {
+                            btnProcess.setEnabled(true);
+                        }
+                        Toast.makeText(this, getString(R.string.ocr_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
                     });
         } finally {
             // do not hideProcessingDialog here; callbacks will hide/handle it
@@ -1093,13 +1110,13 @@ public class ReceiptScanActivity extends AppCompatActivity {
 
     private void saveReceipt() {
         if (imageUri == null) {
-            Toast.makeText(this, "No image to save", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.no_image_to_save), Toast.LENGTH_SHORT).show();
             return;
         }
         // ensure OCR text present
         String ocrText = ocrTextView.getText() != null ? ocrTextView.getText().toString() : null;
         if ((ocrText == null || ocrText.trim().isEmpty()) && currentReceipt == null) {
-            Toast.makeText(this, "Please run OCR before saving", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.please_run_ocr_before_saving), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1120,11 +1137,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
         if (currentReceipt.getReceipt() == null) {
             currentReceipt.setReceipt(new Receipt.ReceiptInfo());
         }
-        
+
         long currentUploadTime = System.currentTimeMillis();
         currentReceipt.getReceipt().setDateTimestamp(currentUploadTime);
         Log.d(TAG, "Set dateTimestamp to current upload time: " + currentUploadTime);
-        
+
         // If receiptDateTimestamp is not set, use current time as fallback
         if (currentReceipt.getReceipt().getReceiptDateTimestamp() == 0) {
             currentReceipt.getReceipt().setReceiptDateTimestamp(currentUploadTime);
@@ -1147,7 +1164,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-                    Toast.makeText(ReceiptScanActivity.this, "Receipt saved", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ReceiptScanActivity.this, getString(R.string.receipt_saved), Toast.LENGTH_SHORT).show();
                     btnSave.setEnabled(true);
                     // free high-res bitmap to reduce memory usage after successful upload
                     try { if (lastBitmapOriginal != null && !lastBitmapOriginal.isRecycled()) { lastBitmapOriginal.recycle(); } } catch (Exception ignored) {}
@@ -1158,7 +1175,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             @Override
             public void onFailure(Exception e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(ReceiptScanActivity.this, "Save failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ReceiptScanActivity.this, getString(R.string.save_failed, e.getMessage()), Toast.LENGTH_LONG).show();
                     btnSave.setEnabled(true);
                 });
             }
@@ -1167,14 +1184,19 @@ public class ReceiptScanActivity extends AppCompatActivity {
 
     // Call Gemini API to extract structured receipt data from OCR text
     private void callGeminiApi(String ocrText) {
+        // Button is already disabled in processImageForText(), keep it disabled during Gemini call
         if (geminiApiService == null) {
             hideProcessingDialog();
+            // Re-enable button
+            if (btnProcess != null) {
+                btnProcess.setEnabled(true);
+            }
             currentReceipt = ReceiptParser.parse(ocrText);
             if (btnSave != null) {
                 btnSave.setVisibility(View.VISIBLE);
                 btnSave.setEnabled(true);
             }
-            Toast.makeText(this, "OCR complete (Gemini not configured)", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.ocr_complete_gemini_not_configured), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -1184,11 +1206,15 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 Log.d(TAG, "Gemini API success, received structured data");
                 runOnUiThread(() -> {
                     hideProcessingDialog();
+                    // Re-enable button after successful Gemini call
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
                     try {
                         // Display formatted JSON in the OCR text view
                         String formattedJson = formatJsonForDisplay(structuredData);
                         Log.d(TAG, "Formatted JSON length: " + formattedJson.length());
-                        
+
                         // Hide progress bar and show text view with JSON
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.GONE);
@@ -1200,28 +1226,32 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         } else {
                             Log.e(TAG, "ocrTextView is null!");
                         }
-                        
+
                         // Ensure OCR card is visible
                         if (ocrResultCard != null) {
                             ocrResultCard.setVisibility(View.VISIBLE);
                         }
-                        
+
                         currentReceipt = mapGeminiResponseToReceipt(structuredData, ocrText);
                         if (btnSave != null) {
                             btnSave.setVisibility(View.VISIBLE);
                             btnSave.setEnabled(true);
                         }
-                        Toast.makeText(ReceiptScanActivity.this, "Receipt data extracted successfully", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ReceiptScanActivity.this, getString(R.string.receipt_data_extracted_successfully), Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to map Gemini response to Receipt", e);
                         e.printStackTrace();
+                        // Re-enable button on parsing error
+                        if (btnProcess != null) {
+                            btnProcess.setEnabled(true);
+                        }
                         // Hide progress bar and show error in TextView
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.GONE);
                         }
                         if (ocrTextView != null) {
                             ocrTextView.setVisibility(View.VISIBLE);
-                            ocrTextView.setText("Error parsing response:\n" + e.getMessage() + "\n\nOriginal OCR:\n" + ocrText);
+                            ocrTextView.setText(getString(R.string.error_parsing_response, e.getMessage(), ocrText));
                         }
                         // Fallback to basic parser
                         currentReceipt = ReceiptParser.parse(ocrText);
@@ -1229,7 +1259,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             btnSave.setVisibility(View.VISIBLE);
                             btnSave.setEnabled(true);
                         }
-                        Toast.makeText(ReceiptScanActivity.this, "OCR complete (parsing fallback)", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ReceiptScanActivity.this, getString(R.string.ocr_complete_parsing_fallback), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -1240,13 +1270,17 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 e.printStackTrace();
                 runOnUiThread(() -> {
                     hideProcessingDialog();
+                    // Re-enable button after Gemini call failure
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
                     // Hide progress bar and show error message in TextView
                     if (ocrProcessingProgressBar != null) {
                         ocrProcessingProgressBar.setVisibility(View.GONE);
                     }
                     if (ocrTextView != null) {
                         ocrTextView.setVisibility(View.VISIBLE);
-                        ocrTextView.setText("Gemini API Error: " + e.getMessage() + "\n\nOriginal OCR Text:\n" + ocrText);
+                        ocrTextView.setText(getString(R.string.gemini_api_error, e.getMessage(), ocrText));
                     }
                     // Ensure OCR card is visible
                     if (ocrResultCard != null) {
@@ -1258,7 +1292,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         btnSave.setVisibility(View.VISIBLE);
                         btnSave.setEnabled(true);
                     }
-                    Toast.makeText(ReceiptScanActivity.this, "Gemini unavailable: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ReceiptScanActivity.this, getString(R.string.gemini_unavailable, e.getMessage()), Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -1298,7 +1332,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
         Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
         if (structuredData.has("receipt")) {
             JSONObject receiptObj = structuredData.getJSONObject("receipt");
-            
+
             if (receiptObj.has("receiptId")) receiptInfo.setReceiptId(receiptObj.getString("receiptId"));
             if (receiptObj.has("date")) receiptInfo.setDate(receiptObj.getString("date"));
             if (receiptObj.has("time")) receiptInfo.setTime(receiptObj.getString("time"));
@@ -1315,7 +1349,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             } else {
                 Log.w(TAG, "Category field not found in Gemini receipt object");
             }
-            
+
             // Parse date string to receiptDateTimestamp (actual receipt date for notifications)
             if (receiptInfo.getDate() != null && !receiptInfo.getDate().isEmpty()) {
                 try {
@@ -1343,11 +1377,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
         if (structuredData.has("items")) {
             JSONArray itemsArray = structuredData.getJSONArray("items");
             List<ReceiptItem> items = new ArrayList<>();
-            
+
             for (int i = 0; i < itemsArray.length(); i++) {
                 JSONObject itemObj = itemsArray.getJSONObject(i);
                 ReceiptItem item = new ReceiptItem();
-                
+
                 if (itemObj.has("name")) item.setName(itemObj.getString("name"));
                 if (itemObj.has("quantity")) item.setQuantity(itemObj.getInt("quantity"));
                 if (itemObj.has("unitPrice")) item.setUnitPrice(itemObj.getDouble("unitPrice"));
@@ -1360,12 +1394,12 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         primaryCategoryFromItems = itemCategory;
                     }
                 }
-                
+
                 items.add(item);
             }
             receipt.setItems(items);
         }
-        
+
         // If receipt-level category is not set, use primary category from items as fallback
         if (receiptInfo.getCategory() == null || receiptInfo.getCategory().isEmpty()) {
             if (primaryCategoryFromItems != null && !primaryCategoryFromItems.isEmpty()) {
@@ -1373,14 +1407,14 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 Log.d(TAG, "Set category from items: " + primaryCategoryFromItems);
             }
         }
-        
+
         // Log category for debugging
         if (receiptInfo.getCategory() != null) {
             Log.d(TAG, "Final receipt category: " + receiptInfo.getCategory());
         } else {
             Log.w(TAG, "Receipt category is null after mapping");
         }
-        
+
         receipt.setReceipt(receiptInfo);
 
         // Extract additional information
@@ -1459,7 +1493,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             } catch (Exception ex) { Log.d(TAG, "setImageURI fallback failed", ex); }
         }
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

@@ -49,7 +49,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Track your spending manually"
+                android:text="@string/track_your_spending_manually"
                 android:textSize="14sp"
                 android:textColor="?attr/colorOnSurface"
                 android:alpha="0.7"

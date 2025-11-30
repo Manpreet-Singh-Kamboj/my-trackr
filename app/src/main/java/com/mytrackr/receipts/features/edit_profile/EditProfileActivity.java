@@ -94,7 +94,7 @@ public class EditProfileActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openGallery();
             } else {
-                Toast.makeText(this, "Permission denied for accessing gallery.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.permission_denied_for_accessing_gallery), Toast.LENGTH_SHORT).show();
             }
         }
     }

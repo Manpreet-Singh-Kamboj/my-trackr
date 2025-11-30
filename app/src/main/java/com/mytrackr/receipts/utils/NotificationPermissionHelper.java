@@ -15,7 +15,7 @@ import androidx.core.content.ContextCompat;
 public class NotificationPermissionHelper {
     private static final String TAG = "NotificationPermissionHelper";
     private static final int PERMISSION_REQUEST_CODE = 200;
-    
+
     public static boolean hasNotificationPermission(Context context) {
         try {
             boolean notificationsEnabled = false;
@@ -25,12 +25,12 @@ public class NotificationPermissionHelper {
                 Log.w(TAG, "SecurityException when checking if notifications are enabled - likely disabled at system level", e);
                 return false;
             }
-            
+
             if (!notificationsEnabled) {
                 Log.d(TAG, "Notifications are disabled at system level");
                 return false;
             }
-            
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 try {
                     int result = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS);
@@ -46,7 +46,7 @@ public class NotificationPermissionHelper {
             return false;
         }
     }
-    
+
     public static boolean requestNotificationPermission(Activity activity) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -54,26 +54,26 @@ public class NotificationPermissionHelper {
                     Log.d(TAG, "Notification permission already granted");
                     return true;
                 }
-                
+
                 try {
                     Log.d(TAG, "Requesting POST_NOTIFICATIONS permission");
                     ActivityCompat.requestPermissions(
-                        activity,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        PERMISSION_REQUEST_CODE
+                            activity,
+                            new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                            PERMISSION_REQUEST_CODE
                     );
                     return false;
                 } catch (SecurityException e) {
                     Log.e(TAG, "SecurityException when requesting notification permission", e);
-                    Toast.makeText(activity, 
-                        "Unable to request notification permission. Please enable notifications in System Settings.", 
-                        Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity,
+                            "Unable to request notification permission. Please enable notifications in System Settings.",
+                            Toast.LENGTH_LONG).show();
                     return false;
                 } catch (Exception e) {
                     Log.e(TAG, "Exception when requesting notification permission", e);
-                    Toast.makeText(activity, 
-                        "Unable to request notification permission. Please try again.", 
-                        Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity,
+                            "Unable to request notification permission. Please try again.",
+                            Toast.LENGTH_LONG).show();
                     return false;
                 }
             }
@@ -83,26 +83,26 @@ public class NotificationPermissionHelper {
                 notificationsEnabled = NotificationManagerCompat.from(activity).areNotificationsEnabled();
             } catch (SecurityException e) {
                 Log.w(TAG, "SecurityException when checking if notifications are enabled - likely disabled at system level", e);
-                Toast.makeText(activity, 
-                    "Please enable notifications for this app in System Settings to receive reminders.", 
-                    Toast.LENGTH_LONG).show();
+                Toast.makeText(activity,
+                        "Please enable notifications for this app in System Settings to receive reminders.",
+                        Toast.LENGTH_LONG).show();
                 return false;
             }
-            
+
             if (!notificationsEnabled) {
                 Log.d(TAG, "Notifications disabled at system level");
-                Toast.makeText(activity, 
-                    "Please enable notifications for this app in System Settings to receive reminders.", 
-                    Toast.LENGTH_LONG).show();
+                Toast.makeText(activity,
+                        "Please enable notifications for this app in System Settings to receive reminders.",
+                        Toast.LENGTH_LONG).show();
                 return false;
             }
-            
+
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Unexpected exception when requesting notification permission", e);
-            Toast.makeText(activity, 
-                "Unable to request notification permission. Please try again.", 
-                Toast.LENGTH_LONG).show();
+            Toast.makeText(activity,
+                    "Unable to request notification permission. Please try again.",
+                    Toast.LENGTH_LONG).show();
             return false;
         }
     }
@@ -111,16 +111,15 @@ public class NotificationPermissionHelper {
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(activity, "Notification permission granted", Toast.LENGTH_SHORT).show();
-                
+
                 NotificationPreferences prefs = new NotificationPreferences(activity);
                 prefs.setExpenseAlertsEnabled(true);
                 prefs.setReplacementReminderEnabled(true);
             } else {
-                Toast.makeText(activity, 
-                    "Notification permission is required to receive reminders. You can enable it in Settings.", 
-                    Toast.LENGTH_LONG).show();
+                Toast.makeText(activity,
+                        "Notification permission is required to receive reminders. You can enable it in Settings.",
+                        Toast.LENGTH_LONG).show();
             }
         }
     }
 }
-

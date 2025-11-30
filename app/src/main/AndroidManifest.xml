@@ -120,6 +120,14 @@
         <activity
             android:name=".features.core.MainActivity"
             android:exported="false" />
+        <activity
+            android:name=".features.category_details.CategoryDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".features.core.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".features.core.MainActivity" />
+        </activity>
 
         <!-- Firebase Cloud Messaging Service -->
         <service

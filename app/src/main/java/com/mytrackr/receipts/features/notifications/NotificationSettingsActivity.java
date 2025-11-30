@@ -41,9 +41,9 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityNotificationSettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
+
         notificationPrefs = new NotificationPreferences(this);
-        
+
         setupToolbar();
         initViews();
         loadPreferences();
@@ -54,32 +54,32 @@ public class NotificationSettingsActivity extends AppCompatActivity {
             return insets;
         });
     }
-    
+
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         toolbar.setTitle("");
-        binding.toolbar.toolbarTitle.setText("Notifications");
+        binding.toolbar.toolbarTitle.setText(R.string.notifications);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
     }
-    
+
     private void initViews() {
         switchReplacementReminder = binding.switchReplacementReminder;
         switchExpenseAlerts = binding.switchExpenseAlerts;
         editReplacementDays = binding.editReplacementDays;
         editNotificationDaysBefore = binding.editNotificationDaysBefore;
     }
-    
+
     private void loadPreferences() {
         switchReplacementReminder.setChecked(notificationPrefs.isReplacementReminderEnabled());
         switchExpenseAlerts.setChecked(notificationPrefs.isExpenseAlertsEnabled());
         editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
         editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
     }
-    
+
     private void setupListeners() {
         switchReplacementReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             notificationPrefs.setReplacementReminderEnabled(isChecked);
@@ -88,21 +88,21 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         switchExpenseAlerts.setOnCheckedChangeListener((buttonView, isChecked) -> {
             notificationPrefs.setExpenseAlertsEnabled(isChecked);
         });
-        
+
 
         editReplacementDays.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 saveReplacementDays();
             }
         });
-        
+
         editNotificationDaysBefore.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 saveNotificationDaysBefore();
             }
         });
     }
-    
+
     private void saveReplacementDays() {
         String daysStr = editReplacementDays.getText() != null ? editReplacementDays.getText().toString() : "";
         if (!TextUtils.isEmpty(daysStr)) {
@@ -111,16 +111,16 @@ public class NotificationSettingsActivity extends AppCompatActivity {
                 if (days > 0 && days <= 365) {
                     notificationPrefs.setReplacementDays(days);
                 } else {
-                    Toast.makeText(this, "Please enter a value between 1 and 365", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.please_enter_a_value_between_1_and_365), Toast.LENGTH_SHORT).show();
                     editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
                 editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
             }
         }
     }
-    
+
     private void saveNotificationDaysBefore() {
         String daysStr = editNotificationDaysBefore.getText() != null ? editNotificationDaysBefore.getText().toString() : "";
         if (!TextUtils.isEmpty(daysStr)) {
@@ -129,16 +129,16 @@ public class NotificationSettingsActivity extends AppCompatActivity {
                 if (days >= 0 && days <= 30) {
                     notificationPrefs.setNotificationDaysBefore(days);
                 } else {
-                    Toast.makeText(this, "Please enter a value between 0 and 30", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.please_enter_a_value_between_0_and_30), Toast.LENGTH_SHORT).show();
                     editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
                 editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
             }
         }
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -149,7 +149,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -162,15 +162,14 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Notification permission granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.notification_permission_granted), Toast.LENGTH_SHORT).show();
                 notificationPrefs.setExpenseAlertsEnabled(true);
                 notificationPrefs.setReplacementReminderEnabled(true);
                 switchReplacementReminder.setChecked(true);
                 switchExpenseAlerts.setChecked(true);
             } else {
-                Toast.makeText(this, "Notification permission is required to receive reminders", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.notification_permission_is_required_to_receive_reminders), Toast.LENGTH_LONG).show();
             }
         }
     }
 }
-

@@ -66,14 +66,14 @@ public class EditBudgetBottomSheet extends BottomSheetDialogFragment {
         String amountStr = etBudgetAmount.getText().toString().trim();
 
         if (TextUtils.isEmpty(amountStr)) {
-            Toast.makeText(getContext(), "Please enter budget amount", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_enter_budget_amount), Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
             double amount = Double.parseDouble(amountStr);
             if (amount <= 0) {
-                Toast.makeText(getContext(), "Please enter a valid amount", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.please_enter_a_valid_amount), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -82,7 +82,7 @@ public class EditBudgetBottomSheet extends BottomSheetDialogFragment {
             }
             dismiss();
         } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "Please enter a valid number", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
         }
     }
 

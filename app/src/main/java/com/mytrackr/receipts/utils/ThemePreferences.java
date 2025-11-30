@@ -8,18 +8,18 @@ import androidx.appcompat.app.AppCompatDelegate;
 public class ThemePreferences {
     private static final String PREF_NAME = "theme_preferences";
     private static final String KEY_THEME_MODE = "theme_mode";
-    
+
     // Theme mode constants
     public static final int THEME_MODE_SYSTEM = 0;
     public static final int THEME_MODE_LIGHT = 1;
     public static final int THEME_MODE_DARK = 2;
-    
+
     private final SharedPreferences preferences;
-    
+
     public ThemePreferences(Context context) {
         preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
-    
+
     /**
      * Get the current theme mode
      * @return Theme mode (0 = System, 1 = Light, 2 = Dark)
@@ -27,7 +27,7 @@ public class ThemePreferences {
     public int getThemeMode() {
         return preferences.getInt(KEY_THEME_MODE, THEME_MODE_SYSTEM);
     }
-    
+
     /**
      * Set the theme mode
      * @param themeMode Theme mode (0 = System, 1 = Light, 2 = Dark)
@@ -36,7 +36,7 @@ public class ThemePreferences {
         preferences.edit().putInt(KEY_THEME_MODE, themeMode).apply();
         applyThemeMode(themeMode);
     }
-    
+
     /**
      * Apply the theme mode to the app
      * @param themeMode Theme mode to apply
@@ -55,7 +55,7 @@ public class ThemePreferences {
                 break;
         }
     }
-    
+
     /**
      * Apply the saved theme mode on app startup
      * Should be called in Application class or MainActivity onCreate
@@ -65,4 +65,3 @@ public class ThemePreferences {
         applyThemeMode(themeMode);
     }
 }
-

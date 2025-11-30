@@ -21,7 +21,7 @@ public class BudgetNotificationReceiver extends BroadcastReceiver {
     private static final String TAG = "BudgetNotificationReceiver";
     public static final String EXTRA_BUDGET_MONTH = "budget_month";
     public static final String EXTRA_BUDGET_YEAR = "budget_year";
-    
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Alarm received for budget notification");
@@ -64,61 +64,61 @@ public class BudgetNotificationReceiver extends BroadcastReceiver {
 
             String docId = month + "_" + year;
             db.collection("users")
-                .document(userId)
-                .collection("budgets")
-                .document(docId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    try {
-                        if (documentSnapshot.exists()) {
-                            Log.d(TAG, "Budget document found, parsing...");
-                            Budget budget = com.mytrackr.receipts.data.repository.BudgetRepository.parseBudgetFromDocument(documentSnapshot);
-                            if (budget != null) {
-                                double percentage = budget.getSpentPercentage();
-                                String status = getBudgetStatus(percentage);
+                    .document(userId)
+                    .collection("budgets")
+                    .document(docId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        try {
+                            if (documentSnapshot.exists()) {
+                                Log.d(TAG, "Budget document found, parsing...");
+                                Budget budget = com.mytrackr.receipts.data.repository.BudgetRepository.parseBudgetFromDocument(documentSnapshot);
+                                if (budget != null) {
+                                    double percentage = budget.getSpentPercentage();
+                                    String status = getBudgetStatus(percentage);
 
-                                Log.d(TAG, "Budget parsed successfully. Status: " + status +
-                                        ", Percentage: " + percentage + "%");
+                                    Log.d(TAG, "Budget parsed successfully. Status: " + status +
+                                            ", Percentage: " + percentage + "%");
 
-                                NotificationHelper.showBudgetAlertNotification(
-                                    context,
-                                    budget,
-                                    status
-                                );
-                                Log.d(TAG, "Budget notification shown successfully");
+                                    NotificationHelper.showBudgetAlertNotification(
+                                            context,
+                                            budget,
+                                            status
+                                    );
+                                    Log.d(TAG, "Budget notification shown successfully");
+                                } else {
+                                    Log.w(TAG, "Failed to parse budget from document");
+                                }
                             } else {
-                                Log.w(TAG, "Failed to parse budget from document");
+                                Log.w(TAG, "Budget not found: " + docId);
                             }
-                        } else {
-                            Log.w(TAG, "Budget not found: " + docId);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error processing notification", e);
+                        } finally {
+                            try {
+                                com.mytrackr.receipts.utils.NotificationScheduler.scheduleWeeklyBudgetCheck(context);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error scheduling next weekly budget check", e);
+                            }
+                            pendingResult.finish();
                         }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error processing notification", e);
-                    } finally {
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching budget for notification: " + e.getMessage(), e);
                         try {
                             com.mytrackr.receipts.utils.NotificationScheduler.scheduleWeeklyBudgetCheck(context);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Error scheduling next weekly budget check", e);
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Error scheduling next weekly budget check after failure", ex);
                         }
                         pendingResult.finish();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching budget for notification: " + e.getMessage(), e);
-                    try {
-                        com.mytrackr.receipts.utils.NotificationScheduler.scheduleWeeklyBudgetCheck(context);
-                    } catch (Exception ex) {
-                        Log.e(TAG, "Error scheduling next weekly budget check after failure", ex);
-                    }
-                    pendingResult.finish();
-                });
+                    });
 
         } catch (Exception e) {
             Log.e(TAG, "Unexpected error in onReceive", e);
             pendingResult.finish();
         }
     }
-    
+
     private String getBudgetStatus(double percentage) {
         if (percentage >= 100) {
             return "budget_exceeded";
@@ -130,4 +130,3 @@ public class BudgetNotificationReceiver extends BroadcastReceiver {
         return "on_track";
     }
 }
-

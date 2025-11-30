@@ -104,4 +104,7 @@ dependencies {
 
     // Guava for ListenableFuture (required by WorkManager)
     implementation("com.google.guava:guava:31.1-android")
+
+    // Chart for dashboard
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

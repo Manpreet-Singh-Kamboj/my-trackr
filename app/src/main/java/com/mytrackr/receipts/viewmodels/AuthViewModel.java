@@ -43,7 +43,7 @@ public class AuthViewModel extends AndroidViewModel {
     private boolean passwordValidationError(String password, TextInputLayout passwordLayout, int errorColor, int primaryColor) {
         if (password.trim().isEmpty()) {
             passwordLayout.setErrorEnabled(true);
-            passwordLayout.setError("Password is required");
+            passwordLayout.setError(getApplication().getString(R.string.password_is_required));
             passwordLayout.setStartIconTintList(ColorStateList.valueOf(errorColor));
             return true;
         }
@@ -63,14 +63,14 @@ public class AuthViewModel extends AndroidViewModel {
             emailLayout.setStartIconTintList(
                     ColorStateList.valueOf(errorColor)
             );
-            emailLayout.setError("Email is required");
+            emailLayout.setError(getApplication().getString(R.string.email_is_required));
             return true;
         } else if (!Patterns.EMAIL_ADDRESS.matcher(emailStr).matches()) {
             emailLayout.setErrorEnabled(true);
             emailLayout.setStartIconTintList(
                     ColorStateList.valueOf(errorColor)
             );
-            emailLayout.setError("Email is not valid");
+            emailLayout.setError(getApplication().getString(R.string.email_is_not_valid));
             return true;
         }
         if(emailLayout.hasFocus()){
@@ -84,7 +84,7 @@ public class AuthViewModel extends AndroidViewModel {
     private boolean fullNameValidationError(String fullName,TextInputLayout fullNameLayout, int errorColor, int primaryColor){
         if(fullName.trim().isEmpty()){
             fullNameLayout.setErrorEnabled(true);
-            fullNameLayout.setError("Full Name is required");
+            fullNameLayout.setError(getApplication().getString(R.string.full_name_is_required));
             fullNameLayout.setStartIconTintList(ColorStateList.valueOf(errorColor));
             return true;
         }
@@ -214,14 +214,14 @@ public class AuthViewModel extends AndroidViewModel {
                     new OnProfileUpdateListener() {
                         @Override
                         public void onSuccess() {
-                            Snackbar.make(binding.getRoot(), "Profile updated successfully", Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(binding.getRoot(), getApplication().getString(R.string.profile_updated_successfully), Snackbar.LENGTH_SHORT).show();
                             binding.saveChanges.setEnabled(true);
                             refreshUserDetails();
                         }
 
                         @Override
                         public void onFailure(String errorMessage) {
-                            Snackbar.make(binding.getRoot(), "Failed to update profile: " + errorMessage, Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(binding.getRoot(), getApplication().getString(R.string.failed_to_update_profile, errorMessage), Snackbar.LENGTH_SHORT).show();
                             binding.saveChanges.setEnabled(true);
                         }
                     });
