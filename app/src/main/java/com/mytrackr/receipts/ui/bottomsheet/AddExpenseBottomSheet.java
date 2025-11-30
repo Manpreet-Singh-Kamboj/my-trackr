@@ -50,19 +50,19 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
         String amountStr = etExpenseAmount.getText().toString().trim();
 
         if (TextUtils.isEmpty(description)) {
-            Toast.makeText(getContext(), "Please enter what you're spending on", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_enter_what_youre_spending_on), Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (TextUtils.isEmpty(amountStr)) {
-            Toast.makeText(getContext(), "Please enter expense amount", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_enter_expense_amount), Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
             double amount = Double.parseDouble(amountStr);
             if (amount <= 0) {
-                Toast.makeText(getContext(), "Please enter a valid amount", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.please_enter_a_valid_amount), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -71,7 +71,7 @@ public class AddExpenseBottomSheet extends BottomSheetDialogFragment {
             }
             dismiss();
         } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "Please enter a valid number", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
         }
     }
 

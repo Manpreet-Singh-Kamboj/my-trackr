@@ -57,6 +57,8 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.mytrackr.receipts.features.category_details.CategoryDetailActivity;
+import android.content.Intent;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -176,22 +178,18 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         fetchAllDataOnce();
     }
 
+    private View loadingProgressLayout;
+
     private void initViews(View view) {
+        loadingProgressLayout = view.findViewById(R.id.loadingProgressLayout);
         rvCategories = view.findViewById(R.id.rvCategories);
         rvCategories.setLayoutManager(new LinearLayoutManager(getContext()));
         categoryAdapter = new CategoryAdapter(displayList);
         rvCategories.setAdapter(categoryAdapter);
 
         categoryAdapter.setOnItemClickListener(item -> {
-            CategoryDetailFragment detailFragment = CategoryDetailFragment.newInstance(item.name, item.colorHex);
-            if (getParentFragmentManager() != null && getView() != null && getView().getParent() != null) {
-                int containerId = ((ViewGroup) getView().getParent()).getId();
-                getParentFragmentManager().beginTransaction()
-                        .replace(containerId, detailFragment)
-                        .addToBackStack(null)
-                        .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out)
-                        .commit();
-            }
+            Intent intent = CategoryDetailActivity.newIntent(requireContext(), item.name, item.colorHex);
+            startActivity(intent);
         });
 
         barChart = view.findViewById(R.id.barChart);
@@ -261,6 +259,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         barChart.setTouchEnabled(true);
         barChart.setScaleEnabled(false);
         barChart.setFitBars(true);
+        barChart.setNoDataText(""); // Disable default "No Chart Data Available" message
 
         XAxis xAxis = barChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -279,6 +278,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         lineChart.getLegend().setEnabled(false);
         lineChart.setDrawGridBackground(false);
         lineChart.setTouchEnabled(true);
+        lineChart.setNoDataText(""); // Disable default "No Chart Data Available" message
 
         XAxis lineXAxis = lineChart.getXAxis();
         lineXAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -302,7 +302,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         pieChart.setHoleColor(colorSurface);
         pieChart.setHoleRadius(55f);
         pieChart.setTransparentCircleRadius(60f);
-        pieChart.setNoDataText("Loading data...");
+        pieChart.setNoDataText(""); // Disable default "No Chart Data Available" message
         pieChart.setExtraOffsets(45.f, 10.f, 45.f, 10.f);
         pieChart.setOnChartValueSelectedListener(this);
 
@@ -314,6 +314,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             receiptsWeeklyChart.setTouchEnabled(false);
             receiptsWeeklyChart.setScaleEnabled(false);
             receiptsWeeklyChart.setFitBars(true);
+            receiptsWeeklyChart.setNoDataText(""); // Disable default "No Chart Data Available" message
 
             XAxis receiptsXAxis = receiptsWeeklyChart.getXAxis();
             receiptsXAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -450,6 +451,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
     }
 
     private void fetchAllDataOnce() {
+        showLoading(true);
         // Fetch Receipts
         ReceiptRepository.getInstance().fetchReceiptsForCurrentUser(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
@@ -465,6 +467,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                 }
                 fetchTransactionsAndRender();
             } else {
+                showLoading(false);
                 Toast.makeText(getContext(), getString(R.string.failed_to_load_receipts), Toast.LENGTH_SHORT).show();
             }
         });
@@ -496,12 +499,20 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
                     filterAndRenderData();
                     updateWeeklyInsights();
+                    showLoading(false);
                 })
                 .addOnFailureListener(e -> {
                     Log.e("Dashboard", "Failed to load transactions", e);
                     filterAndRenderData();
                     updateWeeklyInsights();
+                    showLoading(false);
                 });
+    }
+
+    private void showLoading(boolean show) {
+        if (loadingProgressLayout != null) {
+            loadingProgressLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void updateWeeklyInsights() {
@@ -728,6 +739,9 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             Calendar e = (Calendar) rangeEndCalendar.clone();
             setEndOfDay(e);
             endTime = e.getTimeInMillis();
+            // Calculate number of days in range
+            long daysDiff = (endTime - startTime) / (1000 * 60 * 60 * 24);
+            barCount = (int) daysDiff + 1; // +1 to include both start and end days
         }
 
         if (currentMode != MODE_ALL && currentMode != MODE_RANGE) {
@@ -902,6 +916,16 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             key = cal.get(Calendar.DAY_OF_MONTH);
         } else if (currentMode == MODE_YEAR) {
             key = cal.get(Calendar.MONTH) + 1;
+        } else if (currentMode == MODE_RANGE) {
+            // Calculate day number within the range (1-based)
+            Calendar rangeStart = (Calendar) rangeStartCalendar.clone();
+            setStartOfDay(rangeStart);
+            long daysDiff = (timestamp - rangeStart.getTimeInMillis()) / (1000 * 60 * 60 * 24);
+            key = (int) daysDiff + 1; // +1 to make it 1-based
+            // Ensure key is within valid range
+            if (key < 1 || key > map.size()) {
+                return; // Skip if outside range
+            }
         }
 
         if (key != -1 && map.containsKey(key)) {
@@ -954,7 +978,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         BarData data = new BarData(set);
         data.setBarWidth(0.5f);
 
-        barChart.getXAxis().setValueFormatter(null);
         barChart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(xLabels));
         barChart.getXAxis().setLabelCount(count);
 
@@ -1157,7 +1180,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             @Override
             public String getPieLabel(float value, PieEntry pieEntry) {
                 if (pieEntry != null) {
-                    return pieEntry.getLabel() + "\n" + String.format("%.1f%%", value);
+                    return pieEntry.getLabel() + " \n" + String.format("%.1f%%", value);
                 }
                 return String.format("%.1f%%", value);
             }

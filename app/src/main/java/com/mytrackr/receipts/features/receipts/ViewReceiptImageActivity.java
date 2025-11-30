@@ -56,7 +56,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
         binding.toolbar.toolbarTitle.setText(R.string.view_receipt_image);
         imageUrl = getIntent().getStringExtra(EXTRA_IMAGE_URL);
         if (imageUrl == null || imageUrl.isEmpty()) {
-            Toast.makeText(this, "Image URL not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.image_url_not_found), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -132,7 +132,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 downloadImage();
             } else {
-                Toast.makeText(this, "Permission denied. Cannot download image.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.permission_denied_cannot_download_image), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -145,7 +145,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
                 downloadUsingFileSave();
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to download image: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.failed_to_download_image, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -159,14 +159,14 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
-            request.setTitle("Downloading Receipt");
-            request.setDescription("Receipt image download");
+            request.setTitle(getString(R.string.downloading_receipt));
+            request.setDescription(getString(R.string.receipt_image_download));
             request.setMimeType("image/jpeg");
 
             downloadManager.enqueue(request);
-            Toast.makeText(this, "Download started. Check your Downloads folder.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.download_started_check_your_downloads_folder), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to start download: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.failed_to_start_download, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -195,11 +195,11 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
                 inputStream.close();
 
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Image saved to Downloads folder", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.image_saved_to_downloads_folder), Toast.LENGTH_SHORT).show();
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Failed to download: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.failed_to_download, e.getMessage()), Toast.LENGTH_LONG).show();
                 });
             }
         }).start();

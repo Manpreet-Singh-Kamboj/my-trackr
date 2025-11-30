@@ -46,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         toolbar.setTitle("");
-        binding.toolbar.toolbarTitle.setText("Settings");
+        binding.toolbar.toolbarTitle.setText(R.string.settings);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -93,7 +93,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             btnRequestPermission.setVisibility(android.view.View.GONE);
-            binding.textNotificationStatus.setText("Status: Enabled (Android 12 and below)");
+            binding.textNotificationStatus.setText(R.string.status_enabled_android_12_below);
             return;
         }
 
@@ -101,7 +101,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
                 NotificationPermissionHelper.requestNotificationPermission(this);
             } else {
-                Toast.makeText(this, "Notification permission is already granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.notification_permission_is_already_granted), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -109,12 +109,12 @@ public class SettingsActivity extends AppCompatActivity {
     private void updateNotificationPermissionStatus() {
         boolean hasPermission = NotificationPermissionHelper.hasNotificationPermission(this);
         if (hasPermission) {
-            binding.textNotificationStatus.setText("Status: Granted");
-            binding.btnRequestNotificationPermission.setText("Granted");
+            binding.textNotificationStatus.setText(R.string.status_granted);
+            binding.btnRequestNotificationPermission.setText(R.string.granted);
             binding.btnRequestNotificationPermission.setEnabled(false);
         } else {
-            binding.textNotificationStatus.setText("Status: Not granted");
-            binding.btnRequestNotificationPermission.setText("Enable");
+            binding.textNotificationStatus.setText(R.string.status_not_granted);
+            binding.btnRequestNotificationPermission.setText(R.string.enable);
             binding.btnRequestNotificationPermission.setEnabled(true);
         }
     }

@@ -343,6 +343,8 @@ public class BudgetViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading receipts for expenses", e);
+                    // Post empty list on error so UI can still update
+                    receiptsLiveData.postValue(new ArrayList<>());
                     errorMessage.postValue("Failed to load receipts: " + e.getMessage());
                 });
     }

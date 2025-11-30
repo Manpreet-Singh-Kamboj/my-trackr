@@ -207,9 +207,9 @@ public class ExpenseItemAdapter extends RecyclerView.Adapter<ExpenseItemAdapter.
                     transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
 
             if (isSameDay(transactionDate, today)) {
-                return "Today";
+                return itemView.getContext().getString(R.string.today);
             } else if (isSameDay(transactionDate, yesterday)) {
-                return "Yesterday";
+                return itemView.getContext().getString(R.string.yesterday);
             } else if (isSameMonth) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
                 return dateFormat.format(new Date(timestamp));

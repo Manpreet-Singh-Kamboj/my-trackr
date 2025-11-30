@@ -170,7 +170,7 @@ public class ReceiptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         public void bind(Receipt receipt) {
-            String storeNameText = "Unknown Store";
+            String storeNameText = itemView.getContext().getString(R.string.unknown_store);
             if (receipt.getStore() != null && receipt.getStore().getName() != null && !receipt.getStore().getName().isEmpty()) {
                 storeNameText = receipt.getStore().getName();
             } else if (receipt.getStoreName() != null && !receipt.getStoreName().isEmpty()) {

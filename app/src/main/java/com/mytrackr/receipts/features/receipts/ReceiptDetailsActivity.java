@@ -67,7 +67,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
         receipt = (Receipt) getIntent().getSerializableExtra(EXTRA_RECEIPT);
         if (receipt == null || receipt.getId() == null) {
             Log.e(TAG, "Receipt is null or missing ID, finishing activity");
-            Toast.makeText(this, "Receipt not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.receipt_not_found), Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -277,7 +277,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                 intent.putExtra(ViewReceiptImageActivity.EXTRA_IMAGE_URL, receipt.getImageUrl());
                 startActivity(intent);
             } else {
-                Toast.makeText(this, "Receipt image not available", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.receipt_image_not_available), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -331,14 +331,14 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                             calendar.get(java.util.Calendar.MINUTE),
                             android.text.format.DateFormat.is24HourFormat(this)
                     );
-                    timePickerDialog.setTitle("Select Reminder Time");
+                    timePickerDialog.setTitle(R.string.select_reminder_time);
                     timePickerDialog.show();
                 },
                 calendar.get(java.util.Calendar.YEAR),
                 calendar.get(java.util.Calendar.MONTH),
                 calendar.get(java.util.Calendar.DAY_OF_MONTH)
         );
-        datePickerDialog.setTitle("Select Reminder Date");
+        datePickerDialog.setTitle(R.string.select_reminder_date);
         datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
         datePickerDialog.show();
     }
@@ -392,7 +392,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                                     ", receiptDateTimestamp: " + receipt.getReceipt().getReceiptDateTimestamp() +
                                     " (should match BEFORE values)");
 
-                            Toast.makeText(this, "Reminder date updated", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.reminder_date_updated), Toast.LENGTH_SHORT).show();
                             populateNotificationDate();
 
                             com.mytrackr.receipts.utils.NotificationPreferences prefs =
@@ -416,7 +416,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Failed to update custom notification date", e);
                         runOnUiThread(() -> {
-                            Toast.makeText(this, "Failed to update reminder date", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, getString(R.string.failed_to_update_reminder_date), Toast.LENGTH_SHORT).show();
                         });
                     });
         }
@@ -424,16 +424,16 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
 
     private void showDeleteConfirmationDialog() {
         new MaterialAlertDialogBuilder(this)
-                .setTitle("Delete Receipt")
-                .setMessage("Are you sure you want to delete this receipt? This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> deleteReceipt())
-                .setNegativeButton("Cancel", null)
+                .setTitle(R.string.delete_receipt_title)
+                .setMessage(R.string.are_you_sure_you_want_to_delete_this_receipt)
+                .setPositiveButton(R.string.delete, (dialog, which) -> deleteReceipt())
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void deleteReceipt() {
         if (receipt.getId() == null || receipt.getId().isEmpty()) {
-            Toast.makeText(this, "Receipt ID not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.receipt_id_not_found), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -442,7 +442,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
             @Override
             public void onSuccess() {
                 runOnUiThread(() -> {
-                    Toast.makeText(ReceiptDetailsActivity.this, "Receipt deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ReceiptDetailsActivity.this, getString(R.string.receipt_deleted), Toast.LENGTH_SHORT).show();
                     // Cancel any scheduled notifications for this receipt
                     com.mytrackr.receipts.utils.NotificationScheduler.cancelReceiptNotification(
                             ReceiptDetailsActivity.this,
@@ -457,7 +457,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     btnDeleteReceipt.setEnabled(true);
                     Log.e(TAG, "Failed to delete receipt", e);
-                    Toast.makeText(ReceiptDetailsActivity.this, "Failed to delete receipt: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(ReceiptDetailsActivity.this, getString(R.string.failed_to_delete_receipt, e.getMessage()), Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -561,7 +561,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                         Log.d(TAG, "Receipt data loaded from Firestore successfully");
                     } else {
                         Log.e(TAG, "Fetched receipt is null");
-                        Toast.makeText(ReceiptDetailsActivity.this, "Failed to load receipt data", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ReceiptDetailsActivity.this, getString(R.string.failed_to_load_receipt_data), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -571,7 +571,7 @@ public class ReceiptDetailsActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     Log.e(TAG, "Failed to fetch receipt from Firestore", e);
                     populateReceiptDetails();
-                    Toast.makeText(ReceiptDetailsActivity.this, "Using cached receipt data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ReceiptDetailsActivity.this, getString(R.string.using_cached_receipt_data), Toast.LENGTH_SHORT).show();
                 });
             }
         });

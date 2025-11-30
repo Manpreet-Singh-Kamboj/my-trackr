@@ -44,8 +44,13 @@ public class ExpensesFragment extends Fragment {
     private com.google.android.material.card.MaterialCardView cardNoTransactions;
     private TextView tvReceiptsCount, tvManualTransactionsCount;
     private ProgressBar progressLoading;
+    private View loadingProgressLayout;
     private ExpenseItemAdapter expenseItemAdapter;
     private final MutableLiveData<List<Receipt>> receiptsLiveData = new MutableLiveData<>();
+    
+    // Track loading state for both data sources
+    private boolean transactionsLoaded = false;
+    private boolean receiptsLoaded = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +81,8 @@ public class ExpensesFragment extends Fragment {
         tvReceiptsCount = view.findViewById(R.id.tvReceiptsCount);
         tvManualTransactionsCount = view.findViewById(R.id.tvManualTransactionsCount);
         progressLoading = view.findViewById(R.id.progressLoading);
+        loadingProgressLayout = view.findViewById(R.id.loadingProgressLayout);
+        loadingProgressLayout = view.findViewById(R.id.loadingProgressLayout);
 
         expenseItemAdapter = new ExpenseItemAdapter();
         rvTransactions.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -87,6 +94,9 @@ public class ExpensesFragment extends Fragment {
         btnEditBudget.setOnClickListener(v -> showEditBudgetDialog());
         btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
 
+        // Reset loading flags
+        transactionsLoaded = false;
+        receiptsLoaded = false;
         showLoading(true);
         budgetViewModel.loadCurrentMonthBudget();
         budgetViewModel.loadCurrentMonthTransactions();
@@ -114,16 +124,22 @@ public class ExpensesFragment extends Fragment {
         });
 
         budgetViewModel.getTransactionsLiveData().observe(getViewLifecycleOwner(), transactions -> {
+            transactionsLoaded = true;
             combineAndDisplayExpenses(transactions, receiptsLiveData.getValue());
         });
 
         receiptsLiveData.observe(getViewLifecycleOwner(), receipts -> {
+            receiptsLoaded = true;
             combineAndDisplayExpenses(budgetViewModel.getTransactionsLiveData().getValue(), receipts);
         });
 
         budgetViewModel.getSaveSuccessLiveData().observe(getViewLifecycleOwner(), success -> {
             if (success != null) {
                 if (success) {
+                    // Reset loading flags
+                    transactionsLoaded = false;
+                    receiptsLoaded = false;
+                    showLoading(true);
                     // Reload budget to ensure UI is in sync with Firestore
                     budgetViewModel.loadCurrentMonthBudget();
                     budgetViewModel.loadCurrentMonthTransactions();
@@ -136,6 +152,10 @@ public class ExpensesFragment extends Fragment {
 
         budgetViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
+                // Mark both as loaded on error so loading indicator is hidden
+                // This handles cases where one data source fails
+                transactionsLoaded = true;
+                receiptsLoaded = true;
                 showLoading(false);
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
@@ -156,7 +176,10 @@ public class ExpensesFragment extends Fragment {
 
 
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
-        showLoading(false);
+        // Only hide loading when both data sources have been loaded
+        if (transactionsLoaded && receiptsLoaded) {
+            showLoading(false);
+        }
 
         List<ExpenseItem> expenseItems = new ArrayList<>();
 
@@ -294,12 +317,15 @@ public class ExpensesFragment extends Fragment {
         Budget currentBudget = budgetViewModel.getBudgetLiveData().getValue();
 
         if (currentBudget == null) {
-            Toast.makeText(getContext(), "Please set a budget first!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.please_set_a_budget_first), Toast.LENGTH_SHORT).show();
             return;
         }
 
         AddExpenseBottomSheet bottomSheet = AddExpenseBottomSheet.newInstance();
         bottomSheet.setOnExpenseAddedListener((description, expenseAmount) -> {
+            // Reset loading flags
+            transactionsLoaded = false;
+            receiptsLoaded = false;
             showLoading(true);
 
             budgetViewModel.addTransaction(description, expenseAmount, "expense");
@@ -314,7 +340,7 @@ public class ExpensesFragment extends Fragment {
                     newSpent
             );
 
-            Toast.makeText(getContext(), "Expense added: " + description + " - $" + expenseAmount, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.expense_added, description, expenseAmount), Toast.LENGTH_SHORT).show();
         });
         bottomSheet.show(getParentFragmentManager(), "AddExpenseBottomSheet");
     }
@@ -322,6 +348,10 @@ public class ExpensesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Reset loading flags
+        transactionsLoaded = false;
+        receiptsLoaded = false;
+        showLoading(true);
         budgetViewModel.refreshBudget();
         budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
         budgetViewModel.loadCurrentMonthTransactions();
@@ -329,40 +359,46 @@ public class ExpensesFragment extends Fragment {
 
     private void showDeleteConfirmationDialog(ExpenseItem item) {
         if (item.isReceipt()) {
-            Toast.makeText(getContext(), "Receipt Expenses can only be deleted from receipt details", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.receipt_expenses_can_only_be_deleted_from_receipt_details), Toast.LENGTH_SHORT).show();
             return;
         }
 
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("Delete Expense")
-                .setMessage("Are you sure you want to delete \"" + item.getDescription() + "\"? This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> {
+                .setTitle(R.string.delete_expense)
+                .setMessage(getString(R.string.are_you_sure_you_want_to_delete, item.getDescription()))
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
                     deleteExpenseItem(item);
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 
     private void deleteExpenseItem(ExpenseItem item) {
         if (item.isReceipt()) {
-            Toast.makeText(getContext(), "Cannot delete receipt from expense list", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.cannot_delete_receipt_from_expense_list), Toast.LENGTH_SHORT).show();
             return;
         }
 
         String transactionId = item.getId();
         if (transactionId == null || transactionId.isEmpty()) {
-            Toast.makeText(getContext(), "Transaction ID not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.transaction_id_not_found), Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Reset loading flags
+        transactionsLoaded = false;
+        receiptsLoaded = false;
         showLoading(true);
 
         budgetViewModel.deleteTransaction(transactionId);
 
-        Toast.makeText(getContext(), "Expense deleted", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), getString(R.string.expense_deleted), Toast.LENGTH_SHORT).show();
     }
 
     private void showLoading(boolean show) {
+        if (loadingProgressLayout != null) {
+            loadingProgressLayout.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
         if (progressLoading != null) {
             progressLoading.setVisibility(show ? View.VISIBLE : View.GONE);
         }

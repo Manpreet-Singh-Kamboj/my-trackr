@@ -39,7 +39,12 @@
 
         </LinearLayout>
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/mainContent"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -98,7 +103,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="Receipts"
+                                android:text="@string/receipts"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurface"
                                 android:alpha="0.7" />
@@ -138,7 +143,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="Self-Entered"
+                                android:text="@string/self_entered"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurface"
                                 android:alpha="0.7" />
@@ -168,7 +173,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Recent Expenses"
+                            android:text="@string/recent_expenses"
                             android:textSize="22sp"
                             android:textStyle="bold"
                             android:textColor="?attr/colorOnSurface" />
@@ -177,7 +182,7 @@
                             android:id="@+id/btnAddExpense"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Add"
+                            android:text="@string/add"
                             style="@style/Button.Rounded"
                             android:textSize="14sp" />
 
@@ -225,7 +230,7 @@
                                 android:id="@+id/tvNoTransactions"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="No expenses this month"
+                                android:text="@string/no_expenses_this_month"
                                 android:textSize="16sp"
                                 android:textColor="?attr/colorOnSurface"
                                 android:alpha="0.6"
@@ -235,7 +240,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
-                                android:text="Receipts and manual expenses will appear here"
+                                android:text="@string/receipts_and_manual_expenses_will_appear_here"
                                 android:textSize="12sp"
                                 android:textColor="?attr/colorOnSurface"
                                 android:alpha="0.5"
@@ -250,6 +255,37 @@
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>
+
+        <!-- Loading Indicator Overlay -->
+        <LinearLayout
+            android:id="@+id/loadingProgressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/colorSurface"
+            android:alpha="0.95"
+            android:visibility="gone">
+
+            <ProgressBar
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminateTint="?attr/colorPrimary"
+                android:foregroundTint="?attr/colorPrimary"
+                style="?android:attr/progressBarStyleLarge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/loading_expenses"
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurface"
+                android:alpha="0.7"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+        </FrameLayout>
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

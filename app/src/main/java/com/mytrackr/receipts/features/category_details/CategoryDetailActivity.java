@@ -1,39 +1,44 @@
-package com.mytrackr.receipts.features.core.fragments;
+package com.mytrackr.receipts.features.category_details;
 
-import android.graphics.Color;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.mytrackr.receipts.R;
+import com.mytrackr.receipts.data.model.Transaction;
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.models.ReceiptItem;
 import com.mytrackr.receipts.data.repository.ReceiptRepository;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.mytrackr.receipts.data.model.Transaction;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class CategoryDetailFragment extends Fragment {
+public class CategoryDetailActivity extends AppCompatActivity {
 
-    private static final String ARG_CATEGORY_NAME = "CATEGORY_NAME";
-    private static final String ARG_CATEGORY_COLOR = "CATEGORY_COLOR";
+    private static final String EXTRA_CATEGORY_NAME = "CATEGORY_NAME";
+    private static final String EXTRA_CATEGORY_COLOR = "CATEGORY_COLOR";
 
     private String categoryName;
     private String categoryColor;
@@ -44,59 +49,68 @@ public class CategoryDetailFragment extends Fragment {
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-    public static CategoryDetailFragment newInstance(String categoryName, String categoryColor) {
-        CategoryDetailFragment fragment = new CategoryDetailFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_CATEGORY_NAME, categoryName);
-        args.putString(ARG_CATEGORY_COLOR, categoryColor);
-        fragment.setArguments(args);
-        return fragment;
+    public static Intent newIntent(Context context, String categoryName, String categoryColor) {
+        Intent intent = new Intent(context, CategoryDetailActivity.class);
+        intent.putExtra(EXTRA_CATEGORY_NAME, categoryName);
+        intent.putExtra(EXTRA_CATEGORY_COLOR, categoryColor);
+        return intent;
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            categoryName = getArguments().getString(ARG_CATEGORY_NAME);
-            categoryColor = getArguments().getString(ARG_CATEGORY_COLOR);
-        }
+        setContentView(R.layout.activity_category_detail);
+
+        // Get intent extras
+        categoryName = getIntent().getStringExtra(EXTRA_CATEGORY_NAME);
+        categoryColor = getIntent().getStringExtra(EXTRA_CATEGORY_COLOR);
         if (categoryName == null) categoryName = "Details";
-    }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_category_detail, container, false);
-    }
+        setupToolbar();
+        initViews();
+        loadData();
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.expenses, categoryName));
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_left);
-
-        toolbar.setNavigationOnClickListener(v -> {
-            if (getParentFragmentManager() != null) {
-                getParentFragmentManager().popBackStack();
-            }
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContent), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            layoutParams.leftMargin = insets.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right;
+            layoutParams.bottomMargin = insets.bottom;
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
         });
+    }
 
-        if (categoryColor != null) {
-            try {
-                toolbar.setBackgroundColor(Color.parseColor(categoryColor));
-            } catch (Exception e) {
-                Log.e("CategoryDetail", "Invalid color format", e);
-            }
+    private void setupToolbar() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle(""); // Clear default title
         }
 
-        rvDetails = view.findViewById(R.id.rvDetails);
-        rvDetails.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Set title using the TextView in toolbar_layout
+        TextView toolbarTitle = findViewById(R.id.toolbarTitle);
+        if (toolbarTitle != null) {
+            toolbarTitle.setText(getString(R.string.expenses, categoryName));
+        }
+    }
+
+    private void initViews() {
+        rvDetails = findViewById(R.id.rvDetails);
+        rvDetails.setLayoutManager(new LinearLayoutManager(this));
         adapter = new DetailAdapter(detailList);
         rvDetails.setAdapter(adapter);
+    }
 
-        loadData();
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void loadData() {
@@ -108,8 +122,8 @@ public class CategoryDetailFragment extends Fragment {
                 for (QueryDocumentSnapshot document : task.getResult()) {
                     try {
                         Receipt receipt = document.toObject(Receipt.class);
-                        String storeName = "Unknown Store";
-                        String dateStr = "Unknown Date";
+                        String storeName = getString(R.string.unknown_store);
+                        String dateStr = getString(R.string.unknown_date);
 
                         if (receipt.getStore() != null && receipt.getStore().getName() != null) {
                             storeName = receipt.getStore().getName();
@@ -179,7 +193,7 @@ public class CategoryDetailFragment extends Fragment {
                 }
 
             } else {
-                Toast.makeText(getContext(), getString(R.string.failed_to_load_data), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.failed_to_load_data), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -201,7 +215,7 @@ public class CategoryDetailFragment extends Fragment {
                                 String dateStr = dateFormat.format(new Date(transaction.getTimestamp()));
                                 detailList.add(new DetailItem(
                                         transaction.getDescription(),
-                                        "Manual Transaction",
+                                        getString(R.string.manual_transaction),
                                         dateStr,
                                         transaction.getAmount(),
                                         transaction.getTimestamp()
@@ -223,8 +237,8 @@ public class CategoryDetailFragment extends Fragment {
     }
 
     private void checkEmpty() {
-        if (detailList.isEmpty() && getContext() != null) {
-            Toast.makeText(getContext(), getString(R.string.no_records_found_for, categoryName), Toast.LENGTH_SHORT).show();
+        if (detailList.isEmpty()) {
+            Toast.makeText(this, getString(R.string.no_records_found_for, categoryName), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -233,7 +247,7 @@ public class CategoryDetailFragment extends Fragment {
         String storeName;
         String date;
         double amount;
-        long timestamp; // 用于排序
+        long timestamp; // For sorting
 
         public DetailItem(String itemName, String storeName, String date, double amount, long timestamp) {
             this.itemName = itemName;
@@ -284,3 +298,4 @@ public class CategoryDetailFragment extends Fragment {
         }
     }
 }
+

@@ -58,7 +58,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         toolbar.setTitle("");
-        binding.toolbar.toolbarTitle.setText("Notifications");
+        binding.toolbar.toolbarTitle.setText(R.string.notifications);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -111,11 +111,11 @@ public class NotificationSettingsActivity extends AppCompatActivity {
                 if (days > 0 && days <= 365) {
                     notificationPrefs.setReplacementDays(days);
                 } else {
-                    Toast.makeText(this, "Please enter a value between 1 and 365", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.please_enter_a_value_between_1_and_365), Toast.LENGTH_SHORT).show();
                     editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
                 editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
             }
         }
@@ -129,11 +129,11 @@ public class NotificationSettingsActivity extends AppCompatActivity {
                 if (days >= 0 && days <= 30) {
                     notificationPrefs.setNotificationDaysBefore(days);
                 } else {
-                    Toast.makeText(this, "Please enter a value between 0 and 30", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.please_enter_a_value_between_0_and_30), Toast.LENGTH_SHORT).show();
                     editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
                 }
             } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter a valid number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.please_enter_a_valid_number), Toast.LENGTH_SHORT).show();
                 editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
             }
         }
@@ -162,13 +162,13 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Notification permission granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.notification_permission_granted), Toast.LENGTH_SHORT).show();
                 notificationPrefs.setExpenseAlertsEnabled(true);
                 notificationPrefs.setReplacementReminderEnabled(true);
                 switchReplacementReminder.setChecked(true);
                 switchExpenseAlerts.setChecked(true);
             } else {
-                Toast.makeText(this, "Notification permission is required to receive reminders", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.notification_permission_is_required_to_receive_reminders), Toast.LENGTH_LONG).show();
             }
         }
     }

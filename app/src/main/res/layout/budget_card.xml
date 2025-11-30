@@ -36,7 +36,7 @@
                     android:id="@+id/tvBudgetTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Monthly Budget"
+                    android:text="@string/monthly_budget"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface" />
@@ -123,7 +123,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Spent"
+                    android:text="@string/spent"
                     android:textSize="13sp"
                     android:textColor="?attr/colorOnSurface"
                     />
@@ -159,7 +159,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Remaining"
+                    android:text="@string/remaining"
                     android:textSize="13sp"
                     android:textColor="?attr/colorOnSurface"
                     />
@@ -184,7 +184,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Set a budget to start tracking your expenses"
+            android:text="@string/set_a_budget_to_start_tracking_your_expenses"
             android:textSize="14sp"
             android:textColor="?attr/colorOnSurface"
             android:alpha="0.6"

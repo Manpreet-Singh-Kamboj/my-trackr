@@ -184,7 +184,7 @@ public class ProfileFragment extends Fragment {
                 ActivityCompat.requestPermissions(requireActivity(),
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         1001);
-                Toast.makeText(getContext(), "Please grant storage permission to export CSV", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.please_grant_storage_permission_to_export_csv), Toast.LENGTH_SHORT).show();
                 return;
             }
         }
@@ -193,19 +193,19 @@ public class ProfileFragment extends Fragment {
 
     private void exportExpensesToCsv() {
         if (lastTransactions.isEmpty() && lastReceipts.isEmpty()) {
-            Toast.makeText(getContext(), "No expenses to export for this month", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.no_expenses_to_export_for_this_month), Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
             File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             if (downloadsDir == null) {
-                Toast.makeText(getContext(), "Unable to access Downloads folder", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.unable_to_access_downloads_folder), Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
-                Toast.makeText(getContext(), "Unable to create Downloads folder", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), getString(R.string.unable_to_create_downloads_folder), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -289,10 +289,10 @@ public class ProfileFragment extends Fragment {
             writer.flush();
             writer.close();
 
-            Toast.makeText(getContext(), "CSV saved in Downloads: " + fileName, Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getString(R.string.csv_saved_in_downloads, fileName), Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), "Failed to export CSV: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), getString(R.string.failed_to_export_csv, e.getMessage()), Toast.LENGTH_LONG).show();
         }
     }
 
