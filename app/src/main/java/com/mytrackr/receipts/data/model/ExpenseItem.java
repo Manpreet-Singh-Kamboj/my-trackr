@@ -8,7 +8,7 @@ import com.mytrackr.receipts.data.models.Receipt;
 public class ExpenseItem {
     public enum ExpenseType {
         RECEIPT,
-        MANUAL_TRANSACTION
+        SELF_TRANSACTION
     }
     
     private final ExpenseType expenseType;
@@ -34,7 +34,7 @@ public class ExpenseItem {
     }
     
     public ExpenseItem(Transaction transaction) {
-        this.expenseType = ExpenseType.MANUAL_TRANSACTION;
+        this.expenseType = ExpenseType.SELF_TRANSACTION;
         this.id = transaction.getId();
         this.amount = transaction.getAmount();
         this.timestamp = transaction.getTimestamp();

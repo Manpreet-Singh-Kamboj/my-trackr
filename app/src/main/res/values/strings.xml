@@ -124,7 +124,7 @@
     <string name="yesterday">Yesterday</string>
     <string name="unknown_store">Unknown Store</string>
     <string name="unknown_date">Unknown Date</string>
-    <string name="manual_transaction">Manual Transaction</string>
+    <string name="manual_transaction">Self Transaction</string>
     <string name="unknown_item">Unknown Item</string>
     <string name="loading_data">Loading data…</string>
     <string name="loading_dashboard">Loading dashboard…</string>
