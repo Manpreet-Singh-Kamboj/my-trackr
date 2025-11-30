@@ -40,7 +40,7 @@ import java.util.Locale;
 public class ViewReceiptImageActivity extends AppCompatActivity {
     public static final String EXTRA_IMAGE_URL = "image_url";
     private static final int PERMISSION_REQUEST_CODE = 100;
-    
+
     private ImageView receiptImageView;
     private FloatingActionButton fabDownload;
     private String imageUrl;
@@ -60,7 +60,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             finish();
             return;
         }
-        
+
         setupToolbar();
         initViews();
         loadImage();
@@ -76,7 +76,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             return WindowInsetsCompat.CONSUMED;
         });
     }
-    
+
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         setSupportActionBar(toolbar);
@@ -85,12 +85,12 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
     }
-    
+
     private void initViews() {
         receiptImageView = binding.receiptImageView;
         fabDownload = binding.fabDownload;
     }
-    
+
     private void setupDownloadButton() {
         fabDownload.setOnClickListener(v -> {
             if (checkStoragePermission()) {
@@ -100,31 +100,31 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     private boolean checkStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                == PackageManager.PERMISSION_GRANTED;
+                    == PackageManager.PERMISSION_GRANTED;
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return true;
         } else {
             return ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED;
+                    == PackageManager.PERMISSION_GRANTED;
         }
     }
-    
+
     private void requestStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(this, 
-                new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 
-                PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_MEDIA_IMAGES},
+                    PERMISSION_REQUEST_CODE);
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(this, 
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 
-                PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSION_REQUEST_CODE);
         }
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -136,7 +136,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     private void downloadImage() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -148,52 +148,52 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             Toast.makeText(this, "Failed to download image: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-    
+
     private void downloadUsingDownloadManager() {
         try {
             DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             Uri uri = Uri.parse(imageUrl);
-            
+
             String fileName = "receipt_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".jpg";
-            
+
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
             request.setTitle("Downloading Receipt");
             request.setDescription("Receipt image download");
             request.setMimeType("image/jpeg");
-            
+
             downloadManager.enqueue(request);
             Toast.makeText(this, "Download started. Check your Downloads folder.", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to start download: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-    
+
     private void downloadUsingFileSave() {
         new Thread(() -> {
             try {
                 URL url = new URL(imageUrl);
                 InputStream inputStream = url.openStream();
-                
+
                 String fileName = "receipt_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + ".jpg";
                 File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 if (!downloadsDir.exists()) {
                     downloadsDir.mkdirs();
                 }
-                
+
                 File file = new File(downloadsDir, fileName);
                 FileOutputStream outputStream = new FileOutputStream(file);
-                
+
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                 }
-                
+
                 outputStream.close();
                 inputStream.close();
-                
+
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Image saved to Downloads folder", Toast.LENGTH_SHORT).show();
                 });
@@ -204,7 +204,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
             }
         }).start();
     }
-    
+
     private void loadImage() {
         Glide.with(this)
                 .load(imageUrl)
@@ -213,7 +213,7 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
                         .error(R.drawable.ic_receipt_icon))
                 .into(receiptImageView);
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -223,4 +223,3 @@ public class ViewReceiptImageActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
-

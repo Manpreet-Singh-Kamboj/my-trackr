@@ -1,4 +1,4 @@
-package com.mytrackr.receipts.features.receipts.adapters;
+package com.mytrackr.receipts.ui.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -101,4 +101,3 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
         }
     }
 }
-

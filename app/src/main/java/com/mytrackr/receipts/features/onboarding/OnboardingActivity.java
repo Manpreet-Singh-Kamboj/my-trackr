@@ -10,26 +10,27 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.databinding.ActivityOnboardingBinding;
 import com.mytrackr.receipts.features.core.MainActivity;
+import com.mytrackr.receipts.ui.adapter.OnboardingAdapter;
 
 public class OnboardingActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "onboarding_prefs";
     private static final String PREF_ONBOARDING_COMPLETED = "onboarding_completed";
-    
+
     private ActivityOnboardingBinding binding;
     private OnboardingAdapter adapter;
     private int currentPage = 0;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityOnboardingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
+
         setupViewPager();
         setupClickListeners();
         updateUI();
     }
-    
+
     private void setupViewPager() {
         adapter = new OnboardingAdapter();
         binding.viewPager.setAdapter(adapter);
@@ -40,10 +41,10 @@ public class OnboardingActivity extends AppCompatActivity {
                 updateUI();
             }
         });
-        
+
         binding.dotsIndicator.attachTo(binding.viewPager);
     }
-    
+
     private void setupClickListeners() {
         binding.btnNext.setOnClickListener(v -> {
             if (currentPage < adapter.getItemCount() - 1) {
@@ -52,38 +53,38 @@ public class OnboardingActivity extends AppCompatActivity {
                 finishOnboarding();
             }
         });
-        
+
         binding.btnPrevious.setOnClickListener(v -> {
             if (currentPage > 0) {
                 binding.viewPager.setCurrentItem(currentPage - 1);
             }
         });
-        
+
         binding.tvSkip.setOnClickListener(v -> finishOnboarding());
     }
-    
+
     private void updateUI() {
         binding.btnPrevious.setVisibility(currentPage > 0 ? View.VISIBLE : View.INVISIBLE);
-        
+
         if (currentPage == adapter.getItemCount() - 1) {
             binding.btnNext.setText(R.string.get_started);
         } else {
             binding.btnNext.setText(R.string.next);
         }
-        
+
         binding.tvSkip.setVisibility(currentPage < adapter.getItemCount() - 1 ? View.VISIBLE : View.INVISIBLE);
     }
-    
+
     private void finishOnboarding() {
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         prefs.edit().putBoolean(PREF_ONBOARDING_COMPLETED, true).apply();
-        
+
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
     }
-    
+
     public static boolean isOnboardingCompleted(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getBoolean(PREF_ONBOARDING_COMPLETED, false);

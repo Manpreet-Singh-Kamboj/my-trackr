@@ -28,7 +28,7 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
     private static final String TAG = "HomeFragment";
-    
+
     private RecyclerView receiptsRecyclerView;
     private ReceiptAdapter receiptAdapter;
     private View emptyStateLayout;
@@ -48,29 +48,29 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(getLayoutInflater());
         View root = binding.getRoot();
-        
+
         receiptsRecyclerView = binding.receiptsRecyclerView;
         emptyStateLayout = binding.emptyStateLayout;
         loadingProgressLayout = binding.loadingProgressLayout;
         receiptsCount = binding.receiptsCount;
         FloatingActionButton fab = binding.fabScan;
-        
+
         receiptAdapter = new ReceiptAdapter();
         receiptAdapter.setOnReceiptClickListener(receipt -> {
             Intent intent = ReceiptDetailsActivity.createIntent(getActivity(), receipt);
             startActivity(intent);
         });
-        
+
         receiptsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         receiptsRecyclerView.setAdapter(receiptAdapter);
-        
+
         fab.setOnClickListener(v -> {
             Intent i = new Intent(getActivity(), ReceiptScanActivity.class);
             startActivity(i);
         });
-        
+
         observeViewModel();
-        
+
         homeViewModel.loadReceipts();
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
@@ -83,7 +83,7 @@ public class HomeFragment extends Fragment {
             v.setLayoutParams(layoutParams);
             return WindowInsetsCompat.CONSUMED;
         });
-        
+
         return root;
     }
 

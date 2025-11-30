@@ -151,7 +151,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             Boolean readMediaGranted = result.get(Manifest.permission.READ_MEDIA_IMAGES);
 
             if ((readStorageGranted != null && readStorageGranted) ||
-                (readMediaGranted != null && readMediaGranted)) {
+                    (readMediaGranted != null && readMediaGranted)) {
                 // Permission granted, open gallery
                 galleryLauncher.launch("image/*");
             } else {
@@ -963,7 +963,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             ocrResultCard.setVisibility(View.VISIBLE);
                             Log.d(TAG, "OCR result card made visible");
                         }
-                        
+
                         // Hide text view and show progress bar while processing
                         if (ocrTextView != null) {
                             ocrTextView.setVisibility(View.GONE);
@@ -971,7 +971,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.VISIBLE);
                         }
-                        
+
                         // Call Gemini API to extract structured data
                         if (fullText != null && !fullText.trim().isEmpty() && geminiApiService != null) {
                             Log.d(TAG, "Calling Gemini API");
@@ -1120,11 +1120,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
         if (currentReceipt.getReceipt() == null) {
             currentReceipt.setReceipt(new Receipt.ReceiptInfo());
         }
-        
+
         long currentUploadTime = System.currentTimeMillis();
         currentReceipt.getReceipt().setDateTimestamp(currentUploadTime);
         Log.d(TAG, "Set dateTimestamp to current upload time: " + currentUploadTime);
-        
+
         // If receiptDateTimestamp is not set, use current time as fallback
         if (currentReceipt.getReceipt().getReceiptDateTimestamp() == 0) {
             currentReceipt.getReceipt().setReceiptDateTimestamp(currentUploadTime);
@@ -1188,7 +1188,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         // Display formatted JSON in the OCR text view
                         String formattedJson = formatJsonForDisplay(structuredData);
                         Log.d(TAG, "Formatted JSON length: " + formattedJson.length());
-                        
+
                         // Hide progress bar and show text view with JSON
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.GONE);
@@ -1200,12 +1200,12 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         } else {
                             Log.e(TAG, "ocrTextView is null!");
                         }
-                        
+
                         // Ensure OCR card is visible
                         if (ocrResultCard != null) {
                             ocrResultCard.setVisibility(View.VISIBLE);
                         }
-                        
+
                         currentReceipt = mapGeminiResponseToReceipt(structuredData, ocrText);
                         if (btnSave != null) {
                             btnSave.setVisibility(View.VISIBLE);
@@ -1298,7 +1298,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
         Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
         if (structuredData.has("receipt")) {
             JSONObject receiptObj = structuredData.getJSONObject("receipt");
-            
+
             if (receiptObj.has("receiptId")) receiptInfo.setReceiptId(receiptObj.getString("receiptId"));
             if (receiptObj.has("date")) receiptInfo.setDate(receiptObj.getString("date"));
             if (receiptObj.has("time")) receiptInfo.setTime(receiptObj.getString("time"));
@@ -1315,7 +1315,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             } else {
                 Log.w(TAG, "Category field not found in Gemini receipt object");
             }
-            
+
             // Parse date string to receiptDateTimestamp (actual receipt date for notifications)
             if (receiptInfo.getDate() != null && !receiptInfo.getDate().isEmpty()) {
                 try {
@@ -1343,11 +1343,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
         if (structuredData.has("items")) {
             JSONArray itemsArray = structuredData.getJSONArray("items");
             List<ReceiptItem> items = new ArrayList<>();
-            
+
             for (int i = 0; i < itemsArray.length(); i++) {
                 JSONObject itemObj = itemsArray.getJSONObject(i);
                 ReceiptItem item = new ReceiptItem();
-                
+
                 if (itemObj.has("name")) item.setName(itemObj.getString("name"));
                 if (itemObj.has("quantity")) item.setQuantity(itemObj.getInt("quantity"));
                 if (itemObj.has("unitPrice")) item.setUnitPrice(itemObj.getDouble("unitPrice"));
@@ -1360,12 +1360,12 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         primaryCategoryFromItems = itemCategory;
                     }
                 }
-                
+
                 items.add(item);
             }
             receipt.setItems(items);
         }
-        
+
         // If receipt-level category is not set, use primary category from items as fallback
         if (receiptInfo.getCategory() == null || receiptInfo.getCategory().isEmpty()) {
             if (primaryCategoryFromItems != null && !primaryCategoryFromItems.isEmpty()) {
@@ -1373,14 +1373,14 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 Log.d(TAG, "Set category from items: " + primaryCategoryFromItems);
             }
         }
-        
+
         // Log category for debugging
         if (receiptInfo.getCategory() != null) {
             Log.d(TAG, "Final receipt category: " + receiptInfo.getCategory());
         } else {
             Log.w(TAG, "Receipt category is null after mapping");
         }
-        
+
         receipt.setReceipt(receiptInfo);
 
         // Extract additional information
@@ -1459,7 +1459,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
             } catch (Exception ex) { Log.d(TAG, "setImageURI fallback failed", ex); }
         }
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

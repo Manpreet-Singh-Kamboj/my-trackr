@@ -20,7 +20,7 @@ public class GeminiApiService {
     private static final String TAG = "GeminiApiService";
     private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    
+
     private final OkHttpClient client;
     private final String apiKey;
 
@@ -74,9 +74,9 @@ public class GeminiApiService {
                     responseBody = response.body().string();
                     Log.d(TAG, "Gemini API response received, length: " + responseBody.length());
                     Log.d(TAG, "Response body preview: " + responseBody.substring(0, Math.min(500, responseBody.length())));
-                    
+
                     JSONObject jsonResponse = new JSONObject(responseBody);
-                    
+
                     // Extract the structured JSON from Gemini's response
                     JSONObject structuredData = extractStructuredData(jsonResponse);
                     Log.d(TAG, "Structured data extracted successfully, keys: " + structuredData.keys().toString());
@@ -155,13 +155,13 @@ public class GeminiApiService {
             content.put("parts", parts);
             contents.put(content);
             requestBody.put("contents", contents);
-            
+
             // Add generation config for JSON response
             JSONObject generationConfig = new JSONObject();
             generationConfig.put("temperature", 0.1);
             generationConfig.put("responseMimeType", "application/json");
             requestBody.put("generationConfig", generationConfig);
-            
+
             return requestBody;
         } catch (Exception e) {
             Log.e(TAG, "Failed to build request body", e);
@@ -176,41 +176,41 @@ public class GeminiApiService {
             Log.e(TAG, "Response missing 'candidates' key. Response: " + response.toString());
             throw new Exception("Response missing 'candidates' key");
         }
-        
+
         JSONArray candidates = response.getJSONArray("candidates");
         if (candidates.length() == 0) {
             Log.e(TAG, "No candidates in response");
             throw new Exception("No candidates in response");
         }
-        
+
         JSONObject candidate = candidates.getJSONObject(0);
         if (!candidate.has("content")) {
             Log.e(TAG, "Candidate missing 'content' key");
             throw new Exception("Candidate missing 'content' key");
         }
-        
+
         JSONObject content = candidate.getJSONObject("content");
         if (!content.has("parts")) {
             Log.e(TAG, "Content missing 'parts' key");
             throw new Exception("Content missing 'parts' key");
         }
-        
+
         JSONArray parts = content.getJSONArray("parts");
         if (parts.length() == 0) {
             Log.e(TAG, "No parts in response");
             throw new Exception("No parts in response");
         }
-        
+
         JSONObject part = parts.getJSONObject(0);
         if (!part.has("text")) {
             Log.e(TAG, "Part missing 'text' key");
             throw new Exception("Part missing 'text' key");
         }
-        
+
         String text = part.getString("text");
         Log.d(TAG, "Extracted text from response, length: " + text.length());
         Log.d(TAG, "Text preview: " + text.substring(0, Math.min(200, text.length())));
-        
+
         text = text.trim();
         if (text.startsWith("```json")) {
             text = text.substring(7);
@@ -222,11 +222,10 @@ public class GeminiApiService {
             text = text.substring(0, text.length() - 3);
         }
         text = text.trim();
-        
+
         Log.d(TAG, "Parsing JSON text");
         JSONObject result = new JSONObject(text);
         Log.d(TAG, "Successfully parsed JSON object");
         return result;
     }
 }
-

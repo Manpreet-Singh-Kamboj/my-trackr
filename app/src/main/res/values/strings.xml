@@ -94,4 +94,27 @@
     <string name="spending_high">Spending High</string>
     <string name="on_track">On Track</string>
     <string name="manage_your_monthly_budget">Manage your monthly budget</string>
+
+    <!-- Dashboard strings -->
+    <string name="dashboard_subtitle">Track your expenses and insights</string>
+    <string name="receipts_this_week">Receipts This Week</string>
+    <string name="receipts_uploaded">receipts uploaded</string>
+    <string name="weekly_spending">Weekly Spending</string>
+    <string name="vs_last_week">vs last week</string>
+    <string name="from_receipts">From receipts</string>
+    <string name="manual_entries">Manual entries</string>
+    <string name="week">Week</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="range">Range</string>
+    <string name="expense_statistics">Expense Statistics</string>
+    <string name="expenses_by_category">Expenses By Category</string>
+    <string name="no_data_available">No data available</string>
+    <string name="expense">Expense</string>
+    <string name="same_as_last_week">Same as last week</string>
+    <string name="failed_to_load_receipts">Failed to load receipts</string>
+    <string name="categories">Categories</string>
+    <string name="receipts">Receipts</string>
+    <string name="vs_last_week_format">↑ %1$s vs last week</string>
+    <string name="vs_last_week_format_down">↓ %1$s vs last week</string>
 </resources>

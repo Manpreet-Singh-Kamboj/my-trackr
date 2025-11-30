@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class HomeViewModel extends AndroidViewModel {
     private static final String TAG = "HomeViewModel";
-    
+
     private final ReceiptRepository receiptRepository;
     private final MutableLiveData<List<Receipt>> receipts = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
@@ -55,11 +55,11 @@ public class HomeViewModel extends AndroidViewModel {
 
         receiptRepository.fetchReceiptsForCurrentUser(task -> {
             isLoading.postValue(false);
-            
+
             if (task.isSuccessful()) {
                 QuerySnapshot querySnapshot = task.getResult();
                 List<Receipt> receiptsList = new ArrayList<>();
-                
+
                 if (querySnapshot != null && !querySnapshot.isEmpty()) {
                     for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                         try {
@@ -73,14 +73,14 @@ public class HomeViewModel extends AndroidViewModel {
                         }
                     }
                 }
-                
+
                 receipts.postValue(receiptsList);
                 receiptsCount.postValue(receiptsList.size());
             } else {
                 Log.e(TAG, "Error fetching receipts", task.getException());
-                String error = task.getException() != null 
-                    ? task.getException().getMessage() 
-                    : "Failed to load receipts";
+                String error = task.getException() != null
+                        ? task.getException().getMessage()
+                        : "Failed to load receipts";
                 errorMessage.postValue(error);
                 receipts.postValue(new ArrayList<>());
                 receiptsCount.postValue(0);
@@ -223,4 +223,3 @@ public class HomeViewModel extends AndroidViewModel {
         }
     }
 }
-

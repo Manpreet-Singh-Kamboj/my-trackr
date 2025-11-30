@@ -41,9 +41,9 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityNotificationSettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
+
         notificationPrefs = new NotificationPreferences(this);
-        
+
         setupToolbar();
         initViews();
         loadPreferences();
@@ -54,7 +54,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
             return insets;
         });
     }
-    
+
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         toolbar.setTitle("");
@@ -65,21 +65,21 @@ public class NotificationSettingsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
     }
-    
+
     private void initViews() {
         switchReplacementReminder = binding.switchReplacementReminder;
         switchExpenseAlerts = binding.switchExpenseAlerts;
         editReplacementDays = binding.editReplacementDays;
         editNotificationDaysBefore = binding.editNotificationDaysBefore;
     }
-    
+
     private void loadPreferences() {
         switchReplacementReminder.setChecked(notificationPrefs.isReplacementReminderEnabled());
         switchExpenseAlerts.setChecked(notificationPrefs.isExpenseAlertsEnabled());
         editReplacementDays.setText(String.valueOf(notificationPrefs.getReplacementDays()));
         editNotificationDaysBefore.setText(String.valueOf(notificationPrefs.getNotificationDaysBefore()));
     }
-    
+
     private void setupListeners() {
         switchReplacementReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
             notificationPrefs.setReplacementReminderEnabled(isChecked);
@@ -88,21 +88,21 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         switchExpenseAlerts.setOnCheckedChangeListener((buttonView, isChecked) -> {
             notificationPrefs.setExpenseAlertsEnabled(isChecked);
         });
-        
+
 
         editReplacementDays.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 saveReplacementDays();
             }
         });
-        
+
         editNotificationDaysBefore.setOnFocusChangeListener((v, hasFocus) -> {
             if (!hasFocus) {
                 saveNotificationDaysBefore();
             }
         });
     }
-    
+
     private void saveReplacementDays() {
         String daysStr = editReplacementDays.getText() != null ? editReplacementDays.getText().toString() : "";
         if (!TextUtils.isEmpty(daysStr)) {
@@ -120,7 +120,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     private void saveNotificationDaysBefore() {
         String daysStr = editNotificationDaysBefore.getText() != null ? editNotificationDaysBefore.getText().toString() : "";
         if (!TextUtils.isEmpty(daysStr)) {
@@ -138,7 +138,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
             }
         }
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -149,7 +149,7 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-    
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -173,4 +173,3 @@ public class NotificationSettingsActivity extends AppCompatActivity {
         }
     }
 }
-

@@ -23,5 +23,11 @@
     <color name="input_disabled_bg">#2C2C2C</color>
     <color name="input_disabled_text">#A9A9A9</color>
 
+    <!-- Tab colors -->
+    <color name="tab_container_bg">#2C2C2C</color>
+    <color name="tab_selected_bg">#1E1E1E</color>
+    <color name="tab_selected_text">#E0E0E0</color>
+    <color name="tab_unselected_text">#888888</color>
+
 </resources>
 

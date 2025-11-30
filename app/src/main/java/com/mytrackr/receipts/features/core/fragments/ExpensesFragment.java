@@ -36,7 +36,7 @@ import java.util.Locale;
 public class ExpensesFragment extends Fragment {
 
     private BudgetViewModel budgetViewModel;
-    
+
     private TextView tvBudgetAmount, tvSpentAmount, tvRemainingAmount, tvNoBudget, tvBudgetStatus, tvBudgetMonth;
     private ProgressBar progressBudget;
 
@@ -98,7 +98,7 @@ public class ExpensesFragment extends Fragment {
             layoutParams.leftMargin = insets.left;
             layoutParams.topMargin = insets.top;
             layoutParams.rightMargin = insets.right;
-            layoutParams.bottomMargin = insets.bottom;
+            layoutParams.bottomMargin = 0;
             v.setLayoutParams(layoutParams);
             return WindowInsetsCompat.CONSUMED;
         });
@@ -116,7 +116,7 @@ public class ExpensesFragment extends Fragment {
         budgetViewModel.getTransactionsLiveData().observe(getViewLifecycleOwner(), transactions -> {
             combineAndDisplayExpenses(transactions, receiptsLiveData.getValue());
         });
-        
+
         receiptsLiveData.observe(getViewLifecycleOwner(), receipts -> {
             combineAndDisplayExpenses(budgetViewModel.getTransactionsLiveData().getValue(), receipts);
         });
@@ -140,26 +140,26 @@ public class ExpensesFragment extends Fragment {
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
-        
+
         budgetViewModel.getReceiptCountLiveData().observe(getViewLifecycleOwner(), count -> {
             if (tvReceiptsCount != null && count != null) {
                 tvReceiptsCount.setText(String.valueOf(count));
             }
         });
-        
+
         budgetViewModel.getManualTransactionCountLiveData().observe(getViewLifecycleOwner(), count -> {
             if (tvManualTransactionsCount != null && count != null) {
                 tvManualTransactionsCount.setText(String.valueOf(count));
             }
         });
     }
-    
-    
+
+
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
         showLoading(false);
-        
+
         List<ExpenseItem> expenseItems = new ArrayList<>();
-        
+
         int receiptCount = 0;
         if (receipts != null) {
             for (Receipt receipt : receipts) {
@@ -169,7 +169,7 @@ public class ExpensesFragment extends Fragment {
                 }
             }
         }
-        
+
         int manualTransactionCount = 0;
         if (transactions != null) {
             for (Transaction transaction : transactions) {
@@ -179,16 +179,16 @@ public class ExpensesFragment extends Fragment {
                 }
             }
         }
-        
+
         if (tvReceiptsCount != null) {
             tvReceiptsCount.setText(String.valueOf(receiptCount));
         }
         if (tvManualTransactionsCount != null) {
             tvManualTransactionsCount.setText(String.valueOf(manualTransactionCount));
         }
-        
+
         expenseItems.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
-        
+
         if (!expenseItems.isEmpty()) {
             expenseItemAdapter.setExpenseItems(expenseItems);
             rvTransactions.setVisibility(View.VISIBLE);
@@ -208,16 +208,16 @@ public class ExpensesFragment extends Fragment {
         tvBudgetStatus.setVisibility(View.VISIBLE);
 
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
-        
+
         if (budget.getAmount() > 0) {
             tvBudgetAmount.setText(currencyFormat.format(budget.getAmount()));
         } else {
             tvBudgetAmount.setText("");
         }
-        
+
         tvSpentAmount.setText(currencyFormat.format(budget.getSpent()));
         tvRemainingAmount.setText(currencyFormat.format(budget.getRemaining()));
-        
+
         if (tvBudgetMonth != null && budget.getMonth() != null && budget.getYear() != null) {
             String monthYear = budget.getMonth() + " " + budget.getYear();
             tvBudgetMonth.setText(monthYear);
@@ -228,10 +228,10 @@ public class ExpensesFragment extends Fragment {
         double percentage = budget.getSpentPercentage();
         int progress = (int) Math.round(percentage);
         progressBudget.setProgress(Math.min(Math.max(progress, 0), 100));
-        
+
         updateBudgetStatus(budget);
     }
-    
+
     @SuppressLint("UseCompatLoadingForDrawables")
     private void updateBudgetStatus(Budget budget) {
         double percentage = budget.getSpentPercentage();
@@ -273,7 +273,7 @@ public class ExpensesFragment extends Fragment {
         tvBudgetStatus.setVisibility(View.GONE);
         progressBudget.setVisibility(View.GONE);
         progressBudget.setProgress(0);
-        
+
         if (tvBudgetAmount != null) tvBudgetAmount.setText("");
         if (tvSpentAmount != null) tvSpentAmount.setText("");
         if (tvRemainingAmount != null) tvRemainingAmount.setText("");
@@ -292,7 +292,7 @@ public class ExpensesFragment extends Fragment {
 
     private void showAddExpenseDialog() {
         Budget currentBudget = budgetViewModel.getBudgetLiveData().getValue();
-        
+
         if (currentBudget == null) {
             Toast.makeText(getContext(), "Please set a budget first!", Toast.LENGTH_SHORT).show();
             return;
@@ -301,24 +301,24 @@ public class ExpensesFragment extends Fragment {
         AddExpenseBottomSheet bottomSheet = AddExpenseBottomSheet.newInstance();
         bottomSheet.setOnExpenseAddedListener((description, expenseAmount) -> {
             showLoading(true);
-            
+
             budgetViewModel.addTransaction(description, expenseAmount, "expense");
-            
+
             double currentSpent = currentBudget.getSpent();
             double newSpent = currentSpent + expenseAmount;
-            
+
             budgetViewModel.updateBudget(
-                currentBudget.getAmount(),
-                currentBudget.getMonth(),
-                currentBudget.getYear(),
-                newSpent
+                    currentBudget.getAmount(),
+                    currentBudget.getMonth(),
+                    currentBudget.getYear(),
+                    newSpent
             );
-            
+
             Toast.makeText(getContext(), "Expense added: " + description + " - $" + expenseAmount, Toast.LENGTH_SHORT).show();
         });
         bottomSheet.show(getParentFragmentManager(), "AddExpenseBottomSheet");
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
@@ -326,13 +326,13 @@ public class ExpensesFragment extends Fragment {
         budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
         budgetViewModel.loadCurrentMonthTransactions();
     }
-    
+
     private void showDeleteConfirmationDialog(ExpenseItem item) {
         if (item.isReceipt()) {
             Toast.makeText(getContext(), "Receipt Expenses can only be deleted from receipt details", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Delete Expense")
                 .setMessage("Are you sure you want to delete \"" + item.getDescription() + "\"? This action cannot be undone.")
@@ -342,26 +342,26 @@ public class ExpensesFragment extends Fragment {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
-    
+
     private void deleteExpenseItem(ExpenseItem item) {
         if (item.isReceipt()) {
             Toast.makeText(getContext(), "Cannot delete receipt from expense list", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         String transactionId = item.getId();
         if (transactionId == null || transactionId.isEmpty()) {
             Toast.makeText(getContext(), "Transaction ID not found", Toast.LENGTH_SHORT).show();
             return;
         }
-        
+
         showLoading(true);
-        
+
         budgetViewModel.deleteTransaction(transactionId);
-        
+
         Toast.makeText(getContext(), "Expense deleted", Toast.LENGTH_SHORT).show();
     }
-    
+
     private void showLoading(boolean show) {
         if (progressLoading != null) {
             progressLoading.setVisibility(show ? View.VISIBLE : View.GONE);

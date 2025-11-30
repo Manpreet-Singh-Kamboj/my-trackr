@@ -29,20 +29,20 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
+
         themePreferences = new ThemePreferences(this);
-        
+
         setupToolbar();
         setupThemeSelection();
         setupNotificationPermission();
-        
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
     }
-    
+
     private void setupToolbar() {
         Toolbar toolbar = binding.toolbar.toolbar;
         toolbar.setTitle("");
@@ -53,10 +53,10 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
     }
-    
+
     private void setupThemeSelection() {
         RadioGroup radioGroupTheme = binding.radioGroupTheme;
-        
+
         int currentTheme = themePreferences.getThemeMode();
         switch (currentTheme) {
             case ThemePreferences.THEME_MODE_LIGHT:
@@ -70,7 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
                 binding.radioSystem.setChecked(true);
                 break;
         }
-        
+
         radioGroupTheme.setOnCheckedChangeListener((group, checkedId) -> {
             int themeMode;
             if (checkedId == R.id.radioLight) {
@@ -80,23 +80,23 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                 themeMode = ThemePreferences.THEME_MODE_SYSTEM;
             }
-            
+
             themePreferences.setThemeMode(themeMode);
             recreate();
         });
     }
-    
+
     private void setupNotificationPermission() {
         MaterialButton btnRequestPermission = binding.btnRequestNotificationPermission;
-        
+
         updateNotificationPermissionStatus();
-        
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             btnRequestPermission.setVisibility(android.view.View.GONE);
             binding.textNotificationStatus.setText("Status: Enabled (Android 12 and below)");
             return;
         }
-        
+
         btnRequestPermission.setOnClickListener(v -> {
             if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
                 NotificationPermissionHelper.requestNotificationPermission(this);
@@ -105,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
     }
-    
+
     private void updateNotificationPermissionStatus() {
         boolean hasPermission = NotificationPermissionHelper.hasNotificationPermission(this);
         if (hasPermission) {
@@ -118,20 +118,20 @@ public class SettingsActivity extends AppCompatActivity {
             binding.btnRequestNotificationPermission.setEnabled(true);
         }
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         NotificationPermissionHelper.handlePermissionResult(this, requestCode, permissions, grantResults);
         updateNotificationPermissionStatus();
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
         updateNotificationPermissionStatus();
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -141,4 +141,3 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
-

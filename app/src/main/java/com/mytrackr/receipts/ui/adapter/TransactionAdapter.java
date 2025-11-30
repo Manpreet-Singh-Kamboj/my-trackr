@@ -76,7 +76,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             int iconTintColor;
             int containerColorRes;
             int amountColor;
-            
+
             if (transaction.isExpense()) {
                 // Expense (debit) - red/orange theme
                 iconRes = R.drawable.ic_receipt_icon;
@@ -90,7 +90,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
                 containerColorRes = R.color.budget_safe;
                 amountColor = ContextCompat.getColor(itemView.getContext(), R.color.budget_safe);
             }
-            
+
             ivTransactionIcon.setImageResource(iconRes);
             ivTransactionIcon.setColorFilter(iconTintColor);
             if (iconContainer != null) {
@@ -121,7 +121,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
             // Check if it's in current month
             boolean isSameMonth = transactionDate.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
-                                  transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
+                    transactionDate.get(Calendar.YEAR) == today.get(Calendar.YEAR);
 
             if (isSameDay(transactionDate, today)) {
                 return "Today";

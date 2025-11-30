@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         ThemePreferences themePreferences = new ThemePreferences(this);
         themePreferences.applySavedThemeMode();
-        
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -62,15 +62,15 @@ public class MainActivity extends AppCompatActivity {
             NotificationHelper.createNotificationChannel(this);
         }
         binding.bottomNavigation.setOnItemSelectedListener(this::onBottomNavItemSelected);
-        
+
         requestNotificationPermissionIfNeeded();
     }
-    
+
     private void initializeNotifications() {
         NotificationHelper.createNotificationChannel(this);
-        NotificationScheduler.scheduleDailyBudgetCheck(this);
+        NotificationScheduler.scheduleWeeklyBudgetCheck(this);
     }
-    
+
     private void requestNotificationPermissionIfNeeded() {
         if (!NotificationPermissionHelper.hasNotificationPermission(this)) {
             NotificationPermissionHelper.requestNotificationPermission(this);
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction.replace(R.id.frameLayout, fragment);
         fragmentTransaction.commit();
     }
-    
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
