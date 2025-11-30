@@ -98,6 +98,7 @@
                         android:adjustViewBounds="true"
                         android:scaleType="fitCenter"
                         android:contentDescription="Receipt preview"
+                        android:paddingVertical="10dp"
                         android:visibility="gone" />
 
                     <com.mytrackr.receipts.features.receipts.CornerOverlayView
@@ -358,7 +359,10 @@
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.Material3.Button"
                 app:icon="@android:drawable/ic_menu_search"
-                app:iconGravity="textStart" />
+                app:iconGravity="textStart"
+                app:backgroundTint="@color/button_process_background"
+                android:textColor="@color/button_process_text"
+                app:iconTint="@color/button_process_text" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"

@@ -93,7 +93,7 @@ public class CategoryDetailActivity extends AppCompatActivity {
         // Set title using the TextView in toolbar_layout
         TextView toolbarTitle = findViewById(R.id.toolbarTitle);
         if (toolbarTitle != null) {
-            toolbarTitle.setText(getString(R.string.expenses, categoryName));
+            toolbarTitle.setText(getString(R.string.expenses));
         }
     }
 

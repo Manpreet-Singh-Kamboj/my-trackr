@@ -919,6 +919,11 @@ public class ReceiptScanActivity extends AppCompatActivity {
             return;
         }
 
+        // Disable button to prevent multiple calls while processing
+        if (btnProcess != null) {
+            btnProcess.setEnabled(false);
+        }
+
         showProcessingDialog();
         try {
             Bitmap bm = null;
@@ -931,6 +936,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     lastBitmapOriginal = bm; // keep reference
                 } catch (IOException e) {
                     hideProcessingDialog();
+                    // Re-enable button on image load failure
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
                     Toast.makeText(this, getString(R.string.failed_to_load_image_for_ocr), Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -980,6 +989,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             Log.d(TAG, "Skipping Gemini API - fullText: " + (fullText != null ? "not null" : "null") + ", geminiApiService: " + (geminiApiService != null ? "not null" : "null"));
                             // Fallback to basic parser if Gemini is not available
                             hideProcessingDialog();
+                            // Re-enable button
+                            if (btnProcess != null) {
+                                btnProcess.setEnabled(true);
+                            }
                             // Hide progress and show text
                             if (ocrProcessingProgressBar != null) {
                                 ocrProcessingProgressBar.setVisibility(View.GONE);
@@ -998,6 +1011,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         hideProcessingDialog();
+                        // Re-enable button on OCR failure
+                        if (btnProcess != null) {
+                            btnProcess.setEnabled(true);
+                        }
                         Toast.makeText(this, getString(R.string.ocr_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
                     });
         } finally {
@@ -1167,8 +1184,13 @@ public class ReceiptScanActivity extends AppCompatActivity {
 
     // Call Gemini API to extract structured receipt data from OCR text
     private void callGeminiApi(String ocrText) {
+        // Button is already disabled in processImageForText(), keep it disabled during Gemini call
         if (geminiApiService == null) {
             hideProcessingDialog();
+            // Re-enable button
+            if (btnProcess != null) {
+                btnProcess.setEnabled(true);
+            }
             currentReceipt = ReceiptParser.parse(ocrText);
             if (btnSave != null) {
                 btnSave.setVisibility(View.VISIBLE);
@@ -1184,6 +1206,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 Log.d(TAG, "Gemini API success, received structured data");
                 runOnUiThread(() -> {
                     hideProcessingDialog();
+                    // Re-enable button after successful Gemini call
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
                     try {
                         // Display formatted JSON in the OCR text view
                         String formattedJson = formatJsonForDisplay(structuredData);
@@ -1215,6 +1241,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to map Gemini response to Receipt", e);
                         e.printStackTrace();
+                        // Re-enable button on parsing error
+                        if (btnProcess != null) {
+                            btnProcess.setEnabled(true);
+                        }
                         // Hide progress bar and show error in TextView
                         if (ocrProcessingProgressBar != null) {
                             ocrProcessingProgressBar.setVisibility(View.GONE);
@@ -1240,6 +1270,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
                 e.printStackTrace();
                 runOnUiThread(() -> {
                     hideProcessingDialog();
+                    // Re-enable button after Gemini call failure
+                    if (btnProcess != null) {
+                        btnProcess.setEnabled(true);
+                    }
                     // Hide progress bar and show error message in TextView
                     if (ocrProcessingProgressBar != null) {
                         ocrProcessingProgressBar.setVisibility(View.GONE);

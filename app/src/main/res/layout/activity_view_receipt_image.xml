@@ -15,7 +15,9 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:layout_marginTop="?attr/actionBarSize"
+        android:padding="15dp"
+        >
 
         <ImageView
             android:id="@+id/receiptImageView"
