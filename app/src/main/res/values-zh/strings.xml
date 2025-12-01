@@ -147,6 +147,9 @@
     <string name="no_budget_set_message">创建每月预算，以跟踪支出并更好地管理您的财务</string>
     <string name="set_budget">设置预算</string>
     <string name="budget_icon">预算图标</string>
+    <string name="analyzing_store_info">正在分析商店信息</string>
+    <string name="analyzing_items">正在分析商品</string>
+    <string name="calculating_totals">正在计算总计</string>
 
 
     <!-- Validation messages -->
@@ -323,8 +326,8 @@
     <string name="hindi">印地语</string>
     <string name="chinese">中文</string>
     <string name="language_changed">语言已更改。请重启应用程序以使更改生效。</string>
-    <string name="restart_required">需要重启</string>
-    <string name="restart_message">应用程序需要重启以使语言更改生效。您要现在重启吗？</string>
-    <string name="restart">重启</string>
-    <string name="later">稍后</string>
+    <string name="restart_required">更改语言</string>
+    <string name="restart_message">应用会立即更新语言。您要继续吗？</string>
+    <string name="restart">继续</string>
+    <string name="later">取消</string>
 </resources>

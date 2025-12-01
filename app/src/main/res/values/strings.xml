@@ -147,6 +147,9 @@
     <string name="no_budget_set_message">Create a monthly budget to track your spending and stay on top of your finances</string>
     <string name="set_budget">Set Budget</string>
     <string name="budget_icon">Budget icon</string>
+    <string name="analyzing_store_info">Analyzing store info</string>
+    <string name="analyzing_items">Analyzing items</string>
+    <string name="calculating_totals">Calculating totals</string>
 
     <!-- Validation messages -->
     <string name="please_enter_budget_amount">Please enter budget amount</string>
@@ -322,9 +325,9 @@
     <string name="hindi">Hindi</string>
     <string name="chinese">Chinese</string>
     <string name="language_changed">Language changed. Please restart the app for changes to take effect.</string>
-    <string name="restart_required">Restart Required</string>
-    <string name="restart_message">The app needs to restart for the language change to take effect. Do you want to restart now?</string>
-    <string name="restart">Restart</string>
-    <string name="later">Later</string>
+    <string name="restart_required">Change Language</string>
+    <string name="restart_message">The app will update the language immediately. Do you want to continue?</string>
+    <string name="restart">Continue</string>
+    <string name="later">Cancel</string>
 
 </resources>
