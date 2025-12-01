@@ -18,6 +18,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.res.Configuration;
+
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.model.Budget;
 import com.mytrackr.receipts.data.model.ExpenseItem;
@@ -27,6 +29,7 @@ import com.mytrackr.receipts.ui.adapter.ExpenseItemAdapter;
 import com.mytrackr.receipts.ui.bottomsheet.AddExpenseBottomSheet;
 import androidx.lifecycle.MutableLiveData;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import com.mytrackr.receipts.ui.bottomsheet.EditBudgetBottomSheet;
 import com.mytrackr.receipts.viewmodels.BudgetViewModel;
@@ -51,9 +54,17 @@ public class ExpensesFragment extends Fragment {
     private View loadingProgressLayout;
     private ExpenseItemAdapter expenseItemAdapter;
     private final MutableLiveData<List<Receipt>> receiptsLiveData = new MutableLiveData<>();
+
+    private TextView tvSelectedMonth;
+    private com.google.android.material.button.MaterialButton btnPrevMonth;
+    private com.google.android.material.button.MaterialButton btnNextMonth;
+    private com.google.android.material.button.MaterialButton btnAddExpense;
+    private Integer defaultAddButtonTextColor = null;
+    private Calendar selectedMonthCalendar;
     
     private boolean transactionsLoaded = false;
     private boolean receiptsLoaded = false;
+    private boolean budgetSyncInProgress = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -81,7 +92,10 @@ public class ExpensesFragment extends Fragment {
         spentRemainingContainer = view.findViewById(R.id.spentRemainingContainer);
         btnSetBudget = view.findViewById(R.id.btnSetBudget);
         btnEditBudget = view.findViewById(R.id.btnEditBudget);
-        com.google.android.material.button.MaterialButton btnAddExpense = view.findViewById(R.id.btnAddExpense);
+        btnAddExpense = view.findViewById(R.id.btnAddExpense);
+        tvSelectedMonth = view.findViewById(R.id.tvSelectedMonth);
+        btnPrevMonth = view.findViewById(R.id.btnPrevMonth);
+        btnNextMonth = view.findViewById(R.id.btnNextMonth);
         rvTransactions = view.findViewById(R.id.rvTransactions);
         cardNoTransactions = view.findViewById(R.id.cardNoTransactions);
         tvReceiptsCount = view.findViewById(R.id.tvReceiptsCount);
@@ -97,18 +111,64 @@ public class ExpensesFragment extends Fragment {
 
         setupObservers();
 
-        btnEditBudget.setOnClickListener(v -> showEditBudgetDialog());
-        btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
-        if (btnSetBudget != null) {
-            btnSetBudget.setOnClickListener(v -> showEditBudgetDialog());
+        selectedMonthCalendar = Calendar.getInstance();
+        updateSelectedMonthLabel();
+
+        if (btnPrevMonth != null) {
+            btnPrevMonth.setOnClickListener(v -> {
+                selectedMonthCalendar.add(Calendar.MONTH, -1);
+                updateSelectedMonthLabel();
+                transactionsLoaded = false;
+                receiptsLoaded = false;
+                showLoading(true);
+                reloadDataForSelectedMonth();
+            });
         }
+        if (btnNextMonth != null) {
+            btnNextMonth.setOnClickListener(v -> {
+                selectedMonthCalendar.add(Calendar.MONTH, 1);
+                updateSelectedMonthLabel();
+                transactionsLoaded = false;
+                receiptsLoaded = false;
+                showLoading(true);
+                reloadDataForSelectedMonth();
+            });
+        }
+
+        if (btnEditBudget != null) {
+            btnEditBudget.setOnClickListener(v -> {
+                if (isCurrentMonthSelected()) {
+                    showEditBudgetDialog();
+                } else {
+                    Toast.makeText(getContext(), R.string.edit_budget_only_current_month, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        if (btnAddExpense != null) {
+            btnAddExpense.setOnClickListener(v -> {
+                if (isCurrentMonthSelected()) {
+                    showAddExpenseDialog();
+                } else {
+                    Toast.makeText(getContext(), R.string.add_expense_only_current_month, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        if (btnSetBudget != null) {
+            btnSetBudget.setOnClickListener(v -> {
+                if (isCurrentMonthSelected()) {
+                    showEditBudgetDialog();
+                } else {
+                    Toast.makeText(getContext(), R.string.edit_budget_only_current_month, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        updateActionsForSelectedMonth();
 
         transactionsLoaded = false;
         receiptsLoaded = false;
         showLoading(true);
-        budgetViewModel.loadCurrentMonthBudget();
-        budgetViewModel.loadCurrentMonthTransactions();
-        budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
+        reloadDataForSelectedMonth();
 
         ViewCompat.setOnApplyWindowInsetsListener(requireView(), (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -147,9 +207,7 @@ public class ExpensesFragment extends Fragment {
                     transactionsLoaded = false;
                     receiptsLoaded = false;
                     showLoading(true);
-                    budgetViewModel.loadCurrentMonthBudget();
-                    budgetViewModel.loadCurrentMonthTransactions();
-                    budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
+                    reloadDataForSelectedMonth();
                 } else {
                     showLoading(false);
                 }
@@ -176,14 +234,15 @@ public class ExpensesFragment extends Fragment {
                 tvManualTransactionsCount.setText(String.valueOf(count));
             }
         });
+
+        budgetViewModel.getSyncInProgressLiveData().observe(getViewLifecycleOwner(), inProgress -> {
+            budgetSyncInProgress = inProgress != null && inProgress;
+            updateLoadingState();
+        });
     }
 
 
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
-        if (transactionsLoaded && receiptsLoaded) {
-            showLoading(false);
-        }
-
         List<ExpenseItem> expenseItems = new ArrayList<>();
 
         int receiptCount = 0;
@@ -223,6 +282,8 @@ public class ExpensesFragment extends Fragment {
             rvTransactions.setVisibility(View.GONE);
             cardNoTransactions.setVisibility(View.VISIBLE);
         }
+        
+        updateLoadingState();
     }
 
     private void updateBudgetUI(Budget budget) {
@@ -391,10 +452,11 @@ public class ExpensesFragment extends Fragment {
         } else {
             showLoading(true);
         }
-        
-        budgetViewModel.refreshBudget();
-        budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
-        budgetViewModel.loadCurrentMonthTransactions();
+
+        if (isCurrentMonthSelected()) {
+            budgetViewModel.refreshBudget();
+        }
+        reloadDataForSelectedMonth();
     }
 
     private void showDeleteConfirmationDialog(ExpenseItem item) {
@@ -446,6 +508,72 @@ public class ExpensesFragment extends Fragment {
         }
         if (cardNoTransactions != null) {
             cardNoTransactions.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateLoadingState() {
+        if (transactionsLoaded && receiptsLoaded && !budgetSyncInProgress) {
+            showLoading(false);
+        }
+    }
+
+    private boolean isCurrentMonthSelected() {
+        if (selectedMonthCalendar == null) return true;
+        Calendar now = Calendar.getInstance();
+        return now.get(Calendar.YEAR) == selectedMonthCalendar.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == selectedMonthCalendar.get(Calendar.MONTH);
+    }
+
+    private void updateSelectedMonthLabel() {
+        if (tvSelectedMonth != null && selectedMonthCalendar != null) {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.ENGLISH);
+            tvSelectedMonth.setText(sdf.format(selectedMonthCalendar.getTime()));
+        }
+        updateActionsForSelectedMonth();
+    }
+
+    private void reloadDataForSelectedMonth() {
+        if (selectedMonthCalendar == null) {
+            selectedMonthCalendar = Calendar.getInstance();
+        }
+        String month = new java.text.SimpleDateFormat("MMMM", java.util.Locale.ENGLISH)
+                .format(selectedMonthCalendar.getTime());
+        String year = String.valueOf(selectedMonthCalendar.get(Calendar.YEAR));
+
+        budgetViewModel.loadBudget(month, year);
+        budgetViewModel.loadTransactionsForMonth(month, year);
+        budgetViewModel.loadReceiptsForMonth(month, year, receiptsLiveData);
+    }
+
+    private void updateActionsForSelectedMonth() {
+        boolean isCurrent = isCurrentMonthSelected();
+
+        if (btnAddExpense != null) {
+            if (defaultAddButtonTextColor == null) {
+                defaultAddButtonTextColor = btnAddExpense.getCurrentTextColor();
+            }
+
+            btnAddExpense.setEnabled(isCurrent);
+            btnAddExpense.setAlpha(isCurrent ? 1f : 0.5f);
+
+            if (isCurrent) {
+                if (defaultAddButtonTextColor != null) {
+                    btnAddExpense.setTextColor(defaultAddButtonTextColor);
+                }
+            } else {
+                int nightModeFlags = requireContext().getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+                boolean isDark = nightModeFlags == Configuration.UI_MODE_NIGHT_YES;
+                int textColor = isDark ? android.graphics.Color.WHITE : android.graphics.Color.BLACK;
+                btnAddExpense.setTextColor(textColor);
+            }
+        }
+        if (btnEditBudget != null) {
+            btnEditBudget.setEnabled(isCurrent);
+            btnEditBudget.setAlpha(isCurrent ? 1f : 0.5f);
+        }
+        if (btnSetBudget != null) {
+            btnSetBudget.setEnabled(isCurrent);
+            btnSetBudget.setAlpha(isCurrent ? 1f : 0.5f);
         }
     }
 }

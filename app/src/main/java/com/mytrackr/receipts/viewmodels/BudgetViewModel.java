@@ -35,6 +35,7 @@ public class BudgetViewModel extends ViewModel {
     private final MutableLiveData<Double> averageExpenseLiveData = new MutableLiveData<>();
 
     private boolean isSyncing = false;
+    private final MutableLiveData<Boolean> syncInProgressLiveData = new MutableLiveData<>(false);
     private android.os.Handler syncHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingSyncRunnable = null;
 
@@ -70,6 +71,10 @@ public class BudgetViewModel extends ViewModel {
 
     public MutableLiveData<Double> getAverageExpenseLiveData() {
         return averageExpenseLiveData;
+    }
+
+    public MutableLiveData<Boolean> getSyncInProgressLiveData() {
+        return syncInProgressLiveData;
     }
 
     public void loadCurrentMonthBudget() {
@@ -174,6 +179,7 @@ public class BudgetViewModel extends ViewModel {
         }
 
         isSyncing = true;
+        syncInProgressLiveData.postValue(true);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -205,8 +211,8 @@ public class BudgetViewModel extends ViewModel {
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
-                .whereGreaterThanOrEqualTo("receipt.dateTimestamp", monthStart)
-                .whereLessThan("receipt.dateTimestamp", monthEnd)
+                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", monthStart)
+                .whereLessThan("receipt.receiptDateTimestamp", monthEnd)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     double totalSpent = 0.0;
@@ -235,6 +241,7 @@ public class BudgetViewModel extends ViewModel {
                     Log.e(TAG, "Error syncing receipts with budget", e);
                     errorMessage.postValue("Failed to sync receipts: " + e.getMessage());
                     isSyncing = false;
+                    syncInProgressLiveData.postValue(false);
                 });
     }
 
@@ -242,6 +249,8 @@ public class BudgetViewModel extends ViewModel {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             Log.w(TAG, "User not authenticated, cannot sync transactions");
+            isSyncing = false;
+            syncInProgressLiveData.postValue(false);
             return;
         }
 
@@ -292,6 +301,7 @@ public class BudgetViewModel extends ViewModel {
                     }
 
                     isSyncing = false;
+                    syncInProgressLiveData.postValue(false);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error syncing manual transactions", e);
@@ -300,6 +310,7 @@ public class BudgetViewModel extends ViewModel {
                         updateBudget(currentBudget.getAmount(), month, year, receiptTotal);
                     }
                     isSyncing = false;
+                    syncInProgressLiveData.postValue(false);
                 });
     }
 
@@ -319,6 +330,10 @@ public class BudgetViewModel extends ViewModel {
         Calendar calendar = Calendar.getInstance();
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
+        transactionRepository.getRecentTransactions(month, year, 50, transactionsLiveData, errorMessage);
+    }
+
+    public void loadTransactionsForMonth(String month, String year) {
         transactionRepository.getRecentTransactions(month, year, 50, transactionsLiveData, errorMessage);
     }
 
@@ -349,8 +364,55 @@ public class BudgetViewModel extends ViewModel {
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
-                .whereGreaterThanOrEqualTo("receipt.dateTimestamp", monthStart)
-                .whereLessThan("receipt.dateTimestamp", monthEnd)
+                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", monthStart)
+                .whereLessThan("receipt.receiptDateTimestamp", monthEnd)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<com.mytrackr.receipts.data.models.Receipt> receipts = new ArrayList<>();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot document : querySnapshot) {
+                        com.mytrackr.receipts.data.models.Receipt receipt = ReceiptRepository.parseReceiptFromDocument(document);
+                        if (receipt != null && receipt.getReceipt() != null && receipt.getReceipt().getTotal() > 0) {
+                            receipt.setId(document.getId());
+                            receipts.add(receipt);
+                        }
+                    }
+                    receiptsLiveData.postValue(receipts);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading receipts for expenses", e);
+                    receiptsLiveData.postValue(new ArrayList<>());
+                    errorMessage.postValue("Failed to load receipts: " + e.getMessage());
+                });
+    }
+
+    public void loadReceiptsForMonth(String month, String year, MutableLiveData<List<com.mytrackr.receipts.data.models.Receipt>> receiptsLiveData) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, Integer.parseInt(year));
+        calendar.set(Calendar.MONTH, getMonthNumber(month));
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long monthStart = calendar.getTimeInMillis();
+
+        calendar.add(Calendar.MONTH, 1);
+        long monthEnd = calendar.getTimeInMillis();
+
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+
+        String userId = auth.getCurrentUser().getUid();
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+
+        db.collection("users")
+                .document(userId)
+                .collection("receipts")
+                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", monthStart)
+                .whereLessThan("receipt.receiptDateTimestamp", monthEnd)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<com.mytrackr.receipts.data.models.Receipt> receipts = new ArrayList<>();
@@ -372,6 +434,7 @@ public class BudgetViewModel extends ViewModel {
 
     public void loadBudget(String month, String year) {
         budgetRepository.getBudget(month, year, budgetLiveData, errorMessage);
+        debounceSync(month, year, 500);
     }
 
     public void saveBudget(double amount) {

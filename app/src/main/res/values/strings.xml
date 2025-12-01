@@ -162,6 +162,8 @@
     <string name="transaction_id_not_found">Transaction ID not found</string>
     <string name="delete_expense">Delete Expense</string>
     <string name="are_you_sure_you_want_to_delete">Are you sure you want to delete \"%1$s\"? This action cannot be undone.</string>
+    <string name="edit_budget_only_current_month">You can only edit the budget for the current month.</string>
+    <string name="add_expense_only_current_month">You can only add expenses for the current month.</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>

@@ -33,17 +33,24 @@ public class CategoryDetailActivity extends AppCompatActivity {
 
     private static final String EXTRA_CATEGORY_NAME = "CATEGORY_NAME";
     private static final String EXTRA_CATEGORY_COLOR = "CATEGORY_COLOR";
+    private static final String EXTRA_START_TIME = "CATEGORY_START_TIME";
+    private static final String EXTRA_END_TIME = "CATEGORY_END_TIME";
 
     private String categoryName;
+    private long startTime = 0L;
+    private long endTime = 0L;
 
     private RecyclerView rvDetails;
     private CategoryDetailAdapter adapter;
     private CategoryDetailViewModel viewModel;
 
-    public static Intent newIntent(Context context, String categoryName, String categoryColor) {
+    public static Intent newIntent(Context context, String categoryName, String categoryColor,
+                                   long startTime, long endTime) {
         Intent intent = new Intent(context, CategoryDetailActivity.class);
         intent.putExtra(EXTRA_CATEGORY_NAME, categoryName);
         intent.putExtra(EXTRA_CATEGORY_COLOR, categoryColor);
+        intent.putExtra(EXTRA_START_TIME, startTime);
+        intent.putExtra(EXTRA_END_TIME, endTime);
         return intent;
     }
 
@@ -54,6 +61,8 @@ public class CategoryDetailActivity extends AppCompatActivity {
 
         categoryName = getIntent().getStringExtra(EXTRA_CATEGORY_NAME);
         String categoryColor = getIntent().getStringExtra(EXTRA_CATEGORY_COLOR);
+        startTime = getIntent().getLongExtra(EXTRA_START_TIME, 0L);
+        endTime = getIntent().getLongExtra(EXTRA_END_TIME, 0L);
         if (categoryName == null) categoryName = "Details";
 
         viewModel = new ViewModelProvider(this).get(CategoryDetailViewModel.class);
@@ -127,7 +136,7 @@ public class CategoryDetailActivity extends AppCompatActivity {
 
     private void loadData() {
         if (categoryName != null) {
-            viewModel.loadData(categoryName);
+            viewModel.loadData(categoryName, startTime, endTime);
         }
     }
 

@@ -27,6 +27,8 @@ public class CategoryDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final ReceiptRepository receiptRepository;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private long startTimeMillis = 0L;
+    private long endTimeMillis = 0L;
 
     public CategoryDetailViewModel(Application application) {
         super(application);
@@ -46,6 +48,12 @@ public class CategoryDetailViewModel extends AndroidViewModel {
     }
 
     public void loadData(String categoryName) {
+        loadData(categoryName, 0L, 0L);
+    }
+
+    public void loadData(String categoryName, long startTimeMillis, long endTimeMillis) {
+        this.startTimeMillis = startTimeMillis;
+        this.endTimeMillis = endTimeMillis;
         isLoading.setValue(true);
         errorMessage.setValue(null);
 
@@ -75,6 +83,8 @@ public class CategoryDetailViewModel extends AndroidViewModel {
                             }
                         }
 
+                        boolean inRange = isInRange(timestamp);
+
                         if (receipt.getItems() != null) {
                             for (ReceiptItem item : receipt.getItems()) {
                                 String cat = item.getCategory();
@@ -86,7 +96,7 @@ public class CategoryDetailViewModel extends AndroidViewModel {
                                     isMatch = categoryName.equalsIgnoreCase(cat);
                                 }
 
-                                if (isMatch) {
+                                if (isMatch && inRange) {
                                     Double price = item.getEffectiveTotalPrice();
                                     items.add(new DetailItem(
                                             item.getName(),
@@ -99,7 +109,7 @@ public class CategoryDetailViewModel extends AndroidViewModel {
                             }
                         }
 
-                        if ("Tax".equalsIgnoreCase(categoryName)) {
+                        if ("Tax".equalsIgnoreCase(categoryName) && inRange) {
                             if (receipt.getReceipt() != null && receipt.getReceipt().getTax() > 0) {
                                 items.add(new DetailItem(
                                         "Tax",
@@ -150,14 +160,17 @@ public class CategoryDetailViewModel extends AndroidViewModel {
                         try {
                             Transaction transaction = doc.toObject(Transaction.class);
                             if (transaction.isExpense()) {
-                                String dateStr = dateFormat.format(new Date(transaction.getTimestamp()));
-                                items.add(new DetailItem(
-                                        transaction.getDescription(),
-                                        getApplication().getString(R.string.manual_transaction),
-                                        dateStr,
-                                        transaction.getAmount(),
-                                        transaction.getTimestamp()
-                                ));
+                                long ts = transaction.getTimestamp();
+                                if (isInRange(ts)) {
+                                    String dateStr = dateFormat.format(new Date(ts));
+                                    items.add(new DetailItem(
+                                            transaction.getDescription(),
+                                            getApplication().getString(R.string.manual_transaction),
+                                            dateStr,
+                                            transaction.getAmount(),
+                                            ts
+                                    ));
+                                }
                             }
                         } catch (Exception e) {
                             android.util.Log.e("CategoryDetailViewModel", "Transaction Parse error", e);
@@ -171,5 +184,12 @@ public class CategoryDetailViewModel extends AndroidViewModel {
                     detailList.postValue(items);
                     isLoading.postValue(false);
                 });
+    }
+
+    private boolean isInRange(long timestamp) {
+        if (startTimeMillis == 0L || endTimeMillis == 0L || timestamp == 0L) {
+            return true;
+        }
+        return timestamp >= startTimeMillis && timestamp <= endTimeMillis;
     }
 }

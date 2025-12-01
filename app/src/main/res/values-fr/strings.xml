@@ -163,6 +163,8 @@
     <string name="transaction_id_not_found">ID de transaction introuvable</string>
     <string name="delete_expense">Supprimer la dépense</string>
     <string name="are_you_sure_you_want_to_delete">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Cette action ne peut pas être annulée.</string>
+    <string name="edit_budget_only_current_month">Vous ne pouvez modifier le budget que pour le mois en cours.</string>
+    <string name="add_expense_only_current_month">Vous ne pouvez ajouter des dépenses que pour le mois en cours.</string>
 
     <!-- Settings -->
     <string name="settings">Paramètres</string>

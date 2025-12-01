@@ -163,6 +163,8 @@
     <string name="transaction_id_not_found">未找到交易ID</string>
     <string name="delete_expense">删除支出</string>
     <string name="are_you_sure_you_want_to_delete">您确定要删除 \"%1$s\" 吗？此操作无法撤销。</string>
+    <string name="edit_budget_only_current_month">您只能编辑当前月份的预算。</string>
+    <string name="add_expense_only_current_month">您只能为当前月份添加支出。</string>
 
     <!-- Settings -->
     <string name="settings">设置</string>

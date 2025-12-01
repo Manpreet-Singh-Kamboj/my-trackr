@@ -163,6 +163,8 @@
     <string name="transaction_id_not_found">लेनदेन ID नहीं मिला</string>
     <string name="delete_expense">खर्च हटाएं</string>
     <string name="are_you_sure_you_want_to_delete">क्या आप वाकई \"%1$s\" हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।</string>
+    <string name="edit_budget_only_current_month">आप केवल चालू महीने का बजट ही संपादित कर सकते हैं।</string>
+    <string name="add_expense_only_current_month">आप केवल चालू महीने के लिए ही खर्च जोड़ सकते हैं।</string>
 
     <!-- Settings -->
     <string name="settings">सेटिंग्स</string>

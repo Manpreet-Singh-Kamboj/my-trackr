@@ -1169,6 +1169,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     // free high-res bitmap to reduce memory usage after successful upload
                     try { if (lastBitmapOriginal != null && !lastBitmapOriginal.isRecycled()) { lastBitmapOriginal.recycle(); } } catch (Exception ignored) {}
                     lastBitmapOriginal = null;
+                    finish();
                 });
             }
 
