@@ -34,7 +34,6 @@ public class BudgetViewModel extends ViewModel {
     private final MutableLiveData<Integer> manualTransactionCountLiveData = new MutableLiveData<>();
     private final MutableLiveData<Double> averageExpenseLiveData = new MutableLiveData<>();
 
-    // Flag to prevent multiple simultaneous syncs
     private boolean isSyncing = false;
     private android.os.Handler syncHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingSyncRunnable = null;
@@ -75,48 +74,100 @@ public class BudgetViewModel extends ViewModel {
 
     public void loadCurrentMonthBudget() {
         Calendar calendar = Calendar.getInstance();
-        // Use English locale for month name to ensure consistency across language changes
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
-        // Load budget first, then sync
-        budgetRepository.getBudget(month, year, budgetLiveData, errorMessage);
+        MutableLiveData<Budget> tempBudgetLiveData = new MutableLiveData<>();
+        MutableLiveData<String> tempErrorLiveData = new MutableLiveData<>();
+        
+        final boolean[] processed = {false};
+        
+        final androidx.lifecycle.Observer<Budget>[] budgetObserverRef = new androidx.lifecycle.Observer[1];
+        
+        budgetObserverRef[0] = budget -> {
+            if (processed[0]) return;
+            processed[0] = true;
+            
+            if (budget == null) {
+                copyPreviousMonthBudget(month, year);
+            } else {
+                budgetLiveData.postValue(budget);
+            }
+            syncHandler.post(() -> tempBudgetLiveData.removeObserver(budgetObserverRef[0]));
+        };
+        
+        tempBudgetLiveData.observeForever(budgetObserverRef[0]);
 
-        // Debounce sync to prevent multiple calls
+        budgetRepository.getBudget(month, year, tempBudgetLiveData, tempErrorLiveData);
+
         debounceSync(month, year, 500);
     }
+    
+    private void copyPreviousMonthBudget(String currentMonth, String currentYear) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, Integer.parseInt(currentYear));
+        
+        int currentMonthNum = getMonthNumber(currentMonth);
+        calendar.set(Calendar.MONTH, currentMonthNum);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        
+        calendar.add(Calendar.MONTH, -1);
+        
+        String previousMonth = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
+        String previousYear = String.valueOf(calendar.get(Calendar.YEAR));
+        
+        Log.d(TAG, "Checking for previous month budget: " + previousMonth + " " + previousYear);
+        
+        MutableLiveData<Budget> previousBudgetLiveData = new MutableLiveData<>();
+        MutableLiveData<String> tempErrorLiveData2 = new MutableLiveData<>();
+        
+        final boolean[] processed2 = {false};
+        
+        final androidx.lifecycle.Observer<Budget>[] previousBudgetObserverRef = new androidx.lifecycle.Observer[1];
+        
+        previousBudgetObserverRef[0] = previousBudget -> {
+            if (processed2[0]) return;
+            processed2[0] = true;
+            
+            if (previousBudget != null && previousBudget.getAmount() > 0) {
+                Log.d(TAG, "Copying budget from " + previousMonth + " " + previousYear + 
+                      " to " + currentMonth + " " + currentYear + 
+                      " (Amount: " + previousBudget.getAmount() + ")");
+                
+                Budget newBudget = new Budget(previousBudget.getAmount(), currentMonth, currentYear);
+                newBudget.setSpent(0.0);
+                
+                budgetRepository.saveBudget(newBudget, saveSuccessLiveData, errorMessage);
+                
+                budgetLiveData.postValue(newBudget);
+            } else {
+                budgetLiveData.postValue(null);
+            }
+            syncHandler.post(() -> previousBudgetLiveData.removeObserver(previousBudgetObserverRef[0]));
+        };
+        
+        previousBudgetLiveData.observeForever(previousBudgetObserverRef[0]);
+        
+        budgetRepository.getBudget(previousMonth, previousYear, previousBudgetLiveData, tempErrorLiveData2);
+    }
 
-    /**
-     * Manually refresh budget by syncing with receipts
-     * Useful when receipts are added/updated
-     */
     public void refreshBudget() {
         Calendar calendar = Calendar.getInstance();
-        // Use English locale for month name to ensure consistency across language changes
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         debounceSync(month, year, 300);
     }
 
-    /**
-     * Debounce sync calls to prevent multiple simultaneous syncs
-     */
     private void debounceSync(String month, String year, long delayMs) {
-        // Cancel any pending sync
         if (pendingSyncRunnable != null) {
             syncHandler.removeCallbacks(pendingSyncRunnable);
         }
 
-        // Schedule new sync
         pendingSyncRunnable = () -> syncReceiptsWithBudget(month, year);
         syncHandler.postDelayed(pendingSyncRunnable, delayMs);
     }
 
-    /**
-     * Sync receipts from current month/year and update budget spent amount
-     */
     private void syncReceiptsWithBudget(String month, String year) {
-        // Prevent multiple simultaneous syncs
         if (isSyncing) {
             Log.d(TAG, "Sync already in progress, skipping...");
             return;
@@ -134,7 +185,6 @@ public class BudgetViewModel extends ViewModel {
         String userId = auth.getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Calculate start and end of current month
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, Integer.parseInt(year));
         calendar.set(Calendar.MONTH, getMonthNumber(month));
@@ -152,7 +202,6 @@ public class BudgetViewModel extends ViewModel {
                 " (from " + new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(monthStart) +
                 " to " + new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(monthEnd) + ")");
 
-        // Query receipts with receiptDateTimestamp in current month
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
@@ -180,7 +229,6 @@ public class BudgetViewModel extends ViewModel {
 
                     Log.d(TAG, "Total receipts found: " + receiptCount + ", Total from receipts: $" + totalSpent);
 
-                    // Also get manual transactions (expenses) for the current month
                     syncManualTransactions(month, year, totalSpent, receiptCount);
                 })
                 .addOnFailureListener(e -> {
@@ -190,9 +238,6 @@ public class BudgetViewModel extends ViewModel {
                 });
     }
 
-    /**
-     * Sync manual transactions (expenses) and combine with receipts
-     */
     private void syncManualTransactions(String month, String year, double receiptTotal, int receiptCount) {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -203,7 +248,6 @@ public class BudgetViewModel extends ViewModel {
         String userId = auth.getCurrentUser().getUid();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Get transactions for current month
         db.collection("users")
                 .document(userId)
                 .collection("transactions")
@@ -223,25 +267,20 @@ public class BudgetViewModel extends ViewModel {
                         }
                     }
 
-                    // Combine receipts and manual transactions
                     double totalSpent = receiptTotal + manualExpenses;
                     int totalCount = receiptCount + transactionCount;
 
                     Log.d(TAG, "Manual transactions: " + transactionCount + ", Total: $" + manualExpenses);
                     Log.d(TAG, "Combined total spent: $" + totalSpent + " (Receipts: $" + receiptTotal + " + Manual: $" + manualExpenses + ")");
 
-                    // Update receipt count and manual transaction count separately
                     receiptCountLiveData.postValue(receiptCount);
                     manualTransactionCountLiveData.postValue(transactionCount);
 
-                    // Update average expense
                     double average = totalCount > 0 ? totalSpent / totalCount : 0.0;
                     averageExpenseLiveData.postValue(average);
 
-                    // Update budget with synced amount
                     Budget currentBudget = budgetLiveData.getValue();
                     if (currentBudget != null) {
-                        // Only update if the value actually changed to prevent unnecessary saves
                         if (Math.abs(currentBudget.getSpent() - totalSpent) > 0.01) {
                             updateBudget(currentBudget.getAmount(), month, year, totalSpent);
                             Log.d(TAG, "Synced budget spent amount: $" + currentBudget.getSpent() + " -> $" + totalSpent);
@@ -249,8 +288,6 @@ public class BudgetViewModel extends ViewModel {
                             Log.d(TAG, "Budget spent amount unchanged: $" + totalSpent);
                         }
                     } else {
-                        // If no budget exists, we still track the spent amount
-                        // When user creates a budget, the spent amount will already be synced
                         Log.d(TAG, "No budget exists yet, synced spent amount: $" + totalSpent);
                     }
 
@@ -258,7 +295,6 @@ public class BudgetViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error syncing manual transactions", e);
-                    // Still update with receipt total if manual transactions fail
                     Budget currentBudget = budgetLiveData.getValue();
                     if (currentBudget != null && Math.abs(currentBudget.getSpent() - receiptTotal) > 0.01) {
                         updateBudget(currentBudget.getAmount(), month, year, receiptTotal);
@@ -267,38 +303,30 @@ public class BudgetViewModel extends ViewModel {
                 });
     }
 
-    /**
-     * Convert month name to month number (0-11)
-     */
     private int getMonthNumber(String monthName) {
         try {
-            // Always use English locale since month names are stored in English
             SimpleDateFormat sdf = new SimpleDateFormat("MMMM", Locale.ENGLISH);
             Calendar cal = Calendar.getInstance();
             cal.setTime(sdf.parse(monthName));
             return cal.get(Calendar.MONTH);
         } catch (Exception e) {
             Log.e(TAG, "Error parsing month: " + monthName, e);
-            // Return current month as fallback
             return Calendar.getInstance().get(Calendar.MONTH);
         }
     }
 
     public void loadCurrentMonthTransactions() {
-        // Load transactions from last 30 days instead of just current month
-        transactionRepository.getRecentTransactionsLastMonth(50, transactionsLiveData, errorMessage);
+        Calendar calendar = Calendar.getInstance();
+        String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
+        String year = String.valueOf(calendar.get(Calendar.YEAR));
+        transactionRepository.getRecentTransactions(month, year, 50, transactionsLiveData, errorMessage);
     }
 
-    /**
-     * Load receipts for current month to display in expenses
-     */
     public void loadCurrentMonthReceipts(MutableLiveData<List<com.mytrackr.receipts.data.models.Receipt>> receiptsLiveData) {
         Calendar calendar = Calendar.getInstance();
-        // Month name not used for query, but keeping for consistency
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
-        // Calculate start and end of current month
         calendar.set(Calendar.DAY_OF_MONTH, 1);
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
@@ -318,7 +346,6 @@ public class BudgetViewModel extends ViewModel {
         String userId = auth.getCurrentUser().getUid();
         com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
 
-        // Query receipts with receiptDateTimestamp in current month
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
@@ -338,7 +365,6 @@ public class BudgetViewModel extends ViewModel {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading receipts for expenses", e);
-                    // Post empty list on error so UI can still update
                     receiptsLiveData.postValue(new ArrayList<>());
                     errorMessage.postValue("Failed to load receipts: " + e.getMessage());
                 });
@@ -350,11 +376,9 @@ public class BudgetViewModel extends ViewModel {
 
     public void saveBudget(double amount) {
         Calendar calendar = Calendar.getInstance();
-        // Use English locale for month name to ensure consistency with stored data
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
 
-        // Get current budget to preserve spent amount
         Budget currentBudget = budgetLiveData.getValue();
         double currentSpent = (currentBudget != null) ? currentBudget.getSpent() : 0.0;
 
@@ -362,9 +386,8 @@ public class BudgetViewModel extends ViewModel {
         budget.setAmount(amount);
         budget.setMonth(month);
         budget.setYear(year);
-        budget.setSpent(currentSpent); // Preserve existing spent amount
+        budget.setSpent(currentSpent);
 
-        // Update LiveData immediately for UI update
         budgetLiveData.postValue(budget);
 
         budgetRepository.saveBudget(budget, saveSuccessLiveData, errorMessage);
@@ -377,10 +400,8 @@ public class BudgetViewModel extends ViewModel {
         budget.setYear(year);
         budget.setSpent(spent);
 
-        // Use a silent update that doesn't trigger saveSuccessLiveData to prevent loops
         budgetRepository.saveBudgetSilently(budget, errorMessage);
 
-        // Update the LiveData directly without triggering observers
         budgetLiveData.postValue(budget);
     }
 
@@ -390,7 +411,6 @@ public class BudgetViewModel extends ViewModel {
 
     public void addTransaction(String description, double amount, String type) {
         Calendar calendar = Calendar.getInstance();
-        // Use English locale for month name to ensure consistency with stored data
         String month = new SimpleDateFormat("MMMM", Locale.ENGLISH).format(calendar.getTime());
         String year = String.valueOf(calendar.get(Calendar.YEAR));
         long timestamp = System.currentTimeMillis();
@@ -406,14 +426,9 @@ public class BudgetViewModel extends ViewModel {
         transactionRepository.addTransaction(transaction, saveSuccessLiveData, errorMessage);
     }
 
-    /**
-     * Delete a manual transaction and update budget
-     */
     public void deleteTransaction(String transactionId) {
         transactionRepository.deleteTransaction(transactionId, saveSuccessLiveData, errorMessage);
 
-        // After deletion, refresh budget to sync with updated transactions (in background)
-        // UI is already updated optimistically, so this is just for final sync
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             refreshBudget();
             loadCurrentMonthTransactions();
