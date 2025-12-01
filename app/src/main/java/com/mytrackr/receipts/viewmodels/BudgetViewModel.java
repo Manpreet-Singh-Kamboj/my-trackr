@@ -205,8 +205,8 @@ public class BudgetViewModel extends ViewModel {
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
-                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", monthStart)
-                .whereLessThan("receipt.receiptDateTimestamp", monthEnd)
+                .whereGreaterThanOrEqualTo("receipt.dateTimestamp", monthStart)
+                .whereLessThan("receipt.dateTimestamp", monthEnd)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     double totalSpent = 0.0;
@@ -349,8 +349,8 @@ public class BudgetViewModel extends ViewModel {
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
-                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", monthStart)
-                .whereLessThan("receipt.receiptDateTimestamp", monthEnd)
+                .whereGreaterThanOrEqualTo("receipt.dateTimestamp", monthStart)
+                .whereLessThan("receipt.dateTimestamp", monthEnd)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     List<com.mytrackr.receipts.data.models.Receipt> receipts = new ArrayList<>();
