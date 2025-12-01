@@ -1,8 +1,8 @@
 package com.mytrackr.receipts.data.repository;
 
-import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -25,7 +25,7 @@ public class TransactionRepository {
     public static synchronized TransactionRepository getInstance() {
         if (instance == null) {
             instance = new TransactionRepository();
-            Log.i("TRANSACTION_REPO_INIT", "Transaction Repository is Initialized");
+            FirebaseCrashlytics.getInstance().log("D/TransactionRepository: Transaction Repository is Initialized");
         }
         return instance;
     }
@@ -34,6 +34,7 @@ public class TransactionRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/TransactionRepository: Attempted to add transaction for unauthenticated user");
             return;
         }
 
@@ -51,11 +52,12 @@ public class TransactionRepository {
                 .collection("transactions")
                 .add(transactionData)
                 .addOnSuccessListener(documentReference -> {
-                    Log.i("TRANSACTION_ADDED", "Transaction added successfully: " + documentReference.getId());
+                    FirebaseCrashlytics.getInstance().log("D/TransactionRepository: Transaction added successfully: " + documentReference.getId());
                     successLiveData.postValue(true);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("TRANSACTION_ADD_ERROR", "Failed to add transaction", e);
+                    FirebaseCrashlytics.getInstance().log("E/TransactionRepository: Failed to add transaction");
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                     successLiveData.postValue(false);
                 });
@@ -65,37 +67,38 @@ public class TransactionRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/TransactionRepository: Attempted to get recent transactions for unauthenticated user");
             return;
         }
 
-        // Query without ordering first to avoid index requirement
         firestore
                 .collection("users")
                 .document(uid)
                 .collection("transactions")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(100) // Get more, then filter client-side
+                .limit(100) 
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
-                        Log.e("TRANSACTION_FETCH_ERROR", "Failed to fetch transactions", e);
+                        FirebaseCrashlytics.getInstance().log("E/TransactionRepository: Failed to fetch transactions");
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         errorMessage.postValue(e.getMessage());
                         return;
                     }
 
                     if (queryDocumentSnapshots != null) {
                         List<Transaction> transactions = new ArrayList<>();
-                        // Filter by month and year client-side
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                             Transaction transaction = doc.toObject(Transaction.class);
                             if (month.equals(transaction.getMonth()) && year.equals(transaction.getYear())) {
                                 transaction.setId(doc.getId());
                                 transactions.add(transaction);
                                 if (transactions.size() >= limit) {
-                                    break; // Stop once we have enough
+                                    break; 
                                 }
                             }
                         }
                         transactionsLiveData.postValue(transactions);
+                        FirebaseCrashlytics.getInstance().log("D/TransactionRepository: Fetched " + transactions.size() + " transactions for " + month + "/" + year);
                     }
                 });
     }
@@ -104,10 +107,10 @@ public class TransactionRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/TransactionRepository: Attempted to get recent transactions for unauthenticated user");
             return;
         }
 
-        // Calculate timestamp for 30 days ago
         long thirtyDaysAgo = System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000);
 
         firestore
@@ -118,14 +121,14 @@ public class TransactionRepository {
                 .limit(limit)
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) {
-                        Log.e("TRANSACTION_FETCH_ERROR", "Failed to fetch transactions", e);
+                        FirebaseCrashlytics.getInstance().log("E/TransactionRepository: Failed to fetch transactions for last month");
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         errorMessage.postValue(e.getMessage());
                         return;
                     }
 
                     if (queryDocumentSnapshots != null) {
                         List<Transaction> transactions = new ArrayList<>();
-                        // Filter transactions from last 30 days
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                             Transaction transaction = doc.toObject(Transaction.class);
                             if (transaction.getTimestamp() >= thirtyDaysAgo) {
@@ -134,6 +137,7 @@ public class TransactionRepository {
                             }
                         }
                         transactionsLiveData.postValue(transactions);
+                         FirebaseCrashlytics.getInstance().log("D/TransactionRepository: Fetched " + transactions.size() + " transactions from last month");
                     }
                 });
     }
@@ -142,6 +146,7 @@ public class TransactionRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/TransactionRepository: Attempted to delete transaction for unauthenticated user");
             return;
         }
 
@@ -152,11 +157,12 @@ public class TransactionRepository {
                 .document(transactionId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Log.i("TRANSACTION_DELETED", "Transaction deleted successfully: " + transactionId);
+                    FirebaseCrashlytics.getInstance().log("D/TransactionRepository: Transaction deleted successfully: " + transactionId);
                     successLiveData.postValue(true);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("TRANSACTION_DELETE_ERROR", "Failed to delete transaction", e);
+                    FirebaseCrashlytics.getInstance().log("E/TransactionRepository: Failed to delete transaction: " + transactionId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                     successLiveData.postValue(false);
                 });

@@ -1,13 +1,13 @@
 package com.mytrackr.receipts.viewmodels;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.mytrackr.receipts.data.models.Receipt;
@@ -15,13 +15,11 @@ import com.mytrackr.receipts.data.models.ReceiptItem;
 import com.mytrackr.receipts.data.repository.ReceiptRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HomeViewModel extends AndroidViewModel {
-    private static final String TAG = "HomeViewModel";
-    
+
     private final ReceiptRepository receiptRepository;
     private final MutableLiveData<List<Receipt>> receipts = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
@@ -31,6 +29,7 @@ public class HomeViewModel extends AndroidViewModel {
     public HomeViewModel(@NonNull Application application) {
         super(application);
         receiptRepository = new ReceiptRepository();
+        FirebaseCrashlytics.getInstance().log("D/HomeViewModel: HomeViewModel initialized");
     }
 
     public LiveData<List<Receipt>> getReceipts() {
@@ -52,14 +51,15 @@ public class HomeViewModel extends AndroidViewModel {
     public void loadReceipts() {
         isLoading.setValue(true);
         errorMessage.setValue(null);
+        FirebaseCrashlytics.getInstance().log("D/HomeViewModel: Loading receipts");
 
         receiptRepository.fetchReceiptsForCurrentUser(task -> {
             isLoading.postValue(false);
-            
+
             if (task.isSuccessful()) {
                 QuerySnapshot querySnapshot = task.getResult();
                 List<Receipt> receiptsList = new ArrayList<>();
-                
+
                 if (querySnapshot != null && !querySnapshot.isEmpty()) {
                     for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                         try {
@@ -69,18 +69,23 @@ public class HomeViewModel extends AndroidViewModel {
                                 receiptsList.add(receipt);
                             }
                         } catch (Exception e) {
-                            Log.e(TAG, "Error parsing receipt document: " + document.getId(), e);
+                            FirebaseCrashlytics.getInstance().log("E/HomeViewModel: Error parsing receipt document: " + document.getId());
+                            FirebaseCrashlytics.getInstance().recordException(e);
                         }
                     }
                 }
-                
+
                 receipts.postValue(receiptsList);
                 receiptsCount.postValue(receiptsList.size());
+                FirebaseCrashlytics.getInstance().log("D/HomeViewModel: Loaded " + receiptsList.size() + " receipts");
             } else {
-                Log.e(TAG, "Error fetching receipts", task.getException());
-                String error = task.getException() != null 
-                    ? task.getException().getMessage() 
-                    : "Failed to load receipts";
+                FirebaseCrashlytics.getInstance().log("E/HomeViewModel: Error fetching receipts");
+                if (task.getException() != null) {
+                    FirebaseCrashlytics.getInstance().recordException(task.getException());
+                }
+                String error = task.getException() != null
+                        ? task.getException().getMessage()
+                        : "Failed to load receipts";
                 errorMessage.postValue(error);
                 receipts.postValue(new ArrayList<>());
                 receiptsCount.postValue(0);
@@ -89,6 +94,7 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public void refreshReceipts() {
+        FirebaseCrashlytics.getInstance().log("D/HomeViewModel: Refreshing receipts");
         loadReceipts();
     }
 
@@ -114,25 +120,29 @@ public class HomeViewModel extends AndroidViewModel {
                 Map<String, Object> receiptMap = (Map<String, Object>) data.get("receipt");
                 Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
                 if (receiptMap != null) {
-                    if (receiptMap.containsKey("receiptId")) receiptInfo.setReceiptId((String) receiptMap.get("receiptId"));
+                    if (receiptMap.containsKey("receiptId"))
+                        receiptInfo.setReceiptId((String) receiptMap.get("receiptId"));
                     if (receiptMap.containsKey("date")) receiptInfo.setDate((String) receiptMap.get("date"));
                     if (receiptMap.containsKey("time")) receiptInfo.setTime((String) receiptMap.get("time"));
-                    if (receiptMap.containsKey("currency")) receiptInfo.setCurrency((String) receiptMap.get("currency"));
-                    if (receiptMap.containsKey("paymentMethod")) receiptInfo.setPaymentMethod((String) receiptMap.get("paymentMethod"));
-                    if (receiptMap.containsKey("cardLast4")) receiptInfo.setCardLast4((String) receiptMap.get("cardLast4"));
+                    if (receiptMap.containsKey("currency"))
+                        receiptInfo.setCurrency((String) receiptMap.get("currency"));
+                    if (receiptMap.containsKey("paymentMethod"))
+                        receiptInfo.setPaymentMethod((String) receiptMap.get("paymentMethod"));
+                    if (receiptMap.containsKey("cardLast4"))
+                        receiptInfo.setCardLast4((String) receiptMap.get("cardLast4"));
                     if (receiptMap.containsKey("category")) {
                         Object categoryObj = receiptMap.get("category");
                         if (categoryObj != null) {
                             String category = categoryObj.toString().trim();
                             if (!category.isEmpty() && !category.equals("null")) {
                                 receiptInfo.setCategory(category);
-                                Log.d("HomeViewModel", "Loaded category from Firestore: " + category);
                             }
                         }
                     }
                     if (receiptMap.containsKey("subtotal")) {
                         Object subtotal = receiptMap.get("subtotal");
-                        if (subtotal instanceof Number) receiptInfo.setSubtotal(((Number) subtotal).doubleValue());
+                        if (subtotal instanceof Number)
+                            receiptInfo.setSubtotal(((Number) subtotal).doubleValue());
                     }
                     if (receiptMap.containsKey("tax")) {
                         Object tax = receiptMap.get("tax");
@@ -144,15 +154,18 @@ public class HomeViewModel extends AndroidViewModel {
                     }
                     if (receiptMap.containsKey("dateTimestamp")) {
                         Object dateTimestamp = receiptMap.get("dateTimestamp");
-                        if (dateTimestamp instanceof Number) receiptInfo.setDateTimestamp(((Number) dateTimestamp).longValue());
+                        if (dateTimestamp instanceof Number)
+                            receiptInfo.setDateTimestamp(((Number) dateTimestamp).longValue());
                     }
                     if (receiptMap.containsKey("receiptDateTimestamp")) {
                         Object receiptDateTimestamp = receiptMap.get("receiptDateTimestamp");
-                        if (receiptDateTimestamp instanceof Number) receiptInfo.setReceiptDateTimestamp(((Number) receiptDateTimestamp).longValue());
+                        if (receiptDateTimestamp instanceof Number)
+                            receiptInfo.setReceiptDateTimestamp(((Number) receiptDateTimestamp).longValue());
                     }
                     if (receiptMap.containsKey("customNotificationTimestamp")) {
                         Object customNotificationTimestamp = receiptMap.get("customNotificationTimestamp");
-                        if (customNotificationTimestamp instanceof Number) receiptInfo.setCustomNotificationTimestamp(((Number) customNotificationTimestamp).longValue());
+                        if (customNotificationTimestamp instanceof Number)
+                            receiptInfo.setCustomNotificationTimestamp(((Number) customNotificationTimestamp).longValue());
                     }
                 }
                 receipt.setReceipt(receiptInfo);
@@ -177,7 +190,8 @@ public class HomeViewModel extends AndroidViewModel {
                             Object total = itemMap.get("totalPrice");
                             if (total instanceof Number) item.setTotalPrice(((Number) total).doubleValue());
                         }
-                        if (itemMap.containsKey("category")) item.setCategory((String) itemMap.get("category"));
+                        if (itemMap.containsKey("category"))
+                            item.setCategory((String) itemMap.get("category"));
                         items.add(item);
                     }
                     receipt.setItems(items);
@@ -188,10 +202,14 @@ public class HomeViewModel extends AndroidViewModel {
                 Map<String, Object> additionalMap = (Map<String, Object>) data.get("additional");
                 Receipt.AdditionalInfo additional = new Receipt.AdditionalInfo();
                 if (additionalMap != null) {
-                    if (additionalMap.containsKey("taxNumber")) additional.setTaxNumber((String) additionalMap.get("taxNumber"));
-                    if (additionalMap.containsKey("cashier")) additional.setCashier((String) additionalMap.get("cashier"));
-                    if (additionalMap.containsKey("storeNumber")) additional.setStoreNumber((String) additionalMap.get("storeNumber"));
-                    if (additionalMap.containsKey("notes")) additional.setNotes((String) additionalMap.get("notes"));
+                    if (additionalMap.containsKey("taxNumber"))
+                        additional.setTaxNumber((String) additionalMap.get("taxNumber"));
+                    if (additionalMap.containsKey("cashier"))
+                        additional.setCashier((String) additionalMap.get("cashier"));
+                    if (additionalMap.containsKey("storeNumber"))
+                        additional.setStoreNumber((String) additionalMap.get("storeNumber"));
+                    if (additionalMap.containsKey("notes"))
+                        additional.setNotes((String) additionalMap.get("notes"));
                 }
                 receipt.setAdditional(additional);
             }
@@ -200,10 +218,14 @@ public class HomeViewModel extends AndroidViewModel {
                 Map<String, Object> metadataMap = (Map<String, Object>) data.get("metadata");
                 Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
                 if (metadataMap != null) {
-                    if (metadataMap.containsKey("ocrText")) metadata.setOcrText((String) metadataMap.get("ocrText"));
-                    if (metadataMap.containsKey("processedBy")) metadata.setProcessedBy((String) metadataMap.get("processedBy"));
-                    if (metadataMap.containsKey("uploadedAt")) metadata.setUploadedAt((String) metadataMap.get("uploadedAt"));
-                    if (metadataMap.containsKey("userId")) metadata.setUserId((String) metadataMap.get("userId"));
+                    if (metadataMap.containsKey("ocrText"))
+                        metadata.setOcrText((String) metadataMap.get("ocrText"));
+                    if (metadataMap.containsKey("processedBy"))
+                        metadata.setProcessedBy((String) metadataMap.get("processedBy"));
+                    if (metadataMap.containsKey("uploadedAt"))
+                        metadata.setUploadedAt((String) metadataMap.get("uploadedAt"));
+                    if (metadataMap.containsKey("userId"))
+                        metadata.setUserId((String) metadataMap.get("userId"));
                 }
                 receipt.setMetadata(metadata);
             }
@@ -218,9 +240,9 @@ public class HomeViewModel extends AndroidViewModel {
 
             return receipt;
         } catch (Exception e) {
-            Log.e(TAG, "Error parsing receipt from document", e);
+            FirebaseCrashlytics.getInstance().log("E/HomeViewModel: Error parsing receipt from document");
+            FirebaseCrashlytics.getInstance().recordException(e);
             return null;
         }
     }
 }
-

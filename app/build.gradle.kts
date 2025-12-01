@@ -3,6 +3,11 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+}
+
+configurations.all {
+    resolutionStrategy.force("com.cloudinary:cloudinary-android:3.1.2")
 }
 
 android {
@@ -26,6 +31,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            configure<com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension> {
+                mappingFileUploadEnabled = false
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -55,10 +65,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation("com.airbnb.android:lottie:+")
+    implementation("com.airbnb.android:lottie:6.4.1")
     // Firebase Dependencies
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-crashlytics")
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
@@ -68,14 +79,10 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     // Firebase Cloud Messaging for push notifications
     implementation("com.google.firebase:firebase-messaging")
-    // ML Kit on-device Text Recognition (use latest stable suggested)
-    implementation("com.google.mlkit:text-recognition:16.0.1")
-    // ML Kit Document Scanner for cropping and enhancing receipt images
-    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")    // Lifecycle (ViewModel + LiveData)
 
     // ML Kit for Receipt Scanning
-    implementation("com.google.mlkit:text-recognition:16.0.0")
-    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")
 
     // Image Loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -89,11 +96,6 @@ dependencies {
     // ViewPager2 and Onboarding
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation("com.tbuonomo:dotsindicator:5.0")
-
-    // Glide for efficient image loading, EXIF handling and transformations
-    implementation("com.github.bumptech.glide:glide:4.15.1")
-    // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)
-    // kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
     implementation("com.cloudinary:cloudinary-android:3.1.2")

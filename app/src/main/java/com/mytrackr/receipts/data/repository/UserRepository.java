@@ -2,13 +2,12 @@ package com.mytrackr.receipts.data.repository;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +31,7 @@ public class UserRepository {
     public static synchronized UserRepository getInstance(){
         if(instance == null){
             instance = new UserRepository();
-            Log.i("USER_REPO_INITIALIZED", "USER Repository is Initialized");
+            FirebaseCrashlytics.getInstance().log("D/UserRepository: User Repository is Initialized");
         }
         return instance;
     }
@@ -52,7 +51,10 @@ public class UserRepository {
                     String error = task.getException() != null
                             ? task.getException().getMessage()
                             : "Unknown error occurred";
-                        Log.e("GOOGLE_USER_CHECK", "GOOGLE_USER_CHECK_FAILED IN DB");
+                        FirebaseCrashlytics.getInstance().log("E/UserRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                     errorMessage.postValue(error);
                 }
         });
@@ -69,11 +71,16 @@ public class UserRepository {
                 .document(uid)
                 .set(userDetails, SetOptions.merge())
                 .addOnCompleteListener(task -> {
-                    if(!task.isSuccessful()){
+                    if(task.isSuccessful()){
+                        FirebaseCrashlytics.getInstance().log("D/UserRepository: User details stored to Firestore successfully");
+                    } else {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
-                        Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
+                        FirebaseCrashlytics.getInstance().log("E/UserRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         errorMessage.postValue(error);
                     }
                 });
@@ -94,12 +101,17 @@ public class UserRepository {
                             if (document.exists()) {
                                 User user = document.toObject(User.class);
                                 if (user != null) {
-                                    Log.i("USER_DETAILS: ", user.getFullName() + " " + user.getEmail() + " " + user.getProfilePicture());
+                                    FirebaseCrashlytics.getInstance().log("D/UserRepository: User details fetched successfully");
                                     userLiveData.postValue(user);
                                 }
                             }
                         } else {
-                            errorMessage.postValue("Error getting document: " + task.getException());
+                            String error = task.getException() != null ? task.getException().getMessage() : "Error getting document";
+                            FirebaseCrashlytics.getInstance().log("E/UserRepository: " + error);
+                             if (task.getException() != null) {
+                                FirebaseCrashlytics.getInstance().recordException(task.getException());
+                            }
+                            errorMessage.postValue(error);
                         }
                     });
         return userLiveData;
@@ -122,6 +134,7 @@ public class UserRepository {
                         if (details.get("phoneNo") != null) updatedUser.setPhoneNo(details.get("phoneNo").toString());
                         if (details.get("city") != null) updatedUser.setCity(details.get("city").toString());
                         userLiveData.postValue(updatedUser);
+                        FirebaseCrashlytics.getInstance().log("D/UserRepository: User profile metadata saved successfully");
                     }
                 });
     }
@@ -144,8 +157,11 @@ public class UserRepository {
                         if (task.isSuccessful()) {
                             taskCompletionSource.setResult(null);
                         } else {
-                            taskCompletionSource.setException(task.getException() != null ? task.getException() :
-                                    new Exception("Unknown error saving user profile"));
+                            Exception e = task.getException() != null ? task.getException() :
+                                    new Exception("Unknown error saving user profile");
+                            FirebaseCrashlytics.getInstance().log("E/UserRepository: Error saving user profile metadata");
+                            FirebaseCrashlytics.getInstance().recordException(e);
+                            taskCompletionSource.setException(e);
                         }
                     });
         };
@@ -154,17 +170,19 @@ public class UserRepository {
             String id = UUID.randomUUID().toString();
             CloudinaryUtils.UploadConfig config = CloudinaryUtils.readConfig(context, id);
             if (config != null) {
+                FirebaseCrashlytics.getInstance().log("D/UserRepository: Uploading user profile image to Cloudinary");
                 CloudinaryUtils.uploadImage(context, newProfilePictureUri, config, new CloudinaryUtils.CloudinaryUploadCallback() {
                     @Override
                     public void onSuccess(String secureUrl, String publicId) {
                         updatedUserDetails.put("profilePicture", secureUrl);
-                        Log.i("UserRepository", "Cloudinary upload successful, for User Profile Image");
+                        FirebaseCrashlytics.getInstance().log("D/UserRepository: Cloudinary upload successful for User Profile Image");
                         persistToFirestore.run();
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-                        Log.w("UserRepository", "Cloudinary upload failed", e);
+                        FirebaseCrashlytics.getInstance().log("E/UserRepository: Cloudinary upload failed");
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         taskCompletionSource.setException(e);
                     }
                 });

@@ -9,6 +9,7 @@ import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.mytrackr.receipts.R;
@@ -21,6 +22,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onCreate() {
         super.onCreate();
+        FirebaseCrashlytics.getInstance().log("D/MyFirebaseMessagingService: Service created");
         createNotificationChannel();
     }
 
@@ -29,24 +31,25 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             String title = remoteMessage.getNotification().getTitle();
             String body = remoteMessage.getNotification().getBody();
-            
+            FirebaseCrashlytics.getInstance().log("D/MyFirebaseMessagingService: Message received: " + title);
             showNotification(title != null ? title : "MyTrackr", body != null ? body : "");
         }
     }
 
     @Override
     public void onNewToken(String token) {
+        FirebaseCrashlytics.getInstance().log("D/MyFirebaseMessagingService: New FCM token generated");
     }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_DEFAULT
             );
             channel.setDescription("Notifications for receipt and expense management");
-            
+
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
@@ -57,24 +60,24 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void showNotification(String title, String message) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        
+
         PendingIntent pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+                this, 0, intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_receipt_icon)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                .setSmallIcon(R.drawable.ic_receipt_icon)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager != null) {
             notificationManager.notify((int) System.currentTimeMillis(), notificationBuilder.build());
+            FirebaseCrashlytics.getInstance().log("D/MyFirebaseMessagingService: Notification shown: " + title);
         }
     }
 }
-

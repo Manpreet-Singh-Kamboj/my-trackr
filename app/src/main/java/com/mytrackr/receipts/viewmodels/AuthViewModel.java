@@ -5,18 +5,18 @@ import android.app.Application;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
-import android.util.Log;
 import android.util.Patterns;
 import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.viewbinding.ViewBinding;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.mytrackr.receipts.R;
 import com.mytrackr.receipts.data.interfaces.OnChangePasswordUpdateListener;
 import com.mytrackr.receipts.data.interfaces.OnProfileUpdateListener;
@@ -31,12 +31,15 @@ import com.mytrackr.receipts.utils.Utils;
 public class AuthViewModel extends AndroidViewModel {
     private final AuthRepository authRepository;
     private final Utils utils;
-    public AuthViewModel(@NonNull Application application){
+
+    public AuthViewModel(@NonNull Application application) {
         super(application);
-        authRepository = AuthRepository.getInstance(application.getApplicationContext(),application.getString(R.string.default_web_client_id));
+        authRepository = AuthRepository.getInstance(application.getApplicationContext(), application.getString(R.string.default_web_client_id));
         utils = Utils.getInstance();
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: AuthViewModel initialized");
     }
-    public LiveData<FirebaseUser> getUser(){
+
+    public LiveData<FirebaseUser> getUser() {
         return authRepository.getUser();
     }
 
@@ -56,7 +59,8 @@ public class AuthViewModel extends AndroidViewModel {
 
         return false;
     }
-    private boolean emailValidationError(String s, TextInputLayout emailLayout, int errorColor, int primaryColor){
+
+    private boolean emailValidationError(String s, TextInputLayout emailLayout, int errorColor, int primaryColor) {
         String emailStr = s.trim();
         if (emailStr.isEmpty()) {
             emailLayout.setErrorEnabled(true);
@@ -73,7 +77,7 @@ public class AuthViewModel extends AndroidViewModel {
             emailLayout.setError("Email is not valid");
             return true;
         }
-        if(emailLayout.hasFocus()){
+        if (emailLayout.hasFocus()) {
             emailLayout.setStartIconTintList(
                     ColorStateList.valueOf(primaryColor)
             );
@@ -81,73 +85,82 @@ public class AuthViewModel extends AndroidViewModel {
         emailLayout.setErrorEnabled(false);
         return false;
     }
-    private boolean fullNameValidationError(String fullName,TextInputLayout fullNameLayout, int errorColor, int primaryColor){
-        if(fullName.trim().isEmpty()){
+
+    private boolean fullNameValidationError(String fullName, TextInputLayout fullNameLayout, int errorColor, int primaryColor) {
+        if (fullName.trim().isEmpty()) {
             fullNameLayout.setErrorEnabled(true);
             fullNameLayout.setError("Full Name is required");
             fullNameLayout.setStartIconTintList(ColorStateList.valueOf(errorColor));
             return true;
         }
         fullNameLayout.setErrorEnabled(false);
-        if(fullNameLayout.hasFocus()){
+        if (fullNameLayout.hasFocus()) {
             fullNameLayout.setStartIconTintList(ColorStateList.valueOf(primaryColor));
         }
         return false;
     }
 
-    public LiveData<String> error(){
+    public LiveData<String> error() {
         return authRepository.getErrorMessage();
     }
-    public LiveData<String> success(){
+
+    public LiveData<String> success() {
         return authRepository.getSuccessMessage();
     }
 
-    public void handleSignIn(ActivitySignInBinding binding, int errorColor, int primaryColor){
-        if(binding.password.getText() == null || binding.email.getText() == null) {
+    public void handleSignIn(ActivitySignInBinding binding, int errorColor, int primaryColor) {
+        if (binding.password.getText() == null || binding.email.getText() == null) {
             return;
         }
         String email = binding.email.getText().toString();
-        if (emailValidationError(email,binding.emailLayout,errorColor,primaryColor)){
+        if (emailValidationError(email, binding.emailLayout, errorColor, primaryColor)) {
             return;
         }
         String password = binding.password.getText().toString().trim();
-        if(passwordValidationError(password,binding.passwordLayout, errorColor,primaryColor)){
+        if (passwordValidationError(password, binding.passwordLayout, errorColor, primaryColor)) {
             return;
         }
-        authRepository.signInWithEmailAndPassword(email,password);
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling sign in for user: " + email);
+        authRepository.signInWithEmailAndPassword(email, password);
     }
 
-    public void handleGoogleLogin(Activity activity, int requestCode){
-        authRepository.handleGoogleLogin(activity,requestCode);
+    public void handleGoogleLogin(Activity activity, int requestCode) {
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling Google login");
+        authRepository.handleGoogleLogin(activity, requestCode);
     }
-    public void handleGoogleSignInResult(Intent data){
+
+    public void handleGoogleSignInResult(Intent data) {
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling Google sign in result");
         authRepository.handleGoogleSignInResult(data);
     }
 
-    public void handleSignOut(){
+    public void handleSignOut() {
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling sign out");
         authRepository.signOut();
     }
-    public void setFocusListener(TextInputLayout layout, EditText editText, int focusedColor, int unfocusedColor){
-        utils.setFocusListener(layout,editText,focusedColor,unfocusedColor);
+
+    public void setFocusListener(TextInputLayout layout, EditText editText, int focusedColor, int unfocusedColor) {
+        utils.setFocusListener(layout, editText, focusedColor, unfocusedColor);
     }
 
-    public void handleSignUp(ActivitySignupBinding binding, int errorColor, int primaryColor){
-        if(binding.password.getText() == null || binding.email.getText() == null || binding.fullName.getText() == null) {
+    public void handleSignUp(ActivitySignupBinding binding, int errorColor, int primaryColor) {
+        if (binding.password.getText() == null || binding.email.getText() == null || binding.fullName.getText() == null) {
             return;
         }
         String fullName = binding.fullName.getText().toString();
-        if (fullNameValidationError(fullName,binding.fullNameLayout,errorColor,primaryColor)){
+        if (fullNameValidationError(fullName, binding.fullNameLayout, errorColor, primaryColor)) {
             return;
         }
         String email = binding.email.getText().toString();
-        if (emailValidationError(email,binding.emailLayout,errorColor,primaryColor)){
+        if (emailValidationError(email, binding.emailLayout, errorColor, primaryColor)) {
             return;
         }
         String password = binding.password.getText().toString().trim();
-        if(passwordValidationError(password,binding.passwordLayout, errorColor,primaryColor)){
+        if (passwordValidationError(password, binding.passwordLayout, errorColor, primaryColor)) {
             return;
         }
-        authRepository.signUpWithEmailPassword(fullName,email,password);
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling sign up for user: " + email);
+        authRepository.signUpWithEmailPassword(fullName, email, password);
     }
 
     public <T extends ViewBinding> void showErrorSnackBar(T binding, String errorMessage) {
@@ -158,6 +171,7 @@ public class AuthViewModel extends AndroidViewModel {
         snackbar.show();
         authRepository.clearErrorMessage();
     }
+
     public <T extends ViewBinding> void showSuccessSnackBar(T binding, String successMessage) {
         Snackbar snackbar = Snackbar.make(binding.getRoot(), successMessage, Snackbar.LENGTH_LONG);
         snackbar.setBackgroundTint(getApplication().getColor(R.color.light_green));
@@ -166,42 +180,48 @@ public class AuthViewModel extends AndroidViewModel {
         snackbar.show();
         authRepository.clearSuccessMessage();
     }
-    public void handleForgotPasswordRequest(ActivityForgotPasswordBinding binding){
-        if(binding.email.getText() == null){
+
+    public void handleForgotPasswordRequest(ActivityForgotPasswordBinding binding) {
+        if (binding.email.getText() == null) {
             return;
         }
         String email = binding.email.getText().toString();
-        if(emailValidationError(email,binding.emailLayout, getApplication().getColor(R.color.error), getApplication().getColor(R.color.primary))){
+        if (emailValidationError(email, binding.emailLayout, getApplication().getColor(R.color.error), getApplication().getColor(R.color.primary))) {
             return;
         }
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Handling forgot password request for user: " + email);
         authRepository.handleForgotPasswordRequest(email);
     }
 
-    public LiveData<User> getUserDetails(){
+    public LiveData<User> getUserDetails() {
         return authRepository.getUserDetails();
     }
 
     @Override
-    public void onCleared(){
+    public void onCleared() {
         super.onCleared();
         authRepository.removeAuthStateListener();
     }
 
-    public void refreshUserDetails(){
+    public void refreshUserDetails() {
         authRepository.refreshUserDetails();
     }
-    public boolean isGoogleSignedInUser(){
+
+    public boolean isGoogleSignedInUser() {
         return authRepository.isGoogleSignedInUser();
     }
-    public void updateUserProfile(ActivityEditProfileBinding binding, Uri newProfilePictureUri){
+
+    public void updateUserProfile(ActivityEditProfileBinding binding, Uri newProfilePictureUri) {
         binding.saveChanges.setEnabled(false);
         FirebaseUser user = getUser().getValue();
-        if(user != null){
+        if (user != null) {
             String uid = user.getUid();
             String fullName = binding.userFullName.getText() != null ? binding.userFullName.getText().toString() : "";
             String aboutMe = binding.aboutMe.getText() != null ? binding.aboutMe.getText().toString() : "";
             String phoneNo = binding.phoneNumber.getText() != null ? binding.phoneNumber.getText().toString() : "";
             String city = binding.city.getText() != null ? binding.city.getText().toString() : "";
+
+            FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Updating user profile for uid: " + uid);
 
             authRepository.updateUserProfile(
                     getApplication().getApplicationContext(),
@@ -217,17 +237,33 @@ public class AuthViewModel extends AndroidViewModel {
                             Snackbar.make(binding.getRoot(), "Profile updated successfully", Snackbar.LENGTH_SHORT).show();
                             binding.saveChanges.setEnabled(true);
                             refreshUserDetails();
+                            FirebaseCrashlytics.getInstance().log("D/AuthViewModel: User profile updated successfully for uid: " + uid);
                         }
 
                         @Override
                         public void onFailure(String errorMessage) {
                             Snackbar.make(binding.getRoot(), "Failed to update profile: " + errorMessage, Snackbar.LENGTH_SHORT).show();
                             binding.saveChanges.setEnabled(true);
+                            FirebaseCrashlytics.getInstance().log("E/AuthViewModel: Failed to update user profile for uid: " + uid + ", error: " + errorMessage);
                         }
                     });
         }
     }
-    public void changePassword(String currentPassword, String newPassword, OnChangePasswordUpdateListener listener){
-        authRepository.changePassword(currentPassword, newPassword, listener);
+
+    public void changePassword(String currentPassword, String newPassword, OnChangePasswordUpdateListener listener) {
+        FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Changing password");
+        authRepository.changePassword(currentPassword, newPassword, new OnChangePasswordUpdateListener() {
+            @Override
+            public void onSuccess() {
+                FirebaseCrashlytics.getInstance().log("D/AuthViewModel: Password changed successfully");
+                listener.onSuccess();
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                FirebaseCrashlytics.getInstance().log("E/AuthViewModel: Failed to change password: " + errorMessage);
+                listener.onFailure(errorMessage);
+            }
+        });
     }
 }

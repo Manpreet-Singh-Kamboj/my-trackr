@@ -1,8 +1,8 @@
 package com.mytrackr.receipts.data.repository;
 
-import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -24,7 +24,7 @@ public class BudgetRepository {
     public static synchronized BudgetRepository getInstance() {
         if (instance == null) {
             instance = new BudgetRepository();
-            Log.i("BUDGET_REPO_INITIALIZED", "Budget Repository is Initialized");
+            FirebaseCrashlytics.getInstance().log("D/BudgetRepository: Budget Repository is Initialized");
         }
         return instance;
     }
@@ -33,6 +33,7 @@ public class BudgetRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/BudgetRepository: Attempted to get budget for unauthenticated user");
             return;
         }
 
@@ -47,12 +48,15 @@ public class BudgetRepository {
                     if (documentSnapshot.exists()) {
                         Budget budget = documentSnapshot.toObject(Budget.class);
                         budgetLiveData.postValue(budget);
+                        FirebaseCrashlytics.getInstance().log("D/BudgetRepository: Budget fetched successfully for " + month + "/" + year);
                     } else {
                         budgetLiveData.postValue(null);
+                        FirebaseCrashlytics.getInstance().log("D/BudgetRepository: No budget found for " + month + "/" + year);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("BUDGET_FETCH_ERROR", "Failed to fetch budget", e);
+                    FirebaseCrashlytics.getInstance().log("E/BudgetRepository: Failed to fetch budget");
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                 });
     }
@@ -61,6 +65,7 @@ public class BudgetRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/BudgetRepository: Attempted to save budget for unauthenticated user");
             return;
         }
 
@@ -78,11 +83,12 @@ public class BudgetRepository {
                 .document(docId)
                 .set(budgetData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    Log.i("BUDGET_SAVED", "Budget saved successfully");
+                    FirebaseCrashlytics.getInstance().log("D/BudgetRepository: Budget saved successfully for " + docId);
                     successLiveData.postValue(true);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("BUDGET_SAVE_ERROR", "Failed to save budget", e);
+                    FirebaseCrashlytics.getInstance().log("E/BudgetRepository: Failed to save budget for " + docId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                     successLiveData.postValue(false);
                 });
@@ -95,6 +101,7 @@ public class BudgetRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+            FirebaseCrashlytics.getInstance().log("W/BudgetRepository: Attempted to sync budget for unauthenticated user");
             return;
         }
 
@@ -112,10 +119,11 @@ public class BudgetRepository {
                 .document(docId)
                 .set(budgetData, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    Log.d("BUDGET_SYNCED", "Budget synced silently");
+                    FirebaseCrashlytics.getInstance().log("D/BudgetRepository: Budget synced silently for " + docId);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("BUDGET_SYNC_ERROR", "Failed to sync budget", e);
+                    FirebaseCrashlytics.getInstance().log("E/BudgetRepository: Failed to sync budget for " + docId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                 });
     }
@@ -124,6 +132,7 @@ public class BudgetRepository {
         String uid = getCurrentUserId();
         if (uid == null) {
             errorMessage.postValue("User not authenticated");
+             FirebaseCrashlytics.getInstance().log("W/BudgetRepository: Attempted to update spent amount for unauthenticated user");
             return;
         }
 
@@ -135,11 +144,12 @@ public class BudgetRepository {
                 .document(docId)
                 .update("spent", spentAmount)
                 .addOnSuccessListener(aVoid -> {
-                    Log.i("BUDGET_UPDATED", "Spent amount updated successfully");
+                    FirebaseCrashlytics.getInstance().log("D/BudgetRepository: Spent amount updated successfully for " + docId);
                     successLiveData.postValue(true);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("BUDGET_UPDATE_ERROR", "Failed to update spent amount", e);
+                    FirebaseCrashlytics.getInstance().log("E/BudgetRepository: Failed to update spent amount for " + docId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     errorMessage.postValue(e.getMessage());
                     successLiveData.postValue(false);
                 });
@@ -172,7 +182,8 @@ public class BudgetRepository {
 
             return budget;
         } catch (Exception e) {
-            Log.e("BudgetRepository", "Error parsing budget from document", e);
+            FirebaseCrashlytics.getInstance().log("E/BudgetRepository: Error parsing budget from document");
+            FirebaseCrashlytics.getInstance().recordException(e);
             return null;
         }
     }

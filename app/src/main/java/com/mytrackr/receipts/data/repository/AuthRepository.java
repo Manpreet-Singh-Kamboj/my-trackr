@@ -13,13 +13,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.mytrackr.receipts.data.interfaces.OnChangePasswordUpdateListener;
 import com.mytrackr.receipts.data.interfaces.OnProfileUpdateListener;
 import com.mytrackr.receipts.data.models.User;
@@ -54,7 +54,7 @@ public class AuthRepository {
     public static synchronized AuthRepository getInstance(Context context, String clientId){
         if(instance == null){
             instance = new AuthRepository(context,clientId);
-            Log.i("AUTH_REPO_INITIALIZED", "AUTH Repository is Initialized");
+            FirebaseCrashlytics.getInstance().log("D/AuthRepository: Auth Repository is Initialized");
         }
         return instance;
     }
@@ -87,7 +87,8 @@ public class AuthRepository {
                 this.firebaseAuthWithGoogle(idToken);
             }
         } catch (Exception e) {
-            Log.e("GOOGLE_LOGIN_ERROR", "Google Sign In Failed");
+            FirebaseCrashlytics.getInstance().log("E/AuthRepository: Google Sign In Failed");
+            FirebaseCrashlytics.getInstance().recordException(e);
             errorMessage.postValue(e.getMessage());
         }
     }
@@ -100,6 +101,7 @@ public class AuthRepository {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         currentUser.postValue(user);
                         if(user != null){
+                            FirebaseCrashlytics.getInstance().log("D/AuthRepository: User signed in with Google successfully");
                             String uid = user.getUid();
                             String fullName = user.getDisplayName();
                             String email = user.getEmail();
@@ -109,7 +111,10 @@ public class AuthRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
-                        Log.e("GOOGLE_LOGIN_ERROR", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         errorMessage.postValue(error);
                     }
                 });
@@ -121,11 +126,15 @@ public class AuthRepository {
                     if (task.isSuccessful()) {
                         FirebaseUser user = firebaseAuth.getCurrentUser();
                         currentUser.postValue(user);
+                        FirebaseCrashlytics.getInstance().log("D/AuthRepository: User signed in with email and password successfully");
                     } else {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
-                        Log.e("EMAIL_SIGN_IN_ERROR", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         errorMessage.postValue(error);
                     }
                 });
@@ -136,13 +145,17 @@ public class AuthRepository {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 currentUser.postValue(user);
                 if(user != null){
+                    FirebaseCrashlytics.getInstance().log("D/AuthRepository: User signed up with email and password successfully");
                     userRepository.storeUserDetailsToFirestore(user.getUid(),fullName,email,errorMessage,null);
                 }
             }else{
                 String error = task.getException() != null
                         ? task.getException().getMessage()
                         : "Unknown error occurred";
-                Log.e("EMAIL_SIGN_IN_ERROR", error);
+                FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                if (task.getException() != null) {
+                    FirebaseCrashlytics.getInstance().recordException(task.getException());
+                }
                 errorMessage.postValue(error);
             }
         });
@@ -153,10 +166,14 @@ public class AuthRepository {
                 .sendPasswordResetEmail(email.toLowerCase())
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
+                        FirebaseCrashlytics.getInstance().log("D/AuthRepository: Forgot password email sent successfully");
                         successMessage.postValue("Password reset email sent! Please check your inbox and follow the instructions to reset your password.");
                     }else {
                         String error = task.getException() != null ? task.getException().getMessage() : "Unknown error occurred";
-                        Log.e("EMAIL_SIGN_IN_ERROR", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         errorMessage.postValue(error);
                     }
                 });
@@ -178,8 +195,9 @@ public class AuthRepository {
                         firebaseAuth.signOut();
                         currentUser.postValue(null);
                         userRepository.resetUserDetails();
+                        FirebaseCrashlytics.getInstance().log("D/AuthRepository: User signed out successfully");
                     }else{
-                        Log.e("SIGN_OUT_ERROR", "SIGN_IN_FAILED");
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: Sign out failed");
                         errorMessage.postValue("Something Went Wrong. Please try again.");
                     }
                 });
@@ -187,6 +205,7 @@ public class AuthRepository {
                 firebaseAuth.signOut();
                 currentUser.postValue(null);
                 userRepository.resetUserDetails();
+                FirebaseCrashlytics.getInstance().log("D/AuthRepository: User signed out successfully");
             }
         }
     }
@@ -223,10 +242,13 @@ public class AuthRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
-                        Log.e("DB_PERSIST_FAILED", "DB Transaction Failed");
-                        Log.e("DB_PERSIST_FAILED", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: DB Transaction Failed: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         listener.onFailure("Failed to update profile: " + error);
                     } else {
+                        FirebaseCrashlytics.getInstance().log("D/AuthRepository: User profile updated successfully");
                         listener.onSuccess();
                     }
                 });
@@ -252,7 +274,10 @@ public class AuthRepository {
                         String error = task.getException() != null
                                 ? task.getException().getMessage()
                                 : "Unknown error occurred";
-                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                        if (task.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(task.getException());
+                        }
                         listener.onFailure(error);
                     }else{
                         user.updatePassword(newPassword)
@@ -261,9 +286,13 @@ public class AuthRepository {
                                         String error = updatePasswordTask.getException() != null
                                                 ? updatePasswordTask.getException().getMessage()
                                                 : "Unknown error occurred";
-                                        Log.e("FAILED_TO_CHANGE_PASSWORD", error);
+                        FirebaseCrashlytics.getInstance().log("E/AuthRepository: " + error);
+                        if (updatePasswordTask.getException() != null) {
+                            FirebaseCrashlytics.getInstance().recordException(updatePasswordTask.getException());
+                        }
                                         listener.onFailure(error);
                                     }else{
+                                        FirebaseCrashlytics.getInstance().log("D/AuthRepository: Password changed successfully");
                                         listener.onSuccess();
                                     }
                                 });

@@ -2,56 +2,51 @@ package com.mytrackr.receipts.data.repository;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.google.firebase.storage.StorageException;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.FieldValue;
-
 import com.mytrackr.receipts.data.models.Receipt;
 import com.mytrackr.receipts.data.models.ReceiptItem;
 import com.mytrackr.receipts.utils.CloudinaryUtils;
 import com.mytrackr.receipts.utils.NotificationPreferences;
 import com.mytrackr.receipts.utils.NotificationScheduler;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-
-// add import for R
-import com.mytrackr.receipts.R;
-
 public class ReceiptRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private static ReceiptRepository repositoryInstance;
-    
-    // Track last notification scheduling time per receipt to prevent duplicates
+
     private static final Map<String, Long> lastScheduledTime = new HashMap<>();
     private static final long SCHEDULING_COOLDOWN_MS = 5000; // 5 seconds cooldown
 
     public static synchronized ReceiptRepository getInstance(){
         if(repositoryInstance == null){
             repositoryInstance = new ReceiptRepository();
-            Log.i("RECEIPT_REPO_INITIALIZED", "Receipt Repository is Initialized");
+            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Receipt Repository is Initialized");
         }
         return repositoryInstance;
     }
@@ -61,18 +56,16 @@ public class ReceiptRepository {
         void onSuccess();
         void onFailure(Exception e);
     }
-    
+
     public interface DeleteCallback {
         void onSuccess();
         void onFailure(Exception e);
     }
 
-    // Build Firestore map from Receipt object with all structured fields
     private Map<String, Object> buildReceiptMap(Receipt receipt, String cloudinaryPublicId) {
         Map<String, Object> map = new HashMap<>();
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
-        
-        // Store information
+
         if (receipt.getStore() != null) {
             Map<String, Object> storeMap = new HashMap<>();
             Receipt.StoreInfo store = receipt.getStore();
@@ -82,8 +75,7 @@ public class ReceiptRepository {
             if (store.getWebsite() != null) storeMap.put("website", store.getWebsite());
             map.put("store", storeMap);
         }
-        
-        // Receipt information
+
         if (receipt.getReceipt() != null) {
             Map<String, Object> receiptMap = new HashMap<>();
             Receipt.ReceiptInfo receiptInfo = receipt.getReceipt();
@@ -93,45 +85,38 @@ public class ReceiptRepository {
             if (receiptInfo.getCurrency() != null) receiptMap.put("currency", receiptInfo.getCurrency());
             if (receiptInfo.getPaymentMethod() != null) receiptMap.put("paymentMethod", receiptInfo.getPaymentMethod());
             if (receiptInfo.getCardLast4() != null) receiptMap.put("cardLast4", receiptInfo.getCardLast4());
-            // Always save category if it exists (even if empty string, but not null)
             if (receiptInfo.getCategory() != null) {
                 String category = receiptInfo.getCategory().trim();
                 if (!category.isEmpty() && !category.equals("null")) {
                     receiptMap.put("category", category);
-                    Log.d("ReceiptRepository", "Saving category to Firestore: " + category);
                 } else {
-                    Log.w("ReceiptRepository", "Category is empty or 'null' string, not saving");
+                    FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Category is empty or 'null' string, not saving");
                 }
             } else {
-                Log.w("ReceiptRepository", "Category is null, not saving");
+                FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Category is null, not saving");
             }
             receiptMap.put("subtotal", receiptInfo.getSubtotal());
             receiptMap.put("tax", receiptInfo.getTax());
             receiptMap.put("total", receiptInfo.getTotal());
-            // Always save dateTimestamp (for sorting/upload time)
             receiptMap.put("dateTimestamp", receiptInfo.getDateTimestamp());
-            
-            // Always save receiptDateTimestamp if it exists, otherwise save dateTimestamp as fallback
+
             if (receiptInfo.getReceiptDateTimestamp() > 0) {
-                receiptMap.put("receiptDateTimestamp", receiptInfo.getReceiptDateTimestamp()); // Actual receipt date
+                receiptMap.put("receiptDateTimestamp", receiptInfo.getReceiptDateTimestamp());
             } else if (receiptInfo.getDateTimestamp() > 0) {
-                // If receiptDateTimestamp is 0 but dateTimestamp exists, use it as fallback
                 receiptMap.put("receiptDateTimestamp", receiptInfo.getDateTimestamp());
-                Log.d("ReceiptRepository", "Using dateTimestamp as receiptDateTimestamp fallback: " + receiptInfo.getDateTimestamp());
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Using dateTimestamp as receiptDateTimestamp fallback: " + receiptInfo.getDateTimestamp());
             }
             if (receiptInfo.getCustomNotificationTimestamp() > 0) {
-                receiptMap.put("customNotificationTimestamp", receiptInfo.getCustomNotificationTimestamp()); // Custom notification date
+                receiptMap.put("customNotificationTimestamp", receiptInfo.getCustomNotificationTimestamp());
             }
             map.put("receipt", receiptMap);
         }
-        
-        // Items - convert ReceiptItem objects to Maps for Firestore
+
         if (receipt.getItems() != null && !receipt.getItems().isEmpty()) {
             List<Map<String, Object>> itemsList = getMaps(receipt);
             map.put("items", itemsList);
         }
-        
-        // Additional information
+
         if (receipt.getAdditional() != null) {
             Map<String, Object> additionalMap = new HashMap<>();
             Receipt.AdditionalInfo additional = receipt.getAdditional();
@@ -141,8 +126,7 @@ public class ReceiptRepository {
             if (additional.getNotes() != null) additionalMap.put("notes", additional.getNotes());
             map.put("additional", additionalMap);
         }
-        
-        // Metadata
+
         if (receipt.getMetadata() != null) {
             Map<String, Object> metadataMap = new HashMap<>();
             Receipt.ReceiptMetadata metadata = receipt.getMetadata();
@@ -152,18 +136,15 @@ public class ReceiptRepository {
             if (metadata.getUserId() != null) metadataMap.put("userId", metadata.getUserId());
             map.put("metadata", metadataMap);
         }
-        
-        // Image URL
+
         if (receipt.getImageUrl() != null) {
             map.put("imageUrl", receipt.getImageUrl());
         }
-        
-        // Cloudinary public id if present
+
         if (cloudinaryPublicId != null) {
             map.put("cloudinaryPublicId", cloudinaryPublicId);
         }
-        
-        // Backward compatibility fields (for existing queries)
+
         if (receipt.getStore() != null && receipt.getStore().getName() != null) {
             map.put("storeName", receipt.getStore().getName());
         }
@@ -171,10 +152,9 @@ public class ReceiptRepository {
             map.put("date", receipt.getReceipt().getDateTimestamp());
             map.put("total", receipt.getReceipt().getTotal());
         }
-        
-        // Add server timestamp for consistent ordering/audit
+
         map.put("createdAt", FieldValue.serverTimestamp());
-        
+
         return map;
     }
 
@@ -188,7 +168,6 @@ public class ReceiptRepository {
             if (item.getUnitPrice() != null) itemMap.put("unitPrice", item.getUnitPrice());
             if (item.getTotalPrice() != null) itemMap.put("totalPrice", item.getTotalPrice());
             if (item.getCategory() != null) itemMap.put("category", item.getCategory());
-            // Keep backward compatibility with "price" field
             if (item.getTotalPrice() != null) {
                 itemMap.put("price", item.getTotalPrice());
             } else if (item.getUnitPrice() != null && item.getQuantity() != null) {
@@ -206,27 +185,29 @@ public class ReceiptRepository {
         String id = UUID.randomUUID().toString();
         receipt.setId(id);
 
-        Log.d("ReceiptRepository", "saveReceipt called: userId=" + userId + " id=" + id + " imageUri=" + (imageUri != null ? imageUri.toString() : "null"));
+        FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: saveReceipt called: userId=" + userId + ", id=" + id + ", imageUri=" + (imageUri != null ? imageUri.toString() : "null"));
 
         if (imageUri == null) {
             if (callback != null) callback.onFailure(new IllegalArgumentException("imageUri is null"));
             return;
         }
 
-        // Check for Cloudinary config and attempt upload if available
         if (CloudinaryUtils.isConfigured(context)) {
             CloudinaryUtils.UploadConfig config = CloudinaryUtils.readConfig(context, id);
             if (config != null) {
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Attempting to upload to Cloudinary");
                 CloudinaryUtils.uploadImage(context, imageUri, config, new CloudinaryUtils.CloudinaryUploadCallback() {
                     @Override
                     public void onSuccess(String secureUrl, String publicId) {
                         receipt.setImageUrl(secureUrl);
+                        FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Cloudinary upload successful. Saving metadata.");
                         saveMetadataToFirestore(id, receipt, publicId, callback, context);
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-                        Log.w("ReceiptRepository", "Cloudinary upload failed, falling back to Firebase Storage", e);
+                        FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Cloudinary upload failed, falling back to Firebase Storage");
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
                     }
                 });
@@ -234,92 +215,82 @@ public class ReceiptRepository {
             }
         }
 
-         // Fallback to Firebase Storage if Cloudinary not configured
-         saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
+        FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Cloudinary not configured, falling back to Firebase Storage");
+        saveReceiptFirebaseFallback(context, imageUri, receipt, id, callback);
     }
 
-     // Helper: save metadata to Firestore (used by Cloudinary path)
-     private void saveMetadataToFirestore(String id, Receipt receipt, String cloudinaryPublicId, SaveCallback callback, Context context) {
-         Map<String, Object> map = buildReceiptMap(receipt, cloudinaryPublicId);
-         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
+    private void saveMetadataToFirestore(String id, Receipt receipt, String cloudinaryPublicId, SaveCallback callback, Context context) {
+        Map<String, Object> map = buildReceiptMap(receipt, cloudinaryPublicId);
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
 
-        // Save receipt under the user's document: users/{userId}/receipts/{id}
         db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
-                 .addOnSuccessListener(aVoid -> {
-                     // Schedule replacement period notification
-                     if (context != null) {
-                         scheduleReplacementNotification(context, id, receipt);
-                     }
-                     if (callback != null) callback.onSuccess();
-                 })
-                 .addOnFailureListener(e -> {
-                     Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
-                     if (callback != null) callback.onFailure(e);
-                 });
-     }
-     
+                .addOnSuccessListener(aVoid -> {
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Receipt metadata saved successfully for id: " + id);
+                    if (context != null) {
+                        scheduleReplacementNotification(context, id, receipt);
+                    }
+                    if (callback != null) callback.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to save receipt metadata for id: " + id);
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                    if (callback != null) callback.onFailure(e);
+                });
+    }
+
     private void scheduleReplacementNotification(Context context, String receiptId, Receipt receipt) {
         if (receipt.getReceipt() == null) {
-            Log.w("ReceiptRepository", "ReceiptInfo is null, cannot schedule notification");
+            FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: ReceiptInfo is null, cannot schedule notification");
             return;
         }
-        
-        // Guard against duplicate scheduling within cooldown period
+
         synchronized (lastScheduledTime) {
             Long lastScheduled = lastScheduledTime.get(receiptId);
             long currentTime = System.currentTimeMillis();
             if (lastScheduled != null && (currentTime - lastScheduled) < SCHEDULING_COOLDOWN_MS) {
-                Log.d("ReceiptRepository", "Skipping duplicate notification scheduling for receipt " + receiptId + 
-                    " (last scheduled " + (currentTime - lastScheduled) + " ms ago)");
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Skipping duplicate notification scheduling for receipt " + receiptId);
                 return;
             }
             lastScheduledTime.put(receiptId, currentTime);
         }
-        
-        // Use receiptDateTimestamp for notification calculation (actual receipt date)
-        // Fallback to dateTimestamp if receiptDateTimestamp is not set
+
         long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
         if (receiptDate == 0) {
             receiptDate = receipt.getReceipt().getDateTimestamp();
-            Log.d("ReceiptRepository", "receiptDateTimestamp is 0, using dateTimestamp as fallback: " + receiptDate);
+            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: receiptDateTimestamp is 0, using dateTimestamp as fallback: " + receiptDate);
         } else {
-            Log.d("ReceiptRepository", "Using receiptDateTimestamp: " + receiptDate);
+            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Using receiptDateTimestamp: " + receiptDate);
         }
-        
+
         if (receiptDate == 0) {
-            Log.w("ReceiptRepository", "No receipt date available for notification scheduling");
+            FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: No receipt date available for notification scheduling");
             return;
         }
-        
+
         NotificationPreferences prefs = new NotificationPreferences(context);
-        
+
         if (!prefs.isReplacementReminderEnabled()) {
-            Log.d("ReceiptRepository", "Replacement reminders disabled, not scheduling");
+            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Replacement reminders disabled, not scheduling");
             return;
         }
-        
+
         int replacementDays = prefs.getReplacementDays();
         int notificationDaysBefore = prefs.getNotificationDaysBefore();
-        
-        Log.d("ReceiptRepository", "Scheduling notification for receipt " + receiptId + 
-            " with receiptDate: " + receiptDate + 
-            ", replacementDays: " + replacementDays + 
-            ", notificationDaysBefore: " + notificationDaysBefore);
-        
-        // Get custom notification timestamp if set
+
+        FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Scheduling notification for receipt " + receiptId);
+
         long customNotificationTimestamp = receipt.getReceipt().getCustomNotificationTimestamp();
-        
+
         NotificationScheduler.scheduleReceiptReplacementNotification(
-            context,
-            receiptId,
-            receiptDate,
-            replacementDays,
-            notificationDaysBefore,
-            customNotificationTimestamp
+                context,
+                receiptId,
+                receiptDate,
+                replacementDays,
+                notificationDaysBefore,
+                customNotificationTimestamp
         );
     }
 
-    // Fallback path: call the original Firebase Storage upload logic (extracted here so Cloudinary path can reuse it)
     private void saveReceiptFirebaseFallback(Context context, Uri imageUri, Receipt receipt, String id, SaveCallback callback) {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
         FirebaseStorage storageInstance = getPreferredStorage(context);
@@ -327,30 +298,31 @@ public class ReceiptRepository {
 
         try {
             UploadTask uploadTask;
-            java.io.InputStream inputToClose = null;
+            InputStream inputToClose = null;
             if ("content".equals(imageUri.getScheme())) {
                 inputToClose = context.getContentResolver().openInputStream(imageUri);
                 if (inputToClose != null) {
-                    Log.d("ReceiptRepository", "Fallback: uploading via putStream to path=" + ref.getPath());
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Fallback: uploading via putStream to path=" + ref.getPath());
                     uploadTask = ref.putStream(inputToClose);
                 } else {
-                    Log.d("ReceiptRepository", "Fallback: InputStream null; falling back to putFile for path=" + ref.getPath());
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Fallback: InputStream null; falling back to putFile for path=" + ref.getPath());
                     uploadTask = ref.putFile(imageUri);
                 }
             } else {
-                Log.d("ReceiptRepository", "Fallback: uploading via putFile to path=" + ref.getPath());
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Fallback: uploading via putFile to path=" + ref.getPath());
                 uploadTask = ref.putFile(imageUri);
             }
 
             attachUploadListeners(uploadTask, ref, inputToClose, receipt, id, callback, context, imageUri, false);
 
         } catch (Exception e) {
-            Log.w("ReceiptRepository", "Fallback: Exception while uploading image", e);
+            FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Fallback: Exception while uploading image");
+            FirebaseCrashlytics.getInstance().recordException(e);
             if (callback != null) callback.onFailure(e);
         }
     }
 
-    private void attachUploadListeners(UploadTask uploadTask, StorageReference ref, java.io.InputStream toClose, Receipt receipt, String id, SaveCallback callback, Context context, Uri originalUri, boolean reuploadAttempted) {
+    private void attachUploadListeners(UploadTask uploadTask, StorageReference ref, InputStream toClose, Receipt receipt, String id, SaveCallback callback, Context context, Uri originalUri, boolean reuploadAttempted) {
         if (uploadTask == null) {
             if (toClose != null) {
                 try { toClose.close(); } catch (Exception ignored) {}
@@ -360,46 +332,46 @@ public class ReceiptRepository {
         }
 
         uploadTask.addOnSuccessListener((OnSuccessListener<UploadTask.TaskSnapshot>) taskSnapshot -> {
-            Log.d("ReceiptRepository", "upload success snapshot; metadataRefPath=" + (taskSnapshot != null && taskSnapshot.getMetadata() != null && taskSnapshot.getMetadata().getReference()!=null ? taskSnapshot.getMetadata().getReference().getPath() : "(null)"));
             if (toClose != null) {
-                try { toClose.close(); } catch (Exception ex) { Log.d("ReceiptRepository", "Failed to close input stream after upload", ex); }
+                try { toClose.close(); } catch (Exception ex) { FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to close input stream after upload"); FirebaseCrashlytics.getInstance().recordException(ex); }
             }
 
             StorageReference uploadedRef = null;
             if (taskSnapshot != null && taskSnapshot.getMetadata() != null) uploadedRef = taskSnapshot.getMetadata().getReference();
             if (uploadedRef == null) uploadedRef = ref;
 
-            Log.d("ReceiptRepository", "Resolving download URL for uploadedRefPath=" + uploadedRef.getPath());
+            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Resolving download URL for uploadedRefPath=" + uploadedRef.getPath());
             getDownloadUrlWithRetries(uploadedRef, 3, 1000, new DownloadUrlCallback() {
                 @Override
                 public void onSuccess(Uri uri) {
-                    Log.d("ReceiptRepository", "download URL resolved=" + uri.toString());
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: download URL resolved=" + uri.toString());
                     receipt.setImageUrl(uri.toString());
                     Map<String, Object> map = buildReceiptMap(receipt, null);
 
-                    // Save under users/{userId}/receipts/{id}
                     String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
                     db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
-                             .addOnSuccessListener(aVoid -> {
-                                 // Schedule replacement period notification
-                                 if (context != null) {
-                                     scheduleReplacementNotification(context, id, receipt);
-                                 }
-                                 if (callback != null) callback.onSuccess();
-                             })
-                             .addOnFailureListener(e -> {
-                                 Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
-                                 if (callback != null) callback.onFailure(e);
-                             });
+                            .addOnSuccessListener(aVoid -> {
+                                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Successfully saved receipt metadata after fallback upload");
+                                if (context != null) {
+                                    scheduleReplacementNotification(context, id, receipt);
+                                }
+                                if (callback != null) callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to save receipt metadata after fallback upload");
+                                FirebaseCrashlytics.getInstance().recordException(e);
+                                if (callback != null) callback.onFailure(e);
+                            });
                 }
 
                 @Override
                 public void onFailure(Exception e) {
-                    Log.w("ReceiptRepository", "Failed to obtain download URL after upload (all retries)", e);
+                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to obtain download URL after upload (all retries)");
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     if (!reuploadAttempted && originalUri != null) {
-                        Log.w("ReceiptRepository", "Attempting reupload as fallback");
+                        FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Attempting reupload as fallback");
                         try {
-                            java.io.InputStream newStream = null;
+                            InputStream newStream = null;
                             UploadTask retryTask;
                             if ("content".equals(originalUri.getScheme())) {
                                 newStream = context.getContentResolver().openInputStream(originalUri);
@@ -414,7 +386,8 @@ public class ReceiptRepository {
                             attachUploadListeners(retryTask, ref, newStream, receipt, id, callback, context, originalUri, true);
                             return;
                         } catch (Exception ex) {
-                            Log.w("ReceiptRepository", "Reupload attempt failed", ex);
+                            FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Reupload attempt failed");
+                            FirebaseCrashlytics.getInstance().recordException(ex);
                             if (callback != null) callback.onFailure(ex);
                             return;
                         }
@@ -425,9 +398,10 @@ public class ReceiptRepository {
 
         }).addOnFailureListener(e -> {
             if (toClose != null) {
-                try { toClose.close(); } catch (Exception ex) { Log.d("ReceiptRepository", "Failed to close input stream after failed upload", ex); }
+                try { toClose.close(); } catch (Exception ex) { FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to close input stream after failed upload"); FirebaseCrashlytics.getInstance().recordException(ex); }
             }
-            Log.w("ReceiptRepository", "Image upload failed", e);
+            FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Image upload failed");
+            FirebaseCrashlytics.getInstance().recordException(e);
 
             boolean isNotFound = false;
             try {
@@ -435,15 +409,13 @@ public class ReceiptRepository {
                     StorageException se = (StorageException) e;
                     int code = se.getErrorCode();
                     isNotFound = (code == StorageException.ERROR_OBJECT_NOT_FOUND) || (se.getMessage() != null && se.getMessage().toLowerCase().contains("not found"));
-                } else if (e.getMessage() != null && e.getMessage().toLowerCase().contains("not found")) {
-                    isNotFound = true;
                 }
             } catch (Exception ignored) {}
 
             if (isNotFound && !reuploadAttempted && originalUri != null) {
                 try {
                     String configuredBucket = null;
-                    try { configuredBucket = FirebaseApp.getInstance().getOptions().getStorageBucket(); } catch (Exception ex) { Log.d("ReceiptRepository", "Failed to read configured bucket", ex); }
+                    try { configuredBucket = FirebaseApp.getInstance().getOptions().getStorageBucket(); } catch (Exception ex) { FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to read configured bucket"); FirebaseCrashlytics.getInstance().recordException(ex); }
                     String alternateBucket = null;
                     if (configuredBucket != null) {
                         if (configuredBucket.contains("firebasestorage.app")) {
@@ -454,10 +426,10 @@ public class ReceiptRepository {
                     }
 
                     if (alternateBucket != null && !alternateBucket.equals(configuredBucket)) {
-                        Log.w("ReceiptRepository", "Attempting upload with alternate bucket: " + alternateBucket);
+                        FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Attempting upload with alternate bucket: " + alternateBucket);
                         FirebaseStorage altStorage = FirebaseStorage.getInstance("gs://" + alternateBucket);
                         StorageReference altRef = altStorage.getReference().child(ref.getPath());
-                        java.io.InputStream retryStream = null;
+                        InputStream retryStream = null;
                         UploadTask retryTask;
                         if ("content".equals(originalUri.getScheme())) {
                             retryStream = context.getContentResolver().openInputStream(originalUri);
@@ -470,16 +442,18 @@ public class ReceiptRepository {
                         return;
                     }
                 } catch (Exception ex) {
-                    Log.w("ReceiptRepository", "Alternate-bucket retry failed", ex);
+                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Alternate-bucket retry failed");
+                    FirebaseCrashlytics.getInstance().recordException(ex);
                 }
 
                 if (!reuploadAttempted && originalUri != null) {
                     try {
-                        Log.w("ReceiptRepository", "Attempting putBytes fallback upload");
+                        FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Attempting putBytes fallback upload");
                         uploadBytesFallback(context, originalUri, ref, receipt, id, callback);
                         return;
                     } catch (Exception ex) {
-                        Log.w("ReceiptRepository", "putBytes fallback failed", ex);
+                        FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: putBytes fallback failed");
+                        FirebaseCrashlytics.getInstance().recordException(ex);
                     }
                 }
             }
@@ -489,7 +463,6 @@ public class ReceiptRepository {
     }
 
     public void searchByStore(String storePrefix, OnCompleteListener<QuerySnapshot> listener) {
-        // Search across all users' receipts using collectionGroup
         db.collectionGroup("receipts")
                 .whereGreaterThanOrEqualTo("storeName", storePrefix)
                 .whereLessThanOrEqualTo("storeName", storePrefix + "\uf8ff")
@@ -498,19 +471,18 @@ public class ReceiptRepository {
     }
 
     public void fetchReceiptsForCurrentUser(OnCompleteListener<QuerySnapshot> listener) {
-         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
-        // Fetch directly from the user's receipts subcollection, ordered by createdAt (uploadedAt)
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
         db.collection("users").document(userId).collection("receipts")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(listener);
     }
-    
-    /**
-     * Fetch a single receipt by ID from Firestore
-     * @param receiptId The receipt ID to fetch
-     * @param callback Callback with the parsed Receipt or error
-     */
+
+    public interface FetchReceiptCallback {
+        void onSuccess(Receipt receipt);
+        void onFailure(Exception e);
+    }
+
     public void fetchReceiptById(String receiptId, FetchReceiptCallback callback) {
         if (receiptId == null || receiptId.isEmpty()) {
             if (callback != null) {
@@ -518,40 +490,32 @@ public class ReceiptRepository {
             }
             return;
         }
-        
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null 
-            ? FirebaseAuth.getInstance().getCurrentUser().getUid() 
-            : "anonymous";
-        
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "anonymous";
+
         db.collection("users").document(userId).collection("receipts").document(receiptId)
-            .get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    Receipt receipt = ReceiptRepository.parseReceiptFromDocument(documentSnapshot);
-                    if (receipt != null) {
-                        if (callback != null) callback.onSuccess(receipt);
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Receipt receipt = ReceiptRepository.parseReceiptFromDocument(documentSnapshot);
+                        if (receipt != null) {
+                            if (callback != null) callback.onSuccess(receipt);
+                        } else {
+                            if (callback != null) callback.onFailure(new Exception("Failed to parse receipt"));
+                        }
                     } else {
-                        if (callback != null) callback.onFailure(new Exception("Failed to parse receipt"));
+                        if (callback != null) callback.onFailure(new Exception("Receipt not found"));
                     }
-                } else {
-                    if (callback != null) callback.onFailure(new Exception("Receipt not found"));
-                }
-            })
-            .addOnFailureListener(e -> {
-                Log.e("ReceiptRepository", "Error fetching receipt: " + receiptId, e);
-                if (callback != null) callback.onFailure(e);
-            });
+                })
+                .addOnFailureListener(e -> {
+                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Error fetching receipt: " + receiptId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                    if (callback != null) callback.onFailure(e);
+                });
     }
-    
-    public interface FetchReceiptCallback {
-        void onSuccess(Receipt receipt);
-        void onFailure(Exception e);
-    }
-    
-    /**
-     * Parse a receipt from a Firestore document (full parsing with all fields)
-     * Made public so it can be reused by other classes like NotificationAlarmReceiver
-     */
+
     public static Receipt parseReceiptFromDocument(com.google.firebase.firestore.DocumentSnapshot document) {
         try {
             Receipt receipt = new Receipt();
@@ -559,17 +523,15 @@ public class ReceiptRepository {
             if (data == null) return null;
 
             receipt.setId(document.getId());
-            
-            // Parse image URL
+
             if (data.containsKey("imageUrl")) {
                 receipt.setImageUrl((String) data.get("imageUrl"));
             }
-            
+
             if (data.containsKey("cloudinaryPublicId")) {
                 receipt.setCloudinaryPublicId((String) data.get("cloudinaryPublicId"));
             }
 
-            // Parse store information
             if (data.containsKey("store")) {
                 Map<String, Object> storeMap = (Map<String, Object>) data.get("store");
                 Receipt.StoreInfo store = new Receipt.StoreInfo();
@@ -581,13 +543,11 @@ public class ReceiptRepository {
                 }
                 receipt.setStore(store);
             } else if (data.containsKey("storeName")) {
-                // Backward compatibility
                 Receipt.StoreInfo store = new Receipt.StoreInfo();
                 store.setName((String) data.get("storeName"));
                 receipt.setStore(store);
             }
 
-            // Parse receipt information
             if (data.containsKey("receipt")) {
                 Map<String, Object> receiptMap = (Map<String, Object>) data.get("receipt");
                 Receipt.ReceiptInfo receiptInfo = new Receipt.ReceiptInfo();
@@ -612,11 +572,10 @@ public class ReceiptRepository {
                         if (subtotal instanceof Number) {
                             receiptInfo.setSubtotal(((Number) subtotal).doubleValue());
                         } else if (subtotal != null) {
-                            // Try to parse as string if not a number
                             try {
                                 receiptInfo.setSubtotal(Double.parseDouble(subtotal.toString()));
                             } catch (NumberFormatException e) {
-                                Log.w("ReceiptRepository", "Failed to parse subtotal: " + subtotal);
+                                FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to parse subtotal: " + subtotal);
                             }
                         }
                     }
@@ -628,7 +587,7 @@ public class ReceiptRepository {
                             try {
                                 receiptInfo.setTax(Double.parseDouble(tax.toString()));
                             } catch (NumberFormatException e) {
-                                Log.w("ReceiptRepository", "Failed to parse tax: " + tax);
+                                FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to parse tax: " + tax);
                             }
                         }
                     }
@@ -640,7 +599,7 @@ public class ReceiptRepository {
                             try {
                                 receiptInfo.setTotal(Double.parseDouble(total.toString()));
                             } catch (NumberFormatException e) {
-                                Log.w("ReceiptRepository", "Failed to parse total: " + total);
+                                FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to parse total: " + total);
                             }
                         }
                     }
@@ -660,7 +619,6 @@ public class ReceiptRepository {
                 receipt.setReceipt(receiptInfo);
             }
 
-            // Parse items
             if (data.containsKey("items")) {
                 List<Map<String, Object>> itemsMap = (List<Map<String, Object>>) data.get("items");
                 if (itemsMap != null) {
@@ -687,7 +645,6 @@ public class ReceiptRepository {
                 }
             }
 
-            // Parse additional information
             if (data.containsKey("additional")) {
                 Map<String, Object> additionalMap = (Map<String, Object>) data.get("additional");
                 Receipt.AdditionalInfo additional = new Receipt.AdditionalInfo();
@@ -700,7 +657,6 @@ public class ReceiptRepository {
                 receipt.setAdditional(additional);
             }
 
-            // Parse metadata
             if (data.containsKey("metadata")) {
                 Map<String, Object> metadataMap = (Map<String, Object>) data.get("metadata");
                 Receipt.ReceiptMetadata metadata = new Receipt.ReceiptMetadata();
@@ -715,7 +671,8 @@ public class ReceiptRepository {
 
             return receipt;
         } catch (Exception e) {
-            Log.e("ReceiptRepository", "Error parsing receipt from document", e);
+            FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Error parsing receipt from document");
+            FirebaseCrashlytics.getInstance().recordException(e);
             return null;
         }
     }
@@ -735,31 +692,31 @@ public class ReceiptRepository {
             @Override
             public void run() {
                 attemptCount[0]++;
-                Log.d("ReceiptRepository", "Attempt " + attemptCount[0] + " to get download URL for " + ref.getPath());
-                
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Attempt " + attemptCount[0] + " to get download URL for " + ref.getPath());
+
                 ref.getDownloadUrl()
-                    .addOnSuccessListener(uri -> {
-                        Log.d("ReceiptRepository", "Successfully retrieved download URL on attempt " + attemptCount[0]);
-                        if (callback != null) callback.onSuccess(uri);
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.w("ReceiptRepository", "getDownloadUrl failed on attempt " + attemptCount[0] + 
-                                "/" + maxAttempts + ", error: " + e.getMessage());
-                        
-                        if (attemptCount[0] >= maxAttempts) {
-                            Log.e("ReceiptRepository", "Max retry attempts (" + maxAttempts + ") reached");
-                            if (callback != null) callback.onFailure(e);
-                            return;
-                        }
-                        
-                        currentDelay[0] = Math.min(currentDelay[0] * 2, MAX_DELAY_MS);
-                        Log.d("ReceiptRepository", "Retrying in " + currentDelay[0] + "ms...");
-                        
-                        handler.postDelayed(this, currentDelay[0]);
-                    });
+                        .addOnSuccessListener(uri -> {
+                            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Successfully retrieved download URL on attempt " + attemptCount[0]);
+                            if (callback != null) callback.onSuccess(uri);
+                        })
+                        .addOnFailureListener(e -> {
+                            FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: getDownloadUrl failed on attempt " + attemptCount[0] + "/" + maxAttempts);
+                            FirebaseCrashlytics.getInstance().recordException(e);
+
+                            if (attemptCount[0] >= maxAttempts) {
+                                FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Max retry attempts (" + maxAttempts + ") reached");
+                                if (callback != null) callback.onFailure(e);
+                                return;
+                            }
+
+                            currentDelay[0] = Math.min(currentDelay[0] * 2, MAX_DELAY_MS);
+                            FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Retrying in " + currentDelay[0] + "ms...");
+
+                            handler.postDelayed(this, currentDelay[0]);
+                        });
             }
         };
-        
+
         handler.post(attempt);
     }
 
@@ -772,18 +729,20 @@ public class ReceiptRepository {
                     String alt = configured.replace("firebasestorage.app", "appspot.com");
                     try {
                         FirebaseStorage altStorage = FirebaseStorage.getInstance("gs://" + alt);
-                        Log.d("ReceiptRepository", "Using alternate storage bucket gs://" + alt);
+                        FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Using alternate storage bucket gs://" + alt);
                         return altStorage;
                     } catch (Exception e) {
-                        Log.d("ReceiptRepository", "Failed to use alternate storage bucket, falling back: " + alt, e);
+                        FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to use alternate storage bucket, falling back: " + alt);
+                        FirebaseCrashlytics.getInstance().recordException(e);
                     }
                 }
                 try {
                     FirebaseStorage cfgStorage = FirebaseStorage.getInstance("gs://" + configured);
-                    Log.d("ReceiptRepository", "Using configured storage bucket gs://" + configured);
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Using configured storage bucket gs://" + configured);
                     return cfgStorage;
                 } catch (Exception e) {
-                    Log.d("ReceiptRepository", "Failed to use configured storage bucket, falling back to default", e);
+                    FirebaseCrashlytics.getInstance().log("W/ReceiptRepository: Failed to use configured storage bucket, falling back to default");
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 }
             }
         } catch (Exception ignored) {}
@@ -792,11 +751,11 @@ public class ReceiptRepository {
 
     private void uploadBytesFallback(Context context, Uri imageUri, StorageReference ref, Receipt receipt, String id, SaveCallback callback) {
         try {
-            java.io.InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+            InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
             try {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     output.write(buffer, 0, bytesRead);
                 }
@@ -807,54 +766,54 @@ public class ReceiptRepository {
             UploadTask uploadTask = ref.putBytes(imageData);
 
             uploadTask.addOnSuccessListener((OnSuccessListener<UploadTask.TaskSnapshot>) taskSnapshot -> {
-                Log.d("ReceiptRepository", "putBytes upload success snapshot; metadataRefPath=" + (taskSnapshot != null && taskSnapshot.getMetadata() != null && taskSnapshot.getMetadata().getReference()!=null ? taskSnapshot.getMetadata().getReference().getPath() : "(null)"));
+                FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: putBytes upload success");
 
                 StorageReference uploadedRef = null;
                 if (taskSnapshot != null && taskSnapshot.getMetadata() != null) uploadedRef = taskSnapshot.getMetadata().getReference();
                 if (uploadedRef == null) uploadedRef = ref;
 
-                Log.d("ReceiptRepository", "Resolving download URL for uploadedRefPath=" + uploadedRef.getPath());
                 getDownloadUrlWithRetries(uploadedRef, 3, 1000, new DownloadUrlCallback() {
                     @Override
                     public void onSuccess(Uri uri) {
-                        Log.d("ReceiptRepository", "download URL resolved=" + uri.toString());
                         receipt.setImageUrl(uri.toString());
                         Map<String, Object> map = buildReceiptMap(receipt, null);
 
-                        // Save putBytes fallback result under users/{userId}/receipts/{id}
                         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "anonymous";
                         db.collection("users").document(userId).collection("receipts").document(id).set(map, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> {
-                                    // Schedule replacement period notification
+                                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Successfully saved receipt metadata after putBytes upload");
                                     if (context != null) {
                                         scheduleReplacementNotification(context, id, receipt);
                                     }
                                     if (callback != null) callback.onSuccess();
                                 })
                                 .addOnFailureListener(e -> {
-                                    Log.w("ReceiptRepository", "Failed to save receipt metadata", e);
+                                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to save receipt metadata after putBytes upload");
+                                    FirebaseCrashlytics.getInstance().recordException(e);
                                     if (callback != null) callback.onFailure(e);
                                 });
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-                        Log.w("ReceiptRepository", "Failed to obtain download URL after putBytes upload (all retries)", e);
+                        FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to obtain download URL after putBytes upload");
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         if (callback != null) callback.onFailure(e);
                     }
                 });
 
             }).addOnFailureListener(e -> {
-                Log.w("ReceiptRepository", "putBytes upload failed", e);
+                FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: putBytes upload failed");
+                FirebaseCrashlytics.getInstance().recordException(e);
                 if (callback != null) callback.onFailure(e);
             });
         } catch (Exception e) {
-            Log.w("ReceiptRepository", "Exception in uploadBytesFallback", e);
+            FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Exception in uploadBytesFallback");
+            FirebaseCrashlytics.getInstance().recordException(e);
             if (callback != null) callback.onFailure(e);
         }
     }
-    
-    // Delete receipt from Firestore
+
     public void deleteReceipt(String receiptId, DeleteCallback callback) {
         if (receiptId == null || receiptId.isEmpty()) {
             if (callback != null) {
@@ -862,21 +821,21 @@ public class ReceiptRepository {
             }
             return;
         }
-        
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null 
-            ? FirebaseAuth.getInstance().getCurrentUser().getUid() 
-            : "anonymous";
-        
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "anonymous";
+
         db.collection("users").document(userId).collection("receipts").document(receiptId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Log.d("ReceiptRepository", "Receipt deleted successfully: " + receiptId);
+                    FirebaseCrashlytics.getInstance().log("D/ReceiptRepository: Receipt deleted successfully: " + receiptId);
                     if (callback != null) callback.onSuccess();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ReceiptRepository", "Failed to delete receipt: " + receiptId, e);
+                    FirebaseCrashlytics.getInstance().log("E/ReceiptRepository: Failed to delete receipt: " + receiptId);
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     if (callback != null) callback.onFailure(e);
                 });
     }
 }
-
