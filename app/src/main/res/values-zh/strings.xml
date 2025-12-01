@@ -143,6 +143,11 @@
     <string name="set_a_budget_to_start_tracking_your_expenses">设置预算以开始跟踪您的支出</string>
     <string name="set_your_monthly_spending_limit">设置您的月度支出限额</string>
     <string name="track_your_spending_manually">手动跟踪您的支出</string>
+    <string name="no_budget_set_title">未设置预算</string>
+    <string name="no_budget_set_message">创建每月预算，以跟踪支出并更好地管理您的财务</string>
+    <string name="set_budget">设置预算</string>
+    <string name="budget_icon">预算图标</string>
+
 
     <!-- Validation messages -->
     <string name="please_enter_budget_amount">请输入预算金额</string>

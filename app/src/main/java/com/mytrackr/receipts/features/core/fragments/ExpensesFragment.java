@@ -39,6 +39,10 @@ public class ExpensesFragment extends Fragment {
 
     private TextView tvBudgetAmount, tvSpentAmount, tvRemainingAmount, tvNoBudget, tvBudgetStatus, tvBudgetMonth;
     private ProgressBar progressBudget;
+    private View emptyStateContainer;
+    private View spentRemainingContainer;
+    private com.google.android.material.button.MaterialButton btnSetBudget;
+    private com.google.android.material.button.MaterialButton btnEditBudget;
 
     private RecyclerView rvTransactions;
     private com.google.android.material.card.MaterialCardView cardNoTransactions;
@@ -48,7 +52,6 @@ public class ExpensesFragment extends Fragment {
     private ExpenseItemAdapter expenseItemAdapter;
     private final MutableLiveData<List<Receipt>> receiptsLiveData = new MutableLiveData<>();
     
-    // Track loading state for both data sources
     private boolean transactionsLoaded = false;
     private boolean receiptsLoaded = false;
 
@@ -74,7 +77,10 @@ public class ExpensesFragment extends Fragment {
         tvBudgetStatus = view.findViewById(R.id.tvBudgetStatus);
         tvBudgetMonth = view.findViewById(R.id.tvBudgetMonth);
         progressBudget = view.findViewById(R.id.progressBudget);
-        com.google.android.material.button.MaterialButton btnEditBudget = view.findViewById(R.id.btnEditBudget);
+        emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+        spentRemainingContainer = view.findViewById(R.id.spentRemainingContainer);
+        btnSetBudget = view.findViewById(R.id.btnSetBudget);
+        btnEditBudget = view.findViewById(R.id.btnEditBudget);
         com.google.android.material.button.MaterialButton btnAddExpense = view.findViewById(R.id.btnAddExpense);
         rvTransactions = view.findViewById(R.id.rvTransactions);
         cardNoTransactions = view.findViewById(R.id.cardNoTransactions);
@@ -93,8 +99,10 @@ public class ExpensesFragment extends Fragment {
 
         btnEditBudget.setOnClickListener(v -> showEditBudgetDialog());
         btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
+        if (btnSetBudget != null) {
+            btnSetBudget.setOnClickListener(v -> showEditBudgetDialog());
+        }
 
-        // Reset loading flags
         transactionsLoaded = false;
         receiptsLoaded = false;
         showLoading(true);
@@ -136,11 +144,9 @@ public class ExpensesFragment extends Fragment {
         budgetViewModel.getSaveSuccessLiveData().observe(getViewLifecycleOwner(), success -> {
             if (success != null) {
                 if (success) {
-                    // Reset loading flags
                     transactionsLoaded = false;
                     receiptsLoaded = false;
                     showLoading(true);
-                    // Reload budget to ensure UI is in sync with Firestore
                     budgetViewModel.loadCurrentMonthBudget();
                     budgetViewModel.loadCurrentMonthTransactions();
                     budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
@@ -152,8 +158,6 @@ public class ExpensesFragment extends Fragment {
 
         budgetViewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
-                // Mark both as loaded on error so loading indicator is hidden
-                // This handles cases where one data source fails
                 transactionsLoaded = true;
                 receiptsLoaded = true;
                 showLoading(false);
@@ -176,7 +180,6 @@ public class ExpensesFragment extends Fragment {
 
 
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
-        // Only hide loading when both data sources have been loaded
         if (transactionsLoaded && receiptsLoaded) {
             showLoading(false);
         }
@@ -223,12 +226,23 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void updateBudgetUI(Budget budget) {
+        if (emptyStateContainer != null) {
+            emptyStateContainer.setVisibility(View.GONE);
+        }
         tvNoBudget.setVisibility(View.GONE);
+        
         tvBudgetAmount.setVisibility(View.VISIBLE);
         tvSpentAmount.setVisibility(View.VISIBLE);
         tvRemainingAmount.setVisibility(View.VISIBLE);
         progressBudget.setVisibility(View.VISIBLE);
         tvBudgetStatus.setVisibility(View.VISIBLE);
+        
+        if (spentRemainingContainer != null) {
+            spentRemainingContainer.setVisibility(View.VISIBLE);
+        }
+        if (btnEditBudget != null) {
+            btnEditBudget.setVisibility(View.VISIBLE);
+        }
 
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.CANADA);
 
@@ -289,13 +303,25 @@ public class ExpensesFragment extends Fragment {
     }
 
     private void showNoBudgetMessage() {
-        tvNoBudget.setVisibility(View.VISIBLE);
+        if (emptyStateContainer != null) {
+            emptyStateContainer.setVisibility(View.VISIBLE);
+        }
+        
         tvBudgetAmount.setVisibility(View.GONE);
         tvSpentAmount.setVisibility(View.GONE);
         tvRemainingAmount.setVisibility(View.GONE);
         tvBudgetStatus.setVisibility(View.GONE);
         progressBudget.setVisibility(View.GONE);
         progressBudget.setProgress(0);
+        
+        if (spentRemainingContainer != null) {
+            spentRemainingContainer.setVisibility(View.GONE);
+        }
+        if (btnEditBudget != null) {
+            btnEditBudget.setVisibility(View.GONE);
+        }
+        
+        tvNoBudget.setVisibility(View.GONE);
 
         if (tvBudgetAmount != null) tvBudgetAmount.setText("");
         if (tvSpentAmount != null) tvSpentAmount.setText("");
@@ -323,7 +349,6 @@ public class ExpensesFragment extends Fragment {
 
         AddExpenseBottomSheet bottomSheet = AddExpenseBottomSheet.newInstance();
         bottomSheet.setOnExpenseAddedListener((description, expenseAmount) -> {
-            // Reset loading flags
             transactionsLoaded = false;
             receiptsLoaded = false;
             showLoading(true);
@@ -348,34 +373,25 @@ public class ExpensesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        
-        // Force refresh UI with current locale first (important after language change)
-        // This ensures existing data is displayed with the new locale format
         Budget currentBudget = budgetViewModel.getBudgetLiveData().getValue();
         if (currentBudget != null) {
             updateBudgetUI(currentBudget);
         }
         
-        // Force refresh expense list display with current data if available
         List<Transaction> transactions = budgetViewModel.getTransactionsLiveData().getValue();
         List<Receipt> receipts = receiptsLiveData.getValue();
         boolean hasExistingData = (transactions != null && !transactions.isEmpty()) || 
                                    (receipts != null && !receipts.isEmpty());
         
-        // Always reload data to ensure fresh data after language change/restart
-        // Reset loading flags
         transactionsLoaded = false;
         receiptsLoaded = false;
         
         if (hasExistingData) {
-            // Show existing data immediately with new locale while loading fresh data
             combineAndDisplayExpenses(transactions, receipts);
         } else {
-            // Show loading indicator if no existing data
             showLoading(true);
         }
         
-        // Always reload data from server to ensure it's fresh
         budgetViewModel.refreshBudget();
         budgetViewModel.loadCurrentMonthReceipts(receiptsLiveData);
         budgetViewModel.loadCurrentMonthTransactions();
@@ -409,7 +425,6 @@ public class ExpensesFragment extends Fragment {
             return;
         }
 
-        // Reset loading flags
         transactionsLoaded = false;
         receiptsLoaded = false;
         showLoading(true);

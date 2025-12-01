@@ -143,6 +143,11 @@
     <string name="set_a_budget_to_start_tracking_your_expenses">अपने खर्चों को ट्रैक करना शुरू करने के लिए एक बजट सेट करें</string>
     <string name="set_your_monthly_spending_limit">अपनी मासिक खर्च सीमा सेट करें</string>
     <string name="track_your_spending_manually">अपने खर्चों को मैन्युअल रूप से ट्रैक करें</string>
+    <string name="no_budget_set_title">कोई बजट निर्धारित नहीं</string>
+    <string name="no_budget_set_message">अपना खर्च ट्रैक करने और वित्त पर नियंत्रण बनाए रखने के लिए मासिक बजट बनाएं</string>
+    <string name="set_budget">बजट सेट करें</string>
+    <string name="budget_icon">बजट आइकन</string>
+
 
     <!-- Validation messages -->
     <string name="please_enter_budget_amount">कृपया बजट राशि दर्ज करें</string>
