@@ -147,6 +147,9 @@
     <string name="no_budget_set_message">अपना खर्च ट्रैक करने और वित्त पर नियंत्रण बनाए रखने के लिए मासिक बजट बनाएं</string>
     <string name="set_budget">बजट सेट करें</string>
     <string name="budget_icon">बजट आइकन</string>
+    <string name="analyzing_store_info">स्टोर जानकारी का विश्लेषण</string>
+    <string name="analyzing_items">आइटम का विश्लेषण</string>
+    <string name="calculating_totals">कुल की गणना</string>
 
 
     <!-- Validation messages -->
@@ -163,6 +166,8 @@
     <string name="transaction_id_not_found">लेनदेन ID नहीं मिला</string>
     <string name="delete_expense">खर्च हटाएं</string>
     <string name="are_you_sure_you_want_to_delete">क्या आप वाकई \"%1$s\" हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।</string>
+    <string name="edit_budget_only_current_month">आप केवल चालू महीने का बजट ही संपादित कर सकते हैं।</string>
+    <string name="add_expense_only_current_month">आप केवल चालू महीने के लिए ही खर्च जोड़ सकते हैं।</string>
 
     <!-- Settings -->
     <string name="settings">सेटिंग्स</string>
@@ -321,8 +326,8 @@
     <string name="hindi">हिंदी</string>
     <string name="chinese">चीनी</string>
     <string name="language_changed">भाषा बदल गई। कृपया परिवर्तन लागू करने के लिए ऐप को पुनः आरंभ करें।</string>
-    <string name="restart_required">पुनः आरंभ आवश्यक</string>
-    <string name="restart_message">भाषा परिवर्तन लागू करने के लिए ऐप को पुनः आरंभ करना होगा। क्या आप अभी पुनः आरंभ करना चाहते हैं?</string>
-    <string name="restart">पुनः आरंभ करें</string>
-    <string name="later">बाद में</string>
+    <string name="restart_required">भाषा बदलें</string>
+    <string name="restart_message">ऐप तुरंत भाषा अपडेट कर देगा। क्या आप जारी रखना चाहते हैं?</string>
+    <string name="restart">जारी रखें</string>
+    <string name="later">रद्द करें</string>
 </resources>

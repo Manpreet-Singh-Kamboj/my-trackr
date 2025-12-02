@@ -265,6 +265,7 @@
 
             </LinearLayout>
 
+
             <!-- OCR Results Section -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/ocrResultCard"
@@ -311,23 +312,52 @@
                                 android:orientation="vertical"
                                 android:gravity="center"
                                 android:visibility="gone"
-                                android:layout_gravity="center_vertical"
-                                >
+                                android:layout_gravity="center_vertical">
 
                                 <ProgressBar
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginBottom="8dp"
+                                    android:layout_marginBottom="12dp"
                                     android:indeterminateTint="?attr/colorPrimary"
                                     android:foregroundTint="?attr/colorPrimary"
                                     style="?android:attr/progressBarStyle" />
 
-                                <TextView
+                                <LinearLayout
+                                    android:id="@+id/geminiStepsLayout"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/processing_ocr"
-                                    android:textSize="14sp"
-                                    android:alpha="0.7" />
+                                    android:orientation="vertical"
+                                    android:gravity="center_horizontal">
+
+                                    <TextView
+                                        android:id="@+id/tvGeminiStep1"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:textSize="14sp"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:alpha="0.7"
+                                        android:text="@string/analyzing_store_info" />
+
+                                    <TextView
+                                        android:id="@+id/tvGeminiStep2"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:textSize="14sp"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:alpha="0.7"
+                                        android:text="@string/analyzing_items" />
+
+                                    <TextView
+                                        android:id="@+id/tvGeminiStep3"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:textSize="14sp"
+                                        android:textColor="?attr/colorOnSurface"
+                                        android:alpha="0.7"
+                                        android:text="@string/calculating_totals" />
+                                </LinearLayout>
 
                             </LinearLayout>
 

@@ -147,6 +147,9 @@
     <string name="no_budget_set_message">Créez un budget mensuel pour suivre vos dépenses et garder le contrôle de vos finances</string>
     <string name="set_budget">Définir le budget</string>
     <string name="budget_icon">Icône de budget</string>
+    <string name="analyzing_store_info">Analyse des informations du magasin</string>
+    <string name="analyzing_items">Analyse des articles</string>
+    <string name="calculating_totals">Calcul des totaux</string>
 
 
     <!-- Validation messages -->
@@ -163,6 +166,8 @@
     <string name="transaction_id_not_found">ID de transaction introuvable</string>
     <string name="delete_expense">Supprimer la dépense</string>
     <string name="are_you_sure_you_want_to_delete">Êtes-vous sûr de vouloir supprimer \"%1$s\" ? Cette action ne peut pas être annulée.</string>
+    <string name="edit_budget_only_current_month">Vous ne pouvez modifier le budget que pour le mois en cours.</string>
+    <string name="add_expense_only_current_month">Vous ne pouvez ajouter des dépenses que pour le mois en cours.</string>
 
     <!-- Settings -->
     <string name="settings">Paramètres</string>
@@ -321,8 +326,8 @@
     <string name="hindi">Hindi</string>
     <string name="chinese">Chinois</string>
     <string name="language_changed">Langue modifiée. Veuillez redémarrer l\'application pour que les modifications prennent effet.</string>
-    <string name="restart_required">Redémarrage requis</string>
-    <string name="restart_message">L\'application doit redémarrer pour que le changement de langue prenne effet. Voulez-vous redémarrer maintenant ?</string>
-    <string name="restart">Redémarrer</string>
-    <string name="later">Plus tard</string>
+    <string name="restart_required">Changer la langue</string>
+    <string name="restart_message">L’application mettra la langue à jour immédiatement. Voulez-vous continuer ?</string>
+    <string name="restart">Continuer</string>
+    <string name="later">Annuler</string>
 </resources>

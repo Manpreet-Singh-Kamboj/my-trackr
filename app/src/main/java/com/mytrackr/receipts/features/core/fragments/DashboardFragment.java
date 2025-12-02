@@ -174,11 +174,13 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh data when fragment becomes visible to show latest receipts/transactions
         fetchAllDataOnce();
     }
 
     private View loadingProgressLayout;
+
+    private long currentStartTime = 0L;
+    private long currentEndTime = 0L;
 
     private void initViews(View view) {
         loadingProgressLayout = view.findViewById(R.id.loadingProgressLayout);
@@ -188,7 +190,13 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         rvCategories.setAdapter(categoryAdapter);
 
         categoryAdapter.setOnItemClickListener(item -> {
-            Intent intent = CategoryDetailActivity.newIntent(requireContext(), item.name, item.colorHex);
+            Intent intent = CategoryDetailActivity.newIntent(
+                    requireContext(),
+                    item.name,
+                    item.colorHex,
+                    currentStartTime,
+                    currentEndTime
+            );
             startActivity(intent);
         });
 
@@ -242,7 +250,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
     }
 
     private int getGridColor() {
-        // Use a semi-transparent colorOnSurface for grid lines
         int colorOnSurface = getColorOnSurface();
         return ColorUtils.setAlphaComponent(colorOnSurface, 30);
     }
@@ -251,7 +258,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         int colorOnSurface = getColorOnSurface();
         int colorSurface = getColorSurface();
         int gridColor = getGridColor();
-        int textColorSecondary = ColorUtils.setAlphaComponent(colorOnSurface, 153); // 60% opacity
+        int textColorSecondary = ColorUtils.setAlphaComponent(colorOnSurface, 153);
 
         barChart.getDescription().setEnabled(false);
         barChart.getLegend().setEnabled(false);
@@ -259,7 +266,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         barChart.setTouchEnabled(true);
         barChart.setScaleEnabled(false);
         barChart.setFitBars(true);
-        barChart.setNoDataText(""); // Disable default "No Chart Data Available" message
+        barChart.setNoDataText("");
 
         XAxis xAxis = barChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -278,7 +285,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         lineChart.getLegend().setEnabled(false);
         lineChart.setDrawGridBackground(false);
         lineChart.setTouchEnabled(true);
-        lineChart.setNoDataText(""); // Disable default "No Chart Data Available" message
+        lineChart.setNoDataText("");
 
         XAxis lineXAxis = lineChart.getXAxis();
         lineXAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -302,11 +309,10 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         pieChart.setHoleColor(colorSurface);
         pieChart.setHoleRadius(55f);
         pieChart.setTransparentCircleRadius(60f);
-        pieChart.setNoDataText(""); // Disable default "No Chart Data Available" message
+        pieChart.setNoDataText("");
         pieChart.setExtraOffsets(45.f, 10.f, 45.f, 10.f);
         pieChart.setOnChartValueSelectedListener(this);
 
-        // Setup weekly receipts chart
         if (receiptsWeeklyChart != null) {
             receiptsWeeklyChart.getDescription().setEnabled(false);
             receiptsWeeklyChart.getLegend().setEnabled(false);
@@ -314,7 +320,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             receiptsWeeklyChart.setTouchEnabled(false);
             receiptsWeeklyChart.setScaleEnabled(false);
             receiptsWeeklyChart.setFitBars(true);
-            receiptsWeeklyChart.setNoDataText(""); // Disable default "No Chart Data Available" message
+            receiptsWeeklyChart.setNoDataText("");
 
             XAxis receiptsXAxis = receiptsWeeklyChart.getXAxis();
             receiptsXAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -367,18 +373,15 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             isLineMode = !isLineMode;
 
             if (isLineMode) {
-                // Switch to Line
                 barChart.setVisibility(View.GONE);
                 lineChart.setVisibility(View.VISIBLE);
                 btnSwitchChart.setImageResource(R.drawable.ic_chart_icon);
             } else {
-                // Switch to Bar
                 lineChart.setVisibility(View.GONE);
                 barChart.setVisibility(View.VISIBLE);
                 btnSwitchChart.setImageResource(R.drawable.ic_chart_line);
             }
 
-            // Only re-render the bar/line chart, don't touch pie chart
             renderCurrentChart();
         });
     }
@@ -452,7 +455,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
     private void fetchAllDataOnce() {
         showLoading(true);
-        // Fetch Receipts
         ReceiptRepository.getInstance().fetchReceiptsForCurrentUser(task -> {
             if (task.isSuccessful() && task.getResult() != null) {
                 mAllReceipts.clear();
@@ -488,7 +490,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                         try {
                             Transaction transaction = doc.toObject(Transaction.class);
                             transaction.setId(doc.getId());
-                            // 只获取 Expense 类型的 Transaction
                             if (transaction.isExpense()) {
                                 mAllTransactions.add(transaction);
                             }
@@ -519,9 +520,8 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         if (getContext() == null) return;
 
         Calendar now = Calendar.getInstance();
-        // Use last 7 days instead of calendar week to show recent activity
         Calendar weekStart = (Calendar) now.clone();
-        weekStart.add(Calendar.DAY_OF_YEAR, -6); // Last 7 days (including today)
+        weekStart.add(Calendar.DAY_OF_YEAR, -6);
         setStartOfDay(weekStart);
         long weekStartTime = weekStart.getTimeInMillis();
 
@@ -529,7 +529,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         setEndOfDay(weekEnd);
         long weekEndTime = weekEnd.getTimeInMillis();
 
-        // Calculate receipts uploaded this week
         int[] receiptsPerDay = new int[7];
         int totalReceipts = 0;
         double receiptsTotal = 0.0;
@@ -541,9 +540,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         for (Receipt receipt : mAllReceipts) {
             long rDate = 0;
             if (receipt.getReceipt() != null) {
-                // Use dateTimestamp (upload date) instead of receiptDateTimestamp
                 rDate = receipt.getReceipt().getDateTimestamp();
-                // Fallback to receiptDateTimestamp only if dateTimestamp is not available
                 if (rDate == 0) {
                     rDate = receipt.getReceipt().getReceiptDateTimestamp();
                     Log.d("Dashboard", "Receipt " + receipt.getId() + " using receiptDateTimestamp: " + rDate);
@@ -564,7 +561,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                         receiptsTotal += receipt.getReceipt().getTotal();
                     }
 
-                    // Calculate which day (0-6) in the last 7 days
                     Calendar receiptCal = Calendar.getInstance();
                     receiptCal.setTimeInMillis(rDate);
                     long daysDiff = (rDate - weekStartTime) / (1000 * 60 * 60 * 24);
@@ -584,7 +580,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
         Log.d("Dashboard", "Total receipts this week: " + totalReceipts);
 
-        // Calculate manual transactions this week
         for (Transaction trans : mAllTransactions) {
             long tDate = trans.getTimestamp();
             if (tDate >= weekStartTime && tDate <= weekEndTime && trans.isExpense()) {
@@ -594,7 +589,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
         double weeklyTotal = receiptsTotal + manualTotal;
 
-        // Update UI
         if (tvReceiptsWeeklyCount != null) {
             tvReceiptsWeeklyCount.setText(String.valueOf(totalReceipts));
         }
@@ -611,11 +605,10 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             tvManualAmount.setText(String.format("$%.2f", manualTotal));
         }
 
-        // Calculate previous 7 days for comparison (7 days before the current week)
         Calendar prevWeekStart = (Calendar) weekStart.clone();
-        prevWeekStart.add(Calendar.DAY_OF_YEAR, -7); // 7 days before current week start
+        prevWeekStart.add(Calendar.DAY_OF_YEAR, -7);
         Calendar prevWeekEnd = (Calendar) weekStart.clone();
-        prevWeekEnd.add(Calendar.DAY_OF_YEAR, -1); // Day before current week start
+        prevWeekEnd.add(Calendar.DAY_OF_YEAR, -1);
         setStartOfDay(prevWeekStart);
         setEndOfDay(prevWeekEnd);
         long prevWeekStartTime = prevWeekStart.getTimeInMillis();
@@ -625,9 +618,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         for (Receipt receipt : mAllReceipts) {
             long rDate = 0;
             if (receipt.getReceipt() != null) {
-                // Use dateTimestamp (upload date) instead of receiptDateTimestamp
                 rDate = receipt.getReceipt().getDateTimestamp();
-                // Fallback to receiptDateTimestamp only if dateTimestamp is not available
                 if (rDate == 0) rDate = receipt.getReceipt().getReceiptDateTimestamp();
             }
             if (rDate >= prevWeekStartTime && rDate <= prevWeekEndTime) {
@@ -643,25 +634,23 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             }
         }
 
-        // Update comparison text
         if (tvWeeklySpendingComparison != null) {
             double difference = weeklyTotal - prevWeekTotal;
             String comparisonText;
             if (difference > 0) {
                 comparisonText = String.format(getString(R.string.vs_last_week_format), String.format("$%.2f", Math.abs(difference)));
-                tvWeeklySpendingComparison.setTextColor(Color.parseColor("#FF5252")); // Error color - keep for consistency
+                tvWeeklySpendingComparison.setTextColor(Color.parseColor("#FF5252"));
             } else if (difference < 0) {
                 comparisonText = String.format(getString(R.string.vs_last_week_format_down), String.format("$%.2f", Math.abs(difference)));
-                tvWeeklySpendingComparison.setTextColor(Color.parseColor("#4CAF50")); // Success color - keep for consistency
+                tvWeeklySpendingComparison.setTextColor(Color.parseColor("#4CAF50"));
             } else {
                 comparisonText = getString(R.string.same_as_last_week);
-                int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153); // 60% opacity
+                int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153);
                 tvWeeklySpendingComparison.setTextColor(textColorSecondary);
             }
             tvWeeklySpendingComparison.setText(comparisonText);
         }
 
-        // Update receipts weekly chart
         if (receiptsWeeklyChart != null) {
             ArrayList<BarEntry> entries = new ArrayList<>();
             ArrayList<String> labels = new ArrayList<>();
@@ -669,7 +658,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             Calendar tempCal = (Calendar) weekStart.clone();
             for (int i = 0; i < 7; i++) {
                 entries.add(new BarEntry(i, receiptsPerDay[i]));
-                // Show day abbreviation (M, T, W, etc.)
                 labels.add(new SimpleDateFormat("EEE", Locale.ENGLISH).format(tempCal.getTime()).substring(0, 1));
                 tempCal.add(Calendar.DAY_OF_YEAR, 1);
             }
@@ -739,10 +727,12 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             Calendar e = (Calendar) rangeEndCalendar.clone();
             setEndOfDay(e);
             endTime = e.getTimeInMillis();
-            // Calculate number of days in range
             long daysDiff = (endTime - startTime) / (1000 * 60 * 60 * 24);
-            barCount = (int) daysDiff + 1; // +1 to include both start and end days
+            barCount = (int) daysDiff + 1;
         }
+
+        currentStartTime = startTime;
+        currentEndTime = endTime;
 
         if (currentMode != MODE_ALL && currentMode != MODE_RANGE) {
             for (int i = 1; i <= barCount; i++) {
@@ -769,9 +759,23 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             }
 
             if (inRange) {
-                double receiptTotal = 0.0;
+                double receiptTotalForChart = 0.0;
 
-                // Items
+                double subtotalField = 0.0;
+                double taxField = 0.0;
+                double totalField = 0.0;
+                if (receipt.getReceipt() != null) {
+                    subtotalField = receipt.getReceipt().getSubtotal();
+                    taxField = receipt.getReceipt().getTax();
+                    totalField = receipt.getReceipt().getTotal();
+                }
+
+                boolean hasInclusiveTotal = totalField > 0;
+
+                java.util.List<Double> itemPrices = new java.util.ArrayList<>();
+                java.util.List<String> itemTargets = new java.util.ArrayList<>();
+                double itemsTotal = 0.0;
+
                 if (receipt.getItems() != null) {
                     for (ReceiptItem item : receipt.getItems()) {
                         String cat = item.getCategory();
@@ -782,27 +786,54 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                                 if (key.equalsIgnoreCase(cat)) { target = key; break; }
                             }
                         }
-                        categoryTotals.put(target, categoryTotals.get(target) + price);
-                        grandTotal += price;
-                        receiptTotal += price;
+                        if (price > 0) {
+                            itemPrices.add(price);
+                            itemTargets.add(target);
+                            itemsTotal += price;
+                        }
                     }
                 }
-                // Tax
-                if (receipt.getReceipt() != null && receipt.getReceipt().getTax() > 0) {
-                    double tax = receipt.getReceipt().getTax();
-                    categoryTotals.put("Tax", categoryTotals.get("Tax") + tax);
-                    grandTotal += tax;
-                    receiptTotal += tax;
+
+                if (hasInclusiveTotal) {
+                    receiptTotalForChart = totalField;
+                } else {
+                    receiptTotalForChart = itemsTotal + taxField;
+                }
+                grandTotal += receiptTotalForChart;
+
+                double baseForCategories;
+                if (subtotalField > 0) {
+                    baseForCategories = subtotalField;
+                } else if (hasInclusiveTotal) {
+                    baseForCategories = totalField - taxField;
+                    if (baseForCategories <= 0) {
+                        baseForCategories = totalField;
+                    }
+                } else {
+                    baseForCategories = itemsTotal;
+                }
+
+                if (itemsTotal > 0 && baseForCategories > 0) {
+                    for (int i = 0; i < itemPrices.size(); i++) {
+                        double price = itemPrices.get(i);
+                        String target = itemTargets.get(i);
+                        double share = price / itemsTotal;
+                        double catAmount = baseForCategories * share;
+                        categoryTotals.put(target, categoryTotals.get(target) + catAmount);
+                    }
+                }
+
+                if (taxField > 0) {
+                    categoryTotals.put("Tax", categoryTotals.get("Tax") + taxField);
                 }
 
                 if (currentMode != MODE_ALL && currentMode != MODE_RANGE) {
-                    addToBarChartMap(barEntriesMap, rDate, tempCal, receiptTotal);
+                    addToBarChartMap(barEntriesMap, rDate, tempCal, receiptTotalForChart);
                 }
             }
         }
 
         for (Transaction trans : mAllTransactions) {
-            // ... Transaction filtering ...
             long tDate = trans.getTimestamp();
 
             boolean inRange = true;
@@ -825,13 +856,10 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         mGrandTotal = grandTotal;
         updateUI(categoryTotals, grandTotal);
 
-        // --- Render Chart based on Mode ---
         if (currentMode != MODE_ALL && currentMode != MODE_RANGE) {
-            // Store chart data for later use when switching chart types
             mLastBarEntriesMap = new HashMap<>(barEntriesMap);
             mLastBarCount = barCount;
             
-            // Check if there's any data in the map
             boolean hasChartData = false;
             for (Double value : barEntriesMap.values()) {
                 if (value > 0) {
@@ -840,7 +868,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                 }
             }
 
-            // Show/hide empty state for statistics chart
             if (tvEmptyStateStats != null) {
                 tvEmptyStateStats.setVisibility(hasChartData ? View.GONE : View.VISIBLE);
             }
@@ -858,22 +885,16 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
                 renderBarChart(barEntriesMap, barCount);
             }
             } else {
-                // Clear charts when no data
                 if (barChart != null) barChart.clear();
                 if (lineChart != null) lineChart.clear();
             }
         } else {
-            // For ALL and RANGE modes, hide statistics card empty state
             if (tvEmptyStateStats != null) {
                 tvEmptyStateStats.setVisibility(View.GONE);
             }
         }
     }
 
-    /**
-     * Re-renders only the bar/line chart without updating pie chart or category data.
-     * Used when switching between bar and line chart modes.
-     */
     private void renderCurrentChart() {
         if (currentMode == MODE_ALL || currentMode == MODE_RANGE) {
             return;
@@ -883,7 +904,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
             return;
         }
 
-        // Check if there's any data
         boolean hasChartData = false;
         for (Double value : mLastBarEntriesMap.values()) {
             if (value > 0) {
@@ -901,7 +921,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         }
     }
 
-    // ... addToBarChartMap & setStart/EndOfDay ...
     private void addToBarChartMap(Map<Integer, Double> map, long timestamp, Calendar cal, double amount) {
         cal.setTimeInMillis(timestamp);
         int key = -1;
@@ -917,14 +936,12 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         } else if (currentMode == MODE_YEAR) {
             key = cal.get(Calendar.MONTH) + 1;
         } else if (currentMode == MODE_RANGE) {
-            // Calculate day number within the range (1-based)
             Calendar rangeStart = (Calendar) rangeStartCalendar.clone();
             setStartOfDay(rangeStart);
             long daysDiff = (timestamp - rangeStart.getTimeInMillis()) / (1000 * 60 * 60 * 24);
-            key = (int) daysDiff + 1; // +1 to make it 1-based
-            // Ensure key is within valid range
+            key = (int) daysDiff + 1;
             if (key < 1 || key > map.size()) {
-                return; // Skip if outside range
+                return;
             }
         }
 
@@ -960,7 +977,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         }
 
         int colorPrimary = getColorPrimary();
-        int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153); // 60% opacity
+        int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153);
         BarDataSet set = new BarDataSet(entries, getString(R.string.expense));
         set.setColor(colorPrimary);
         set.setHighLightAlpha(0);
@@ -1021,7 +1038,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         }
 
         int colorPrimary = getColorPrimary();
-        int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153); // 60% opacity
+        int textColorSecondary = ColorUtils.setAlphaComponent(getColorOnSurface(), 153);
         LineDataSet set = new LineDataSet(entries, getString(R.string.expense));
         set.setColor(colorPrimary);
         set.setLineWidth(2f);
@@ -1104,8 +1121,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
         boolean hasData = grandTotal > 0;
 
-        // Show/hide empty state for pie chart
-        // Container always stays visible to maintain height, only chart/empty state toggle
         if (tvEmptyState != null) {
             tvEmptyState.setVisibility(hasData ? View.GONE : View.VISIBLE);
         }
@@ -1149,7 +1164,6 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
 
     private void updatePieChartData(List<CategoryItemDisplay> list, double grandTotal) {
         if (grandTotal <= 0 || list.isEmpty()) {
-            // No data - clear chart and show empty state message
             pieChart.clear();
             pieChart.setCenterText(getString(R.string.no_data_available));
             pieChart.invalidate();
@@ -1202,7 +1216,7 @@ public class DashboardFragment extends Fragment implements OnChartValueSelectedL
         SpannableString s = new SpannableString(label + "\n" + totalStr);
 
         int colorOnSurface = getColorOnSurface();
-        int labelColor = ColorUtils.setAlphaComponent(colorOnSurface, 128); // ~50% opacity for gray
+        int labelColor = ColorUtils.setAlphaComponent(colorOnSurface, 128);
         int amountColor = colorOnSurface;
 
         s.setSpan(new RelativeSizeSpan(0.8f), 0, label.length(), 0);

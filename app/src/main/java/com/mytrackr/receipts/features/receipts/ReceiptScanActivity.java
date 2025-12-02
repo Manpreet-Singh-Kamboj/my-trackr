@@ -83,6 +83,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
     private View ocrResultCard;
     private View cornerEditSection;
     private Button btnProcess, btnSave;
+    private View geminiStepsLayout;
+    private TextView tvGeminiStep1, tvGeminiStep2, tvGeminiStep3;
+    private android.os.Handler geminiStepsHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private int geminiStepIndex = 0;
 
     // New UI for corner editing
     private com.mytrackr.receipts.features.receipts.CornerOverlayView cornerOverlay;
@@ -138,6 +142,10 @@ public class ReceiptScanActivity extends AppCompatActivity {
         cornerEditSection = binding.cornerEditSection;
         btnProcess = binding.btnProcess;
         btnSave = binding.btnSave;
+        geminiStepsLayout = binding.geminiStepsLayout;
+        tvGeminiStep1 = binding.tvGeminiStep1;
+        tvGeminiStep2 = binding.tvGeminiStep2;
+        tvGeminiStep3 = binding.tvGeminiStep3;
 
         // corner editing controls
         cornerOverlay = binding.cornerOverlay;
@@ -1169,6 +1177,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                     // free high-res bitmap to reduce memory usage after successful upload
                     try { if (lastBitmapOriginal != null && !lastBitmapOriginal.isRecycled()) { lastBitmapOriginal.recycle(); } } catch (Exception ignored) {}
                     lastBitmapOriginal = null;
+                    finish();
                 });
             }
 
@@ -1199,6 +1208,8 @@ public class ReceiptScanActivity extends AppCompatActivity {
             Toast.makeText(this, getString(R.string.ocr_complete_gemini_not_configured), Toast.LENGTH_SHORT).show();
             return;
         }
+
+        startGeminiStepsAnimation();
 
         geminiApiService.extractReceiptData(ocrText, new GeminiApiService.GeminiCallback() {
             @Override
@@ -1237,6 +1248,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             btnSave.setVisibility(View.VISIBLE);
                             btnSave.setEnabled(true);
                         }
+                        stopGeminiStepsAnimation();
                         Toast.makeText(ReceiptScanActivity.this, getString(R.string.receipt_data_extracted_successfully), Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Log.e(TAG, "Failed to map Gemini response to Receipt", e);
@@ -1259,6 +1271,7 @@ public class ReceiptScanActivity extends AppCompatActivity {
                             btnSave.setVisibility(View.VISIBLE);
                             btnSave.setEnabled(true);
                         }
+                        stopGeminiStepsAnimation();
                         Toast.makeText(ReceiptScanActivity.this, getString(R.string.ocr_complete_parsing_fallback), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -1292,10 +1305,43 @@ public class ReceiptScanActivity extends AppCompatActivity {
                         btnSave.setVisibility(View.VISIBLE);
                         btnSave.setEnabled(true);
                     }
+                    stopGeminiStepsAnimation();
                     Toast.makeText(ReceiptScanActivity.this, getString(R.string.gemini_unavailable, e.getMessage()), Toast.LENGTH_LONG).show();
                 });
             }
         });
+    }
+
+    private void startGeminiStepsAnimation() {
+        if (geminiStepsLayout == null) return;
+        geminiStepIndex = 0;
+        geminiStepsLayout.setVisibility(View.VISIBLE);
+        updateGeminiStepsUI();
+
+        geminiStepsHandler.removeCallbacksAndMessages(null);
+        geminiStepsHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                geminiStepIndex = (geminiStepIndex + 1) % 3;
+                updateGeminiStepsUI();
+                geminiStepsHandler.postDelayed(this, 1500);
+            }
+        }, 1500);
+    }
+
+    private void stopGeminiStepsAnimation() {
+        geminiStepsHandler.removeCallbacksAndMessages(null);
+        if (geminiStepsLayout != null) {
+            geminiStepsLayout.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateGeminiStepsUI() {
+        if (tvGeminiStep1 == null || tvGeminiStep2 == null || tvGeminiStep3 == null) return;
+
+        tvGeminiStep1.setVisibility(geminiStepIndex == 0 ? View.VISIBLE : View.GONE);
+        tvGeminiStep2.setVisibility(geminiStepIndex == 1 ? View.VISIBLE : View.GONE);
+        tvGeminiStep3.setVisibility(geminiStepIndex == 2 ? View.VISIBLE : View.GONE);
     }
 
     // Format JSON for display in TextView with proper indentation

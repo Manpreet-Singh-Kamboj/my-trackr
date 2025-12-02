@@ -92,12 +92,11 @@ dependencies {
 
     // Glide for efficient image loading, EXIF handling and transformations
     implementation("com.github.bumptech.glide:glide:4.15.1")
-    // optionally add the compiler if you plan to use Glide annotations (not required for basic usage)
-    // kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     // Cloudinary (unsigned uploads from client with an upload preset) and OkHttp for multipart upload
     implementation("com.cloudinary:cloudinary-android:3.1.2")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
+
 
     // WorkManager for background tasks and scheduled notifications
     implementation("androidx.work:work-runtime:2.9.0")
@@ -107,4 +106,7 @@ dependencies {
 
     // Chart for dashboard
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Gemini Developer API client (Generative AI)
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }
