@@ -1,15 +1,12 @@
 package com.mytrackr.receipts.features.core.fragments;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -93,7 +90,6 @@ public class ProfileFragment extends Fragment {
             return WindowInsetsCompat.CONSUMED;
         });
 
-        // Keep latest transactions for CSV export
         budgetViewModel.getTransactionsLiveData().observe(getViewLifecycleOwner(), transactions -> {
             lastTransactions.clear();
             if (transactions != null) {
@@ -101,7 +97,6 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // Initial load of current month data for export
         refreshExportData();
 
         return binding.getRoot();
@@ -118,9 +113,7 @@ public class ProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         authViewModel.refreshUserDetails();
-        // Refresh export data when returning to profile so manual + receipt expenses are up to date
         refreshExportData();
-        // Refresh menu items in case language changed
         setupProfileMenuOptions();
         setupProfileSupportOptions();
     }
@@ -129,7 +122,6 @@ public class ProfileFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100 && resultCode == android.app.Activity.RESULT_OK) {
-            // Language changed, refresh menu items
             setupProfileMenuOptions();
             setupProfileSupportOptions();
         }
@@ -138,11 +130,9 @@ public class ProfileFragment extends Fragment {
     private void refreshExportData() {
         if (budgetViewModel == null) return;
 
-        // Load current month manual transactions
-        budgetViewModel.loadCurrentMonthTransactions();
+        budgetViewModel.loadCurrentYearTransactions();
 
-        // Load current month receipts into lastReceipts
-        budgetViewModel.loadCurrentMonthReceipts(new MutableLiveData<java.util.List<Receipt>>() {
+        budgetViewModel.loadCurrentYearReceipts(new MutableLiveData<java.util.List<Receipt>>() {
             @Override
             public void postValue(java.util.List<Receipt> value) {
                 super.postValue(value);
@@ -191,40 +181,20 @@ public class ProfileFragment extends Fragment {
     }
 
     private void handleExportCsvClick() {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(requireActivity(),
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        1001);
-                Toast.makeText(getContext(), getString(R.string.please_grant_storage_permission_to_export_csv), Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
         exportExpensesToCsv();
     }
 
     private void exportExpensesToCsv() {
         if (lastTransactions.isEmpty() && lastReceipts.isEmpty()) {
-            Toast.makeText(getContext(), getString(R.string.no_expenses_to_export_for_this_month), Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), getString(R.string.no_expenses_to_export_for_this_year), Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (downloadsDir == null) {
-                Toast.makeText(getContext(), getString(R.string.unable_to_access_downloads_folder), Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (!downloadsDir.exists() && !downloadsDir.mkdirs()) {
-                Toast.makeText(getContext(), getString(R.string.unable_to_create_downloads_folder), Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String monthYear = new SimpleDateFormat("MMM_yyyy", Locale.US).format(new Date());
-            String fileName = "Expenses_Report_" + monthYear + ".csv";
-            File csvFile = new File(downloadsDir, fileName);
+            File cacheDir = requireContext().getCacheDir();
+            String year = new SimpleDateFormat("yyyy", Locale.US).format(new Date());
+            String fileName = "Expenses_Report_" + year + ".csv";
+            File csvFile = new File(cacheDir, fileName);
 
             FileWriter writer = new FileWriter(csvFile);
 
@@ -286,14 +256,14 @@ public class ProfileFragment extends Fragment {
                         .append(escapeCsv(storeName)).append(',')
                         .append(escapeCsv(category)).append(',')
                         .append(String.valueOf(amount)).append(',')
-                        .append("")  // tax not tracked for manual entries
+                        .append("")
                         .append(',')
-                        .append("")  // total_items not tracked for manual entries
+                        .append("")
                         .append(',')
                         .append(escapeCsv(type)).append(',')
-                        .append("")  // payment_method unknown
+                        .append("")
                         .append(',')
-                        .append("")  // tax_number unknown
+                        .append("")
                         .append(',')
                         .append("manual")
                         .append('\n');
@@ -302,7 +272,42 @@ public class ProfileFragment extends Fragment {
             writer.flush();
             writer.close();
 
-            Toast.makeText(getContext(), getString(R.string.csv_saved_in_downloads, fileName), Toast.LENGTH_LONG).show();
+            Uri csvUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    csvFile
+            );
+
+            requireContext().grantUriPermission(
+                    requireContext().getPackageName(),
+                    csvUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/csv");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, csvUri);
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Expenses Report " + year);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Expenses Report for " + year);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            List<android.content.pm.ResolveInfo> resInfoList = requireContext().getPackageManager()
+                    .queryIntentActivities(shareIntent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            for (android.content.pm.ResolveInfo resolveInfo : resInfoList) {
+                String packageName = resolveInfo.activityInfo.packageName;
+                requireContext().grantUriPermission(
+                        packageName,
+                        csvUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                );
+            }
+
+            Intent chooserIntent = Intent.createChooser(shareIntent, getString(R.string.csv_ready_to_share));
+            chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            
+            startActivity(chooserIntent);
+
+            Toast.makeText(getContext(), getString(R.string.csv_ready_to_share), Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(getContext(), getString(R.string.failed_to_export_csv, e.getMessage()), Toast.LENGTH_LONG).show();

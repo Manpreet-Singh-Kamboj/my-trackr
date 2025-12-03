@@ -245,12 +245,32 @@ public class ExpensesFragment extends Fragment {
     private void combineAndDisplayExpenses(List<Transaction> transactions, List<Receipt> receipts) {
         List<ExpenseItem> expenseItems = new ArrayList<>();
 
+        // Calculate selected month's date range for filtering
+        if (selectedMonthCalendar == null) {
+            selectedMonthCalendar = Calendar.getInstance();
+        }
+        Calendar monthStart = (Calendar) selectedMonthCalendar.clone();
+        monthStart.set(Calendar.DAY_OF_MONTH, 1);
+        monthStart.set(Calendar.HOUR_OF_DAY, 0);
+        monthStart.set(Calendar.MINUTE, 0);
+        monthStart.set(Calendar.SECOND, 0);
+        monthStart.set(Calendar.MILLISECOND, 0);
+        long monthStartTime = monthStart.getTimeInMillis();
+        
+        Calendar monthEnd = (Calendar) monthStart.clone();
+        monthEnd.add(Calendar.MONTH, 1);
+        long monthEndTime = monthEnd.getTimeInMillis();
+
         int receiptCount = 0;
         if (receipts != null) {
             for (Receipt receipt : receipts) {
                 if (receipt.getReceipt() != null && receipt.getReceipt().getTotal() > 0) {
-                    expenseItems.add(new ExpenseItem(receipt));
-                    receiptCount++;
+                    // Filter by receiptDateTimestamp (original receipt date) to ensure it's in selected month
+                    long receiptDate = receipt.getReceipt().getReceiptDateTimestamp();
+                    if (receiptDate > 0 && receiptDate >= monthStartTime && receiptDate < monthEndTime) {
+                        expenseItems.add(new ExpenseItem(receipt));
+                        receiptCount++;
+                    }
                 }
             }
         }
@@ -259,8 +279,12 @@ public class ExpensesFragment extends Fragment {
         if (transactions != null) {
             for (Transaction transaction : transactions) {
                 if (transaction.isExpense()) {
-                    expenseItems.add(new ExpenseItem(transaction));
-                    manualTransactionCount++;
+                    // Filter by timestamp to ensure it's in selected month
+                    long transactionTime = transaction.getTimestamp();
+                    if (transactionTime >= monthStartTime && transactionTime < monthEndTime) {
+                        expenseItems.add(new ExpenseItem(transaction));
+                        manualTransactionCount++;
+                    }
                 }
             }
         }
@@ -279,6 +303,7 @@ public class ExpensesFragment extends Fragment {
             rvTransactions.setVisibility(View.VISIBLE);
             cardNoTransactions.setVisibility(View.GONE);
         } else {
+            expenseItemAdapter.setExpenseItems(new ArrayList<>());
             rvTransactions.setVisibility(View.GONE);
             cardNoTransactions.setVisibility(View.VISIBLE);
         }
@@ -503,12 +528,16 @@ public class ExpensesFragment extends Fragment {
         if (progressLoading != null) {
             progressLoading.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        if (rvTransactions != null) {
-            rvTransactions.setVisibility(show ? View.GONE : View.VISIBLE);
+        if (show) {
+            // When loading, hide both list and empty state
+            if (rvTransactions != null) {
+                rvTransactions.setVisibility(View.GONE);
+            }
+            if (cardNoTransactions != null) {
+                cardNoTransactions.setVisibility(View.GONE);
+            }
         }
-        if (cardNoTransactions != null) {
-            cardNoTransactions.setVisibility(View.GONE);
-        }
+        // When not loading, visibility is managed by combineAndDisplayExpenses
     }
 
     private void updateLoadingState() {

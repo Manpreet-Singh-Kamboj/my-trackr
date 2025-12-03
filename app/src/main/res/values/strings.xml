@@ -284,10 +284,12 @@
     <!-- Profile/CSV Export -->
     <string name="please_grant_storage_permission_to_export_csv">Please grant storage permission to export CSV</string>
     <string name="no_expenses_to_export_for_this_month">No expenses to export for this month</string>
+    <string name="no_expenses_to_export_for_this_year">No expenses to export for this year</string>
     <string name="unable_to_access_downloads_folder">Unable to access Downloads folder</string>
     <string name="unable_to_create_downloads_folder">Unable to create Downloads folder</string>
     <string name="csv_saved_in_downloads">CSV saved in Downloads: %1$s</string>
     <string name="failed_to_export_csv">Failed to export CSV: %1$s</string>
+    <string name="csv_ready_to_share">CSV file ready to share</string>
 
     <!-- Category detail -->
     <string name="category_expenses">%1$s Expenses</string>

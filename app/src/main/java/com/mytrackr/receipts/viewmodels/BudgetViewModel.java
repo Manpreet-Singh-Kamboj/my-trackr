@@ -334,7 +334,56 @@ public class BudgetViewModel extends ViewModel {
     }
 
     public void loadTransactionsForMonth(String month, String year) {
-        transactionRepository.getRecentTransactions(month, year, 50, transactionsLiveData, errorMessage);
+        // Calculate month start and end timestamps
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, Integer.parseInt(year));
+        calendar.set(Calendar.MONTH, getMonthNumber(month));
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long monthStart = calendar.getTimeInMillis();
+        
+        calendar.add(Calendar.MONTH, 1);
+        long monthEnd = calendar.getTimeInMillis();
+        
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+        
+        String userId = auth.getCurrentUser().getUid();
+        com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
+        
+        // Query transactions by timestamp instead of month/year strings
+        db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .whereGreaterThanOrEqualTo("timestamp", monthStart)
+                .whereLessThan("timestamp", monthEnd)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<com.mytrackr.receipts.data.model.Transaction> transactions = new ArrayList<>();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot document : querySnapshot) {
+                        try {
+                            com.mytrackr.receipts.data.model.Transaction transaction = document.toObject(com.mytrackr.receipts.data.model.Transaction.class);
+                            transaction.setId(document.getId());
+                            if (transaction.isExpense()) {
+                                transactions.add(transaction);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing transaction", e);
+                        }
+                    }
+                    transactionsLiveData.postValue(transactions);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading transactions for month", e);
+                    transactionsLiveData.postValue(new ArrayList<>());
+                    errorMessage.postValue("Failed to load transactions: " + e.getMessage());
+                });
     }
 
     public void loadCurrentMonthReceipts(MutableLiveData<List<com.mytrackr.receipts.data.models.Receipt>> receiptsLiveData) {
@@ -408,6 +457,7 @@ public class BudgetViewModel extends ViewModel {
         String userId = auth.getCurrentUser().getUid();
         com.google.firebase.firestore.FirebaseFirestore db = com.google.firebase.firestore.FirebaseFirestore.getInstance();
 
+        // Query by receiptDateTimestamp only (original receipt date, not upload time)
         db.collection("users")
                 .document(userId)
                 .collection("receipts")
@@ -496,5 +546,111 @@ public class BudgetViewModel extends ViewModel {
             refreshBudget();
             loadCurrentMonthTransactions();
         }, 300);
+    }
+
+    public void loadCurrentYearTransactions() {
+        Calendar calendar = Calendar.getInstance();
+        int currentYear = calendar.get(Calendar.YEAR);
+        
+        calendar.set(Calendar.YEAR, currentYear);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long yearStart = calendar.getTimeInMillis();
+        
+        calendar.set(Calendar.YEAR, currentYear + 1);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        long yearEnd = calendar.getTimeInMillis();
+        
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+        
+        String userId = auth.getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        db.collection("users")
+                .document(userId)
+                .collection("transactions")
+                .whereGreaterThanOrEqualTo("timestamp", yearStart)
+                .whereLessThan("timestamp", yearEnd)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Transaction> transactions = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        try {
+                            Transaction transaction = document.toObject(Transaction.class);
+                            transaction.setId(document.getId());
+                            if (transaction.isExpense()) {
+                                transactions.add(transaction);
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing transaction", e);
+                        }
+                    }
+                    transactionsLiveData.postValue(transactions);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading transactions for year", e);
+                    transactionsLiveData.postValue(new ArrayList<>());
+                    errorMessage.postValue("Failed to load transactions: " + e.getMessage());
+                });
+    }
+
+    public void loadCurrentYearReceipts(MutableLiveData<List<Receipt>> receiptsLiveData) {
+        Calendar calendar = Calendar.getInstance();
+        int currentYear = calendar.get(Calendar.YEAR);
+        
+        calendar.set(Calendar.YEAR, currentYear);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long yearStart = calendar.getTimeInMillis();
+        
+        calendar.set(Calendar.YEAR, currentYear + 1);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        long yearEnd = calendar.getTimeInMillis();
+        
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            errorMessage.postValue("User not authenticated");
+            return;
+        }
+        
+        String userId = auth.getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        db.collection("users")
+                .document(userId)
+                .collection("receipts")
+                .whereGreaterThanOrEqualTo("receipt.receiptDateTimestamp", yearStart)
+                .whereLessThan("receipt.receiptDateTimestamp", yearEnd)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    List<Receipt> receipts = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : querySnapshot) {
+                        Receipt receipt = ReceiptRepository.parseReceiptFromDocument(document);
+                        if (receipt != null && receipt.getReceipt() != null && receipt.getReceipt().getTotal() > 0) {
+                            receipt.setId(document.getId());
+                            receipts.add(receipt);
+                        }
+                    }
+                    receiptsLiveData.postValue(receipts);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading receipts for year", e);
+                    receiptsLiveData.postValue(new ArrayList<>());
+                    errorMessage.postValue("Failed to load receipts: " + e.getMessage());
+                });
     }
 }
