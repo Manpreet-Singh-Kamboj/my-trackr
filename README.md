@@ -1,71 +1,85 @@
-# 📲 MyTrackr (MVP)
+# MyTrackr – Receipt & Budget Tracker (MVP)
 
-**MyTrackr** is a mobile-first Android app that helps users effortlessly scan, store, and track receipts while also managing monthly budgets. The app leverages **OCR (ML Kit)** and **AI-powered formatting** to unify receipt data into a clean, consistent format for easy searching, exporting, and financial insights.
+[![Android](https://img.shields.io/badge/Platform-Android-green)](https://www.android.com/) 
+[![Java](https://img.shields.io/badge/Language-Java-orange)](https://www.java.com/) 
+[![Firebase](https://img.shields.io/badge/Backend-Firebase-blue)](https://firebase.google.com/) 
+[![ML Kit](https://img.shields.io/badge/OCR-ML%20Kit-red)](https://developers.google.com/ml-kit) 
+[![Dark Mode](https://img.shields.io/badge/DarkMode-Supported-purple)](https://developer.android.com/) 
+[![Multilingual](https://img.shields.io/badge/Multilingual-English%2FHindi%2FFrench%2FChinese-lightgrey)](https://developer.android.com/)
 
---- 
+**MyTrackr** is a mobile-first Android app that allows users to scan, store, and manage receipts while tracking monthly expenses. It supports reminders, budget notifications, CSV/PDF export, dark mode, and multilingual support for a global audience.
 
-## 🎥 Demo
+---
+
+## Screens
+
+1. **Home** – Quick access to recent receipts and key actions  
+2. **Expense Tracker** – View and manage monthly spending  
+3. **Dashboard** – Filter by week, month, year, or custom range  
+4. **Profile** – Manage settings, language, and app preferences  
+
+---
+
+## Features
+
+- **OCR-based Receipt Scanning**  
+  - Capture receipts via camera or gallery  
+  - Extract details using **Google ML Kit Text Recognition**  
+  - Process and standardize receipts with **Gemini**  
+
+- **Receipt Management**  
+  - Standardized receipt formatting  
+  - Filter receipts by date (latest first)  
+  - Download receipt images anytime  
+
+- **Budget Tracking**  
+  - Monthly budget tracking with auto-summed spending  
+  - Budget filter by month  
+  - Weekly budget notifications every Monday at **7 AM**  
+
+- **Reminders**  
+  - Replacement reminders: automatic notification **6 days** after receipt date  
+  - Custom reminder times  
+
+- **Export**  
+  - CSV export for current year’s expenses (store, amount, tax, etc.)  
+  - PDF export for individual receipts  
+
+- **Dark Mode Support**  
+  - Seamless light/dark theme switching  
+
+- **Multilingual Support**  
+  - English, Hindi, French, and Chinese  
+
+---
+
+## Tech Stack
+
+- **Mobile App:** Android (Java)  
+- **Authentication & Storage:** Firebase Auth, Firestore, Firebase Storage  
+- **OCR:** Google ML Kit Text Recognition  
+- **Receipt Processing:** Gemini  
+- **Export:** Android PDF Generator, CSV export  
+- **Notifications & Reminders:** Android native notification system  
+
+---
+
+## Demo
 
 https://github.com/user-attachments/assets/1ee60842-1a6b-44d9-9420-5fd7672a66df
 
 ---
 
-## 🚀 Features
+## Future Improvements
 
-### 🛬 Onboarding
-
-- Landing / onboarding pages explaining:
-  - What the app does
-  - Benefits of managing receipts digitally
-  - Budget tracking overview
-
-### 🔐 Authentication & Access
-
-- User Registration & Login
-- **Google SSO integration via Firebase**
-- **IAM (Identity & Access Management):**
-  - **User** – can scan, store, search, and track receipts
-  - **Admin** – extended privileges (e.g., managing entitlements, system usage reports)
-
-### 📸 Receipt Scanning
-
-- Capture receipt image via **Camera** or select from **Gallery**
-- Preview before saving
-- **OCR with ML Kit Text Recognition** to extract:
-  - Store name
-  - Items purchased
-  - Prices & taxes
-
-### 💾 Receipt Storage
-
-- Store scanned receipts with:
-  - Original image
-  - Extracted + AI-formatted details
-- Unified bill format regardless of layout differences
-- **Basic search**:
-  - By store name
-  - By date
-
-### 👤 User Profile
-
-- **My Receipts / Bills** – personal dashboard
-- Export receipts as **PDF** (for tax filing or record keeping)
-
-### 💰 Budget Tracker
-
-- Set a **monthly budget**
-- Track total spend (auto-summed from uploaded receipts)
-- **Smart suggestions**:
-  - AI-powered tips to lower expenses
-  - Alerts when nearing or exceeding budget
+- AI-powered expense insights and suggestions  
+- Multi-user/family budget tracking  
+- Cloud backup & sync  
 
 ---
 
-## 🏗️ Tech Stack
+## Getting Started
 
-- **Frontend (Mobile):** Android (Java)
-- **Authentication:** Firebase Auth (Google SSO)
-- **OCR:** Google ML Kit – Text Recognition
-- **Storage:** Firebase Firestore / Realtime Database (for structured receipt data) + Firebase Storage (for images)
-- **AI Formatting:** LLM/AI pipeline (to standardize receipt structure)
-- **Export:** PDF generator (Android native libraries)
+1. Clone the repository:  
+   ```bash
+   git clone https://github.com/yourusername/MyTrackr.git
