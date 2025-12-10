@@ -43,7 +43,6 @@
 
 - **Export**  
   - CSV export for current year’s expenses (store, amount, tax, etc.)  
-  - PDF export for individual receipts  
 
 - **Dark Mode Support**  
   - Seamless light/dark theme switching  
