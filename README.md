@@ -55,7 +55,7 @@
 ## Tech Stack
 
 - **Mobile App:** Android (Java)  
-- **Authentication & Storage:** Firebase Auth, Firestore, Firebase Storage  
+- **Authentication & Storage:** Firebase Auth, Firestore, Cloudinary Storage  
 - **OCR:** Google ML Kit Text Recognition  
 - **Receipt Processing:** Gemini  
 - **Export:** Android PDF Generator, CSV export  
