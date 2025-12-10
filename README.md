@@ -2,6 +2,12 @@
 
 **MyTrackr** is a mobile-first Android app that helps users effortlessly scan, store, and track receipts while also managing monthly budgets. The app leverages **OCR (ML Kit)** and **AI-powered formatting** to unify receipt data into a clean, consistent format for easy searching, exporting, and financial insights.
 
+--- 
+
+## 🎥 Demo
+
+https://github.com/user-attachments/assets/1ee60842-1a6b-44d9-9420-5fd7672a66df
+
 ---
 
 ## 🚀 Features
